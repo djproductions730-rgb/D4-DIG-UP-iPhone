@@ -19,6 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      - name: Render iPhone app icon PNG
+        run: |
+          python3 -m pip install --quiet --user cairosvg
+          python3 -c "import cairosvg; cairosvg.svg2png(url='icon.svg',write_to='apple-touch-icon.png',output_width=180,output_height=180)"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
