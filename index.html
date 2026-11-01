@@ -182,10 +182,9 @@ function home(){
 const groups={};
 for(const e of data.entries){if(e.type==='Expense'){const key=e.category||'Other';groups[key]=(groups[key]||0)+Number(e.amount||0)}}
 const top=Object.entries(groups).sort((a,b)=>b[1]-a[1]);
-const hasBank=data.banks.length>0,now=new Date(),first=new Date(now.getFullYear(),now.getMonth(),1);
-const thisMonth=data.entries.filter(e=>new Date(e.created||e.when||0)>=first);
-const inc=thisMonth.filter(e=>e.type==='Income').reduce((sum,e)=>sum+Number(e.amount||0),0);
-const exp=thisMonth.filter(e=>e.type==='Expense').reduce((sum,e)=>sum+Number(e.amount||0),0);
+const hasBank=data.banks.length>0;
+const summary=analyticsSnapshot();
+const inc=summary.income,exp=summary.expense;
 let html='<div class="hero"><small>🏦 TOTAL BANK BALANCE</small><div class="balance">'+(hasBank?fmt(total()):'Add your bank')+'</div><div class="hero-footer"><span>'+data.banks.length+' accounts</span><span>My wallet</span></div></div>';
 html+='<div class="split" style="margin:12px 0"><div class="smallstat"><div class="muted">↙ Income · This month</div><strong class="value" style="color:#08945a">'+fmt(inc)+'</strong></div><div class="smallstat"><div class="muted">↗ Expenses · This month</div><strong class="value" style="color:#df3e62">'+fmt(exp)+'</strong></div></div>';
 html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">One-tap access</span></div>';
