@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><base target="_top"><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D4 DIG UP — Verify & Export</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Arial,sans-serif;margin:0;background:#f6f5fe;color:#20224b}
+main{max-width:520px;margin:25px auto;padding:18px}
+.hero{background:linear-gradient(125deg,#30289d,#7960f4);color:white;padding:24px;border-radius:22px}
+h1{font-size:24px;margin:5px 0 10px}p{font-size:13px;line-height:1.65}
+.card{background:white;border:1px solid #e6e4f2;border-radius:19px;padding:20px;margin:16px 0}
+label{font-size:13px;font-weight:750;display:block;margin:14px 0 6px}
+input{width:100%;font:inherit;padding:13px;border:1px solid #cbc9df;border-radius:12px}
+button{background:#5144d1;border:0;border-radius:12px;color:white;padding:13px 15px;font-weight:800;font:inherit;cursor:pointer;margin-top:13px;width:100%}
+button:disabled{opacity:.5}.secondary{background:#ece9ff;color:#493ba9}
+.muted{font-size:12px;color:#70718a;line-height:1.6}.status{font-size:13px;padding:12px;margin-top:14px;border-radius:11px;background:#ebebf8;white-space:pre-wrap}
+.error{background:#ffe4e8;color:#8f1531}.good{background:#def8e9;color:#0c6544}
+.hidden{display:none}.privacy{background:#fff4de;border-color:#f4dfb6}
+</style></head><body><main>
+<div class="hero"><b>D4 DIG UP</b><h1>Link Your Old Account</h1>
+<p>Verify your original Android APK account with an email OTP, then download a private snapshot to import into Brave.</p></div>
+<div class="card">
+  <h2 style="font-size:19px">1 · Verify registered Gmail</h2>
+  <p class="muted">Only the person who controls this Gmail should request and enter the OTP. Never give the code to someone else.</p>
+  <label for="email">Email used in your old D4 DIG UP APK</label>
+  <input id="email" type="email" autocomplete="email" placeholder="you@gmail.com" required>
+  <button id="send" onclick="sendOtp()">Send verification OTP</button>
+  <div id="verifyBox" class="hidden">
+    <label for="otp">6-digit email OTP</label>
+    <input id="otp" type="text" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="one-time-code">
+    <button id="verify" onclick="verify()">Verify & Prepare My Backup</button>
+  </div>
+</div>
+<div class="card hidden" id="exportBox">
+  <h2 style="font-size:19px">2 · Download your verified records</h2>
+  <div id="counts" class="status good"></div>
+  <button id="download" onclick="download()">Download My D4 Account JSON</button>
+  <p class="muted">This file contains private financial records. Save it only to your phone; don't send it to anyone in chat.</p>
+  <h2 style="font-size:19px">3 · Return to Brave app</h2>
+  <p class="muted">Open D4 DIG UP → Settings → Import Verified Android Backup. Choose the downloaded JSON file. The import will be blocked if Brave already has records.</p>
+</div>
+<div id="status" class="status" role="status">Ready to request OTP. No data accessed yet.</div>
+<div class="card privacy"><b>🔒 Safety</b>
+  <p>This tool exports a one-time copy only. It never deletes the old account, changes bank balances, or turns the public GitHub Pages app into a live connected account. The original Apps Script backend must be correctly deployed for verification to work.</p>
+</div>
+</main>
+<script>
+'use strict';
+let backupJson='';
+const $=id=>document.getElementById(id);
+function state(message,error,good) {
+  $('status').textContent=message;
+  $('status').className='status '+(error?'error':good?'good':'');
+}
+function call(method,args,button,done){
+  const el=$(button);el.disabled=true;state('Checking securely…');
+  let rpc=google.script.run
+    .withSuccessHandler(result=>{el.disabled=false;done(result);})
+    .withFailureHandler(error=>{el.disabled=false;state(error.message||'Request failed',true);});
+  rpc[method](...args);
+}
+function sendOtp(){
+  const email=$('email').value.trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return state('Enter a valid Gmail address.',true);
+  call('d4BridgeSendOtp',[email],'send',r=>{
+    $('verifyBox').classList.remove('hidden');$('email').readOnly=true;
+    state('OTP was sent to the registered account email. Check Gmail. Validity follows the original D4 service.',false,true);
+  });
+}
+function verify(){
+  const email=$('email').value.trim().toLowerCase(),otp=$('otp').value.trim();
+  if(!/^[0-9]{6}$/.test(otp))return state('Enter the exact six digits.',true);
+  call('d4BridgeVerifyOtp',[email,otp],'verify',r=>{
+    backupJson=r.json; $('otp').value='';
+    $('counts').textContent='Account: '+r.userName+'\n'+
+      r.count.banks+' banks · '+r.count.transactions+' transactions · '+
+      r.count.plans+' plans · '+r.count.loans+' loans';
+    $('exportBox').classList.remove('hidden');
+    state('Your original D4 account was verified. Download your private backup file.',false,true);
+  });
+}
+function download(){
+  if(!backupJson)return state('Verify your account first.',true);
+  const blob=new Blob([backupJson],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='D4-Verified-Android-Account-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),120000);
+  state('Download requested. Check your browser Downloads for the JSON file, then return to Brave app.',false,true);
+}
+</script></body></html>
