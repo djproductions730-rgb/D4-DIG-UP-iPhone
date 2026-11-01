@@ -17,7 +17,7 @@ function loanEmi(l){
  if(explicit>0&&Number.isFinite(explicit))return explicit;
  return r>0?p*r/(1-Math.pow(1+r,-months)):p/months;
 }
-function loanStatus(l,onDate=new Date().toISOString().slice(0,10)){
+function loanStatus(l,onDate=loanLocalToday()){
  let principal=Math.max(0,Number(l.principal)||0),interest=0,totalPaid=0,dueCount=0;
  const events=[];
  const months=Math.min(600,Math.max(0,Math.floor(Number(l.months)||0)));
@@ -44,27 +44,35 @@ function loanScheduleReady(l){
  const months=Number(l.months);
  return validLoanDate(loanDay(l.firstDue))&&Number.isInteger(months)&&months>0&&months<=600&&Number(l.principal)>0;
 }
+// Payments count toward the oldest unpaid monthly installment.
+// When the current EMI is covered, show PAID and the next due date, not a reminder.
 function loanDueSummary(l,onDate=loanLocalToday()){
  const st=loanStatus(l,onDate);
- if(!loanScheduleReady(l))return {kind:'setup',label:'Set schedule',date:'',due:0,emi:st.emi,st};
- if(st.outstanding<0.01)return {kind:'paid',label:'Paid off',date:'',due:0,emi:st.emi,st};
- if(st.due>0.009){
-  const paid=(l.payments||[]).reduce((sum,p)=>{
-   const amount=Number(p.amount);
-   return loanDay(p.date)<=onDate&&Number.isFinite(amount)&&amount>0?sum+amount:sum;
-  },0);
-  let oldest='';
-  for(let i=0;i<Math.min(600,Number(l.months));i++){
-   const day=loanMonth(l.firstDue,i);
-   if(day>onDate)break;
-   if(paid+0.009<Math.round(st.emi*(i+1)*100)/100){oldest=day;break;}
-  }
-  const kind=oldest<onDate?'overdue':'today';
-  return {kind,label:kind==='overdue'?'Payment overdue':'Due today',date:oldest||onDate,due:st.due,emi:st.emi,st};
+ if(!loanScheduleReady(l))return {kind:'setup',label:'Set schedule',date:'',due:0,amount:0,emi:st.emi,st};
+ if(st.outstanding<0.01)return {kind:'paid',label:'✅ Paid off',date:'',due:0,amount:0,emi:st.emi,st};
+ const emi=Number(st.emi),months=Math.min(600,Math.max(0,Number(l.months)));
+ if(!Number.isFinite(emi)||emi<=0)return {kind:'setup',label:'Set EMI amount',date:'',due:0,amount:0,emi:st.emi,st};
+ const paid=(l.payments||[]).reduce((sum,p)=>{const amount=Number(p.amount),date=loanDay(p.date);return validLoanDate(date)&&date<=onDate&&Number.isFinite(amount)&&amount>0?sum+amount:sum;},0);
+ let dueCount=0;
+ for(let i=0;i<months;i++){if(loanMonth(l.firstDue,i)<=onDate)dueCount++;}
+ let firstUnpaid=0;
+ while(firstUnpaid<months&&Math.round(paid*100)+1>=Math.round(emi*(firstUnpaid+1)*100))firstUnpaid++;
+ const nextDate=firstUnpaid<months?loanMonth(l.firstDue,firstUnpaid):'';
+ const nextAmount=firstUnpaid<months?Math.max(0,Math.round((emi*(firstUnpaid+1)-paid)*100)/100):0;
+ // Most recently due EMI has been paid: status PAID, show the next pending due date.
+ // Suppress the next-seven-days reminder until the next EMI is actually due.
+ if(paid>0&&(dueCount===0||paid+0.009>=emi*dueCount)){
+  return {kind:'paid',label:'✅ Paid',date:nextDate,due:0,amount:nextAmount,emi:st.emi,st};
  }
- if(!st.nextDue)return {kind:'review',label:'Review schedule',date:'',due:0,emi:st.emi,st};
- const diff=Math.round((Date.parse(st.nextDue+'T12:00:00Z')-Date.parse(onDate+'T12:00:00Z'))/86400000);
- return {kind:diff<=7?'soon':'upcoming',label:diff<=7?'Due in '+diff+' day'+(diff===1?'':'s'):'Upcoming',date:st.nextDue,due:0,emi:st.emi,st};
+ const due=Math.max(0,Math.round((emi*dueCount-paid)*100)/100);
+ if(nextDate&&nextDate<=onDate){
+  const kind=nextDate<onDate?'overdue':'today';
+  return {kind,label:kind==='overdue'?'🔴 Payment overdue':'🟠 Due today',date:nextDate,due,amount:nextAmount,emi:st.emi,st};
+ }
+ if(!nextDate)return {kind:'review',label:'Review schedule',date:'',due:0,amount:0,emi:st.emi,st};
+ const days=Math.round((Date.parse(nextDate+'T12:00:00Z')-Date.parse(onDate+'T12:00:00Z'))/86400000);
+ if(days<=7)return {kind:'soon',label:paid>0?'Partly paid · '+days+'d left':'Due in '+days+' day'+(days===1?'':'s'),date:nextDate,due:0,amount:nextAmount,emi:st.emi,st};
+ return {kind:'upcoming',label:paid>0?'Partly paid':'Upcoming',date:nextDate,due:0,amount:nextAmount,emi:st.emi,st};
 }
 function loanDateLabel(v){
  if(!v)return 'Date not set';
@@ -78,7 +86,7 @@ function loansPage(){
  const monthly=statuses.filter(x=>x.kind!=='paid'&&loanScheduleReady(x.loan)).reduce((a,x)=>a+x.emi,0);
  const dueNow=statuses.filter(x=>x.kind==='overdue'||x.kind==='today');
  const dueTotal=dueNow.reduce((a,x)=>a+x.due,0);
- const upcoming=statuses.filter(x=>['soon','upcoming'].includes(x.kind)).sort((a,b)=>a.date.localeCompare(b.date));
+ const upcoming=statuses.filter(x=>x.kind==='soon').sort((a,b)=>a.date.localeCompare(b.date));
  const soon=upcoming.filter(x=>x.kind==='soon');
  const needsSetup=statuses.filter(x=>x.kind==='setup').length;
  let html='<div class="section-head"><h2>💳 Loans & EMI</h2><button class="button" type="button" data-loan-action="new">+ Add Loan</button></div>';
@@ -97,14 +105,14 @@ function loansPage(){
   html+='<div class="loan-setup-note">📋 <strong>'+needsSetup+' loan '+(needsSetup===1?'schedule needs':'schedules need')+' setup.</strong> Edit imported loans to enter their first EMI date, tenure and interest rate. No reminder is shown until those details are entered.</div>';
  }
  if(upcoming.length){
-  html+='<div class="section-head"><h2>📅 Upcoming EMI</h2><span class="pill">Next payments</span></div>';
-  html+='<div class="loan-upcoming">'+upcoming.slice(0,4).map(x=>'<div class="loan-upcoming-row"><div class="loan-calendar-icon">📅</div><div class="grow"><strong>'+tidy(x.loan.name||'Loan')+'</strong><div class="muted">'+tidy(loanDateLabel(x.date))+' · '+tidy(x.label)+'</div></div><div class="loan-upcoming-right"><strong>'+fmt(x.emi)+'</strong><button type="button" data-loan-action="pay" data-loan-id="'+tidy(x.loan.id)+'">Record</button></div></div>').join('')+'</div>';
+  html+='<div class="section-head"><h2>📅 Unpaid EMI · Next 7 Days</h2><span class="pill">Pending only</span></div>';
+  html+='<div class="loan-upcoming">'+upcoming.slice(0,4).map(x=>'<div class="loan-upcoming-row"><div class="loan-calendar-icon">📅</div><div class="grow"><strong>'+tidy(x.loan.name||'Loan')+'</strong><div class="muted">'+tidy(loanDateLabel(x.date))+' · '+tidy(x.label)+'</div></div><div class="loan-upcoming-right"><strong>'+fmt(x.amount)+'</strong><button type="button" data-loan-action="pay" data-loan-id="'+tidy(x.loan.id)+'">Record</button></div></div>').join('')+'</div>';
  }
  html+='<div class="section-head"><h2>🪙 My Loans</h2><span class="pill">'+list.length+' accounts</span></div>';
  html+=statuses.map(x=>{
   const l=x.loan,st=x.st,paid=(l.payments||[]).reduce((a,p)=>a+(Number(p.amount)||0),0);
   const badgeKind=x.kind==='overdue'?'danger':x.kind==='today'?'today':x.kind==='soon'?'soon':x.kind==='setup'?'setup':'neutral';
-  const schedule=loanScheduleReady(l)?(x.date?loanDateLabel(x.date):'No future EMI due date'):'EMI schedule not configured';
+  const schedule=loanScheduleReady(l)?(x.kind==='paid'?(x.date?'Next due: '+loanDateLabel(x.date):'No next EMI scheduled'):(x.date?'Due: '+loanDateLabel(x.date):'No future EMI due date')):'EMI schedule not configured';
   const rate=(l.annualRate!==undefined&&l.annualRate!==null&&l.annualRate!=='')?tidy(l.annualRate)+'% annual':'Rate not set';
   return '<div class="loan-card"><div class="loan-card-head"><div class="loan-symbol">🪙</div><div class="grow"><div class="loan-title">'+tidy(l.name||'Unnamed Loan')+'</div><div class="muted">'+tidy(l.lender||'Lender not set')+'</div></div><button type="button" class="loan-small-btn" data-loan-action="edit" data-loan-id="'+tidy(l.id)+'">✎ Edit</button></div>'+
    '<div class="loan-status '+badgeKind+'">'+tidy(x.label)+'</div>'+
@@ -113,7 +121,7 @@ function loansPage(){
    '<div class="loan-bottom"><span>📅 '+tidy(schedule)+'</span><span>'+rate+'</span></div>'+
    '<div class="loan-actions"><button class="loan-pay" type="button" data-loan-action="pay" data-loan-id="'+tidy(l.id)+'">💸 Record EMI</button><button class="loan-history" type="button" data-loan-action="history" data-loan-id="'+tidy(l.id)+'">🧾 History</button></div></div>';
  }).join('');
- html+='<p class="loan-caption">Due dates are in-app estimates, not push notifications. Outstanding balances may differ from lender statements. Paying an EMI here records only a local transaction and does not update your original Google Sheet.</p>';
+ html+='<p class="loan-caption">✅ Paid means the current scheduled EMI is covered by recorded payments; its next due date stays visible. Only unpaid or partially paid EMIs show reminders. Dates and balances are estimates, not lender confirmations or push notifications. Bank payments are not sent and Google Sheets is not updated.</p>';
  return html;
 }
 function loanBankOptions(selected){
@@ -152,7 +160,7 @@ function loanPaymentForm(id){
  '<p class="loan-caption">Record a payment you already made. This does not transfer money. The chosen bank balance will decrease only when you save this NEW payment.</p>'+
  '<form id="emi-form"><label class="field">Pay from bank</label><select class="input" id="emi-bank" required>'+loanBankOptions(data.banks.find(b=>b.name===l.bank)?.id||'')+'</select>'+
  '<label class="field">Paid amount (₹)</label><input class="input" id="emi-amount" type="number" required min="0.01" step="0.01" value="'+Number(expected).toFixed(2)+'">'+
- '<label class="field">Payment date</label><input class="input" id="emi-date" type="date" required value="'+new Date().toISOString().slice(0,10)+'">'+
+ '<label class="field">Payment date</label><input class="input" id="emi-date" type="date" required value="'+loanLocalToday()+'">'+
  '<label class="field">Payment note</label><input class="input" id="emi-note" maxlength="180" value="'+tidy(l.name+' EMI payment')+'">'+
  '<button type="submit" class="button" style="width:100%">✅ Save Payment & Deduct Bank</button></form>');
  document.getElementById('emi-form').onsubmit=e=>{
@@ -162,7 +170,7 @@ function loanPaymentForm(id){
   const amount=Number(document.getElementById('emi-amount').value);
   const date=document.getElementById('emi-date').value;
   const note=document.getElementById('emi-note').value.trim();
-  const today=new Date().toISOString().slice(0,10);
+  const today=loanLocalToday();
   if(!bank||!Number.isFinite(amount)||amount<=0||!validLoanDate(date)||date>today){alert('Select a bank and enter a valid past/today payment.');return;}
   if(Number(bank.balance)<amount&&!confirm('Bank balance will become negative. Continue?'))return;
   if(!confirm('Record '+fmt(amount)+' paid from '+bank.name+' for '+l.name+'? This will deduct only this bank balance, not send money.'))return;
