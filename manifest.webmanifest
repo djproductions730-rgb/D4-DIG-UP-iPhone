@@ -1,0 +1,10 @@
+{
+  "name": "D4 DIG UP",
+  "short_name": "D4 DIG UP",
+  "description": "Personal finance tracker prototype",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f4fc",
+  "theme_color": "#4537a8"
+}
