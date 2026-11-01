@@ -11,6 +11,18 @@
   const MAX_FILE_BYTES=5*1024*1024;
   const money=n=>Math.round(Number(n)*100)/100;
   const nativeFormat='d4-dig-up-native-backup';
+  // The account owner must first deploy migration-bridge/ as a separate
+  // Google Apps Script web app and set this official URL in a GitHub update.
+  // No real URL exists in this repository yet.
+  const MIGRATION_BRIDGE_URL='';
+  window.startNativeMigration=function () {
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(MIGRATION_BRIDGE_URL)){
+      alert('Verified Gmail OTP migration bridge has not been deployed yet. The app owner must activate it first. Do NOT share your OTP. If you already have a verified Android account JSON backup, use Import verified Android backup.');
+      return;
+    }
+    window.open(MIGRATION_BRIDGE_URL,'_blank','noopener,noreferrer');
+  };
+
   const stamp=v=> {
     const s=String(v||'').trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s+'T12:00:00';
@@ -147,7 +159,9 @@
         plans:imported.plans,
         loans:imported.loans,
         source:imported.source,
-        exportedAt:imported.exportedAt
+        exportedAt:imported.exportedAt,
+        linkedName:imported.account.name,
+        linkedEmail:imported.account.email
       };
       // localStorage.setItem must succeed BEFORE updating in-memory state.
       const previous=localStorage.getItem(KEY);
