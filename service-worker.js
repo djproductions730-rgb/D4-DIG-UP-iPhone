@@ -1,5 +1,5 @@
-const CACHE = 'd4-iphone-verified-migration-v3';
-const ASSETS = ['./','./index.html','./loans.js','./migration.js','./manifest.webmanifest','./icon.svg'];
+const CACHE = 'd4-iphone-profile-avatars-v4';
+const ASSETS = ['./','./index.html','./loans.js','./migration.js','./settings.js','./assets/avatar-01.png','./assets/avatar-02.png','./assets/avatar-03.png','./assets/avatar-04.png','./assets/avatar-05.png','./assets/avatar-06.png','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });

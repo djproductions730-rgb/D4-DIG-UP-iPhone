@@ -271,4 +271,4 @@ if(target){e.preventDefault();openBankDetail(target.dataset.bankId)}
 document.getElementById('sheet').addEventListener('click',e=>{const loan=e.target.closest('[data-loan-action]');if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId,loan.dataset.paymentId);return;}const target=e.target.closest('[data-bank-choice]');if(target){e.preventDefault();chooseBank(target.dataset.bankChoice)}});
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});render();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
-</script><script src="./loans.js"></script><script src="./migration.js"></script></body></html>
+</script><script src="./loans.js"></script><script src="./migration.js"></script><script src="./settings.js"></script></body></html>
