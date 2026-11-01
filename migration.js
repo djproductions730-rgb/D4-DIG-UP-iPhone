@@ -13,8 +13,7 @@
   const nativeFormat='d4-dig-up-native-backup';
   // The account owner must first deploy migration-bridge/ as a separate
   // Google Apps Script web app and set this official URL in a GitHub update.
-  // No real URL exists in this repository yet.
-  const MIGRATION_BRIDGE_URL='';
+  const MIGRATION_BRIDGE_URL='https://script.google.com/macros/s/AKfycbztytMBjwGXKvVIO_FiQnh3A9j_coiOzdx2NrHRoeWzqakdt9-sCO5rSlDu9xsVJxwj/exec';
   window.startNativeMigration=function () {
     if(!/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(MIGRATION_BRIDGE_URL)){
       alert('Verified Gmail OTP migration bridge has not been deployed yet. The app owner must activate it first. Do NOT share your OTP. If you already have a verified Android account JSON backup, use Import verified Android backup.');
