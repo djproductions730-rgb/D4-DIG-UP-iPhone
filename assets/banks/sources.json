@@ -1,0 +1,273 @@
+{
+  "hdfc": {
+    "file": "work/settings-preview/assets/banks/hdfc.ico",
+    "website": "https://www.hdfc.bank.in/",
+    "source": "https://www.hdfc.bank.in/favicon.ico",
+    "bytes": 894
+  },
+  "axis": {
+    "file": "work/settings-preview/assets/banks/axis.ico",
+    "website": "https://www.axis.bank.in/",
+    "source": "https://www.axis.bank.in/assets/images/favicon.ico",
+    "bytes": 1150
+  },
+  "icici": {
+    "file": "work/settings-preview/assets/banks/icici.ico",
+    "website": "https://www.icici.bank.in/",
+    "source": "https://www.icici.bank.in/favicon.ico",
+    "bytes": 9662
+  },
+  "sbi": {
+    "file": "work/settings-preview/assets/banks/sbi.ico",
+    "website": "https://sbi.bank.in/",
+    "source": "https://sbi.bank.in/o/SBI-Theme/images/favicon.ico",
+    "bytes": 1150
+  },
+  "indian": {
+    "file": "work/settings-preview/assets/banks/indian.png",
+    "reference": "https://en.wikipedia.org/wiki/Indian_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/f/f9/Indian_Bank_logo_2023.png/250px-Indian_Bank_logo_2023.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 15454
+  },
+  "canara": {
+    "file": "work/settings-preview/assets/banks/canara.png",
+    "website": "https://www.canarabank.bank.in:443/",
+    "source": "https://www.canarabank.bank.in:443/documents/20126/33915/fevicon.png/666e26af-cafc-b26d-eb4b-a33d3417c5ba",
+    "bytes": 61906
+  },
+  "kotak": {
+    "file": "work/settings-preview/assets/banks/kotak.ico",
+    "website": "https://www.kotak.bank.in/en/home.html",
+    "source": "https://www.kotak.bank.in/etc/designs/kotak/clientlib-site/images/favicon.ico",
+    "bytes": 894
+  },
+  "idfc": {
+    "file": "work/settings-preview/assets/banks/idfc.ico",
+    "website": "https://www.idfcfirst.bank.in/",
+    "source": "https://www.idfcfirst.bank.in/content/dam/idfcfirstbank/images/common/favicon.ico",
+    "bytes": 15086
+  },
+  "pnb": {
+    "file": "work/settings-preview/assets/banks/pnb.ico",
+    "website": "https://pnb.bank.in/",
+    "source": "https://pnb.bank.in/images/favicon.ico",
+    "bytes": 1150
+  },
+  "baroda": {
+    "file": "work/settings-preview/assets/banks/baroda.png",
+    "reference": "https://en.wikipedia.org/wiki/Bank_of_Baroda",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/f/f2/BankOfBarodaLogo.svg/250px-BankOfBarodaLogo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 15988
+  },
+  "union": {
+    "file": "work/settings-preview/assets/banks/union.png",
+    "reference": "https://en.wikipedia.org/wiki/Union_Bank_of_India",
+    "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Union_Bank_of_India_Logo.svg/250px-Union_Bank_of_India_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 7762
+  },
+  "boi": {
+    "file": "work/settings-preview/assets/banks/boi.png",
+    "website": "https://bankofindia.bank.in/",
+    "source": "https://www.google.com/s2/favicons?domain=bankofindia.bank.in&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 739
+  },
+  "iob": {
+    "file": "work/settings-preview/assets/banks/iob.png",
+    "website": "https://www.iob.bank.in/en/",
+    "source": "https://www.iob.bank.in/documents/20117/34247/iob-favicon/6fbbedc9-a8f7-9403-4738-e3ea62b6865d",
+    "bytes": 4600
+  },
+  "uco": {
+    "file": "work/settings-preview/assets/banks/uco.png",
+    "website": "https://uco.bank.in/",
+    "source": "https://www.google.com/s2/favicons?domain=uco.bank.in&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 1600
+  },
+  "maharashtra": {
+    "file": "work/settings-preview/assets/banks/maharashtra.png",
+    "reference": "https://en.wikipedia.org/wiki/Bank_of_Maharashtra",
+    "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/Bank_of_Maharashtra_logo.svg/250px-Bank_of_Maharashtra_logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 13473
+  },
+  "punjabsind": {
+    "file": "work/settings-preview/assets/banks/punjabsind.png",
+    "website": "https://punjabandsind.bank.in/",
+    "source": "https://www.google.com/s2/favicons?domain=punjabandsind.bank.in&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 334
+  },
+  "indusind": {
+    "file": "work/settings-preview/assets/banks/indusind.ico",
+    "website": "https://www.indusind.bank.in/",
+    "source": "https://www.indusind.bank.in/etc/clientlibs/indusind-platform/assets/img/brand/favicon.ico",
+    "bytes": 1150
+  },
+  "yes": {
+    "file": "work/settings-preview/assets/banks/yes.png",
+    "website": "https://yesbank.in/",
+    "source": "https://www.google.com/s2/favicons?domain=yesbank.in&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 311
+  },
+  "rbl": {
+    "file": "work/settings-preview/assets/banks/rbl.png",
+    "website": "https://rblbank.com/",
+    "source": "https://www.google.com/s2/favicons?domain=rblbank.com&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 1573
+  },
+  "bandhan": {
+    "file": "work/settings-preview/assets/banks/bandhan.png",
+    "website": "https://bandhan.bank.in/",
+    "source": "https://bandhan.bank.in/themes/customs/bandhan_bank/favicon.ico",
+    "bytes": 1640
+  },
+  "dcb": {
+    "file": "work/settings-preview/assets/banks/dcb.ico",
+    "website": "https://www.dcb.bank.in/",
+    "source": "https://www.dcb.bank.in/favicon.ico",
+    "bytes": 1150
+  },
+  "cityunion": {
+    "file": "work/settings-preview/assets/banks/cityunion.svg",
+    "source": "https://www.finassets.fyi/upi/svg/city-union-bank.svg",
+    "reference": "https://www.finassets.fyi/",
+    "bytes": 16940
+  },
+  "tmb": {
+    "file": "work/settings-preview/assets/banks/tmb.png",
+    "website": "https://www.tmb.bank.in/",
+    "source": "https://www.tmb.bank.in/themes/custom/tmb/images/favicon-48x48.png",
+    "bytes": 2922
+  },
+  "southindian": {
+    "file": "work/settings-preview/assets/banks/southindian.png",
+    "website": "https://southindianbank.com/",
+    "source": "https://www.google.com/s2/favicons?domain=southindianbank.com&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 405
+  },
+  "karnataka": {
+    "file": "work/settings-preview/assets/banks/karnataka.svg",
+    "website": "https://www.karnatakabank.bank.in/",
+    "source": "https://d3sdkw7nvdnqts.cloudfront.net/s3fs-public/KBL-star-favicon.svg",
+    "bytes": 1398
+  },
+  "csb": {
+    "file": "work/settings-preview/assets/banks/csb.png",
+    "website": "https://www.csb.bank.in/",
+    "source": "https://www.csb.bank.in/themes/custom/csb/favicon.png",
+    "bytes": 1097
+  },
+  "jk": {
+    "file": "work/settings-preview/assets/banks/jk.png",
+    "reference": "https://en.wikipedia.org/wiki/Jammu_%26_Kashmir_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/1/12/Jammu_%26_Kashmir_Bank_Logo.svg/250px-Jammu_%26_Kashmir_Bank_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 7530
+  },
+  "nainital": {
+    "file": "work/settings-preview/assets/banks/nainital.png",
+    "reference": "https://en.wikipedia.org/wiki/Nainital_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/b/bc/Nainitalbank_Logo.svg/250px-Nainitalbank_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 57591
+  },
+  "dhanlaxmi": {
+    "file": "work/settings-preview/assets/banks/dhanlaxmi.png",
+    "website": "https://dhanbank.com/",
+    "source": "https://www.google.com/s2/favicons?domain=dhanbank.com&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 1755
+  },
+  "au": {
+    "file": "work/settings-preview/assets/banks/au.png",
+    "website": "https://aubank.in/",
+    "source": "https://www.google.com/s2/favicons?domain=aubank.in&sz=128",
+    "provider": "Google cached website icon",
+    "bytes": 1252
+  },
+  "equitas": {
+    "file": "work/settings-preview/assets/banks/equitas.png",
+    "reference": "https://en.wikipedia.org/wiki/Equitas_Small_Finance_Bank",
+    "source": "https://upload.wikimedia.org/wikipedia/commons/5/55/Equitas-logo.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail_unscaled",
+    "provider": "Wikimedia logo reference",
+    "bytes": 1450
+  },
+  "ujjivan": {
+    "file": "work/settings-preview/assets/banks/ujjivan.ico",
+    "website": "https://www.ujjivansfb.bank.in/",
+    "source": "https://www.ujjivansfb.bank.in/favicon.ico?favicon.1i64lx3clu_hc.ico",
+    "bytes": 5430
+  },
+  "utkarsh": {
+    "file": "work/settings-preview/assets/banks/utkarsh.png",
+    "website": "https://www.utkarsh.bank.in/",
+    "source": "https://www.utkarsh.bank.in/uploads/setting/favicon.png",
+    "bytes": 3337
+  },
+  "suryoday": {
+    "file": "work/settings-preview/assets/banks/suryoday.png",
+    "source": "https://csp-kendra.com/assets/img/service/Suryoday%20Bank%20Logo.png",
+    "reference": "https://csp-kendra.com/services/Suryoday-Small-Finance-Bank.php",
+    "bytes": 28171
+  },
+  "esaf": {
+    "file": "work/settings-preview/assets/banks/esaf.png",
+    "reference": "https://en.wikipedia.org/wiki/ESAF_Small_Finance_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/89/ESAF_Bank_Logo.svg/250px-ESAF_Bank_Logo.svg.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 10776
+  },
+  "jana": {
+    "file": "work/settings-preview/assets/banks/jana.jpg",
+    "reference": "https://en.wikipedia.org/wiki/Jana_Small_Finance_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/5/5f/Logo_of_Jana_Small_Finance_Bank.jpg/250px-Logo_of_Jana_Small_Finance_Bank.jpg?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 7491
+  },
+  "shivalik": {
+    "file": "work/settings-preview/assets/banks/shivalik.png",
+    "source": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/28/Shivalik_Small_Finance_Bank.png/250px-Shivalik_Small_Finance_Bank.png",
+    "reference": "https://en.wikipedia.org/wiki/Shivalik_Small_Finance_Bank",
+    "bytes": 10488
+  },
+  "capital": {
+    "file": "work/settings-preview/assets/banks/capital.png",
+    "reference": "https://en.wikipedia.org/wiki/Capital_Small_Finance_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/8/86/Capital_Small_Finance_Bank_Logo.png/250px-Capital_Small_Finance_Bank_Logo.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 11364
+  },
+  "airtel": {
+    "file": "work/settings-preview/assets/banks/airtel.png",
+    "website": "https://www.airtel.in/",
+    "source": "https://assets.airtel.in/static-assets/new-home/img/favicon-16x16.png",
+    "bytes": 487
+  },
+  "ippb": {
+    "file": "work/settings-preview/assets/banks/ippb.png",
+    "reference": "https://en.wikipedia.org/wiki/India_Post_Payments_Bank",
+    "source": "https://thumb.wikimedia.org/wikipedia/en/thumb/5/5c/India_Post_Payments_Bank_logo.png/250px-India_Post_Payments_Bank_logo.png?utm_source=en.wikipedia.org&utm_campaign=parser&utm_content=thumbnail",
+    "provider": "Wikimedia logo reference",
+    "bytes": 25003
+  },
+  "fino": {
+    "file": "work/settings-preview/assets/banks/fino.svg",
+    "source": "https://www.fino.bank.in/images/fino-logo.svg",
+    "reference": "https://www.fino.bank.in/",
+    "bytes": 34698
+  },
+  "jio": {
+    "file": "work/settings-preview/assets/banks/jio.ico",
+    "website": "https://www.jiopayments.bank.in:443/",
+    "source": "https://www.jiopayments.bank.in:443/favicon.ico",
+    "bytes": 4286
+  }
+}
