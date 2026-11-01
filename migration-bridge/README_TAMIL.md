@@ -1,6 +1,7 @@
 # D4 DIG UP — verified Android APK to Brave migration
 
-STATUS: GitHub source is committed. OTP migration bridge has NOT been deployed.
+STATUS: OTP migration bridge deployed; migration.js points to its /exec URL.
+Deployment and empty-email validation checked; real account OTP/export/import still requires account-holder testing.
 The new Web Settings has an Import verified Android backup control.
 This is a ONE-TIME LOCAL COPY; it is NOT live account sync.
 
@@ -36,7 +37,9 @@ SAFETY
 - Bank opening balance plus native transactions generates account balances.
 - Transfers adjust balances, but not expense totals.
 - Unsupported or ambiguous native structures abort instead of guessing.
-- Original backend account remains untouched; this is read-only export.
+- Financial records are copied without write operations. The original OTP login backend
+  creates a session row and can create a user row for an unknown verified email.
+  Use an existing registered account only; no production OTP test was run by the agent.
 - Private JSON backup must be saved securely.
 - Brave local storage is not a cloud profile. Changing browsers, clearing site
   data, or using another device will not automatically transfer records.
