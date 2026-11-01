@@ -57,6 +57,28 @@
 .loan-actions button{padding:12px 8px;border-radius:12px;font-size:12px;font-weight:800}
 .loan-pay{background:#5444dc;color:white}
 .loan-history{background:#e7eafd;color:#4338ab}
+
+/* EMI reminder dashboard */
+.loan-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:13px 0}
+.loan-summary-stat{background:#fff;border:1px solid #e3e5f6;border-radius:17px;padding:12px 8px;min-width:0;box-shadow:0 3px 10px #25256907}
+.loan-summary-stat span{display:block;font-size:10px;font-weight:800;color:#737794}
+.loan-summary-stat strong{display:block;font-size:15px;font-weight:900;color:#302867;margin-top:9px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.loan-summary-attention{background:#fff0ee;border-color:#f5beba}.loan-summary-attention strong{color:#b52932}
+.loan-alert{background:#fff0ec;border:1px solid #f5c3ba;border-radius:18px;padding:15px;margin:14px 0}
+.loan-alert-title{font-weight:850;color:#9e2525;font-size:14px;margin-bottom:10px}
+.loan-alert-line{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin:8px 0;color:#7f3d2f}
+.loan-alert-line strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+.loan-alert .loan-caption{margin:10px 0 0}
+.loan-setup-note{background:#f3f0ff;color:#51458e;border:1px solid #dcd4f8;border-radius:17px;padding:13px 14px;line-height:1.6;font-size:12px;margin-top:13px}
+.loan-upcoming{background:#fff;border-radius:17px;border:1px solid #e4e6f5;padding:3px 13px;margin-bottom:15px}
+.loan-upcoming-row{display:flex;align-items:center;gap:11px;border-bottom:1px solid #eef0f9;padding:13px 0}
+.loan-upcoming-row:last-child{border-bottom:0}.loan-upcoming-row strong{font-size:12px;color:#343055}
+.loan-calendar-icon{width:40px;height:40px;border-radius:13px;background:#e9e7ff;display:grid;place-items:center;flex-shrink:0;font-size:21px}
+.loan-upcoming-right{text-align:right;display:flex;align-items:flex-end;flex-direction:column;gap:6px;flex-shrink:0}
+.loan-upcoming-right button{background:#eae7ff;color:#493ab0;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800}
+.loan-status{display:inline-flex;border-radius:999px;padding:6px 10px;margin-top:16px;background:#edf0f8;color:#5f647a;font-weight:800;font-size:11px}
+.loan-status.danger{background:#ffe7e4;color:#ac2931}.loan-status.today{background:#ffedcc;color:#955a17}
+.loan-status.soon{background:#e7efff;color:#2452a6}.loan-status.setup{background:#efeaff;color:#5b45ad}
 </style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
