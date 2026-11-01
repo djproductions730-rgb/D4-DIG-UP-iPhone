@@ -77,12 +77,12 @@
       const bank=String(t.bank||'').trim();
       const fromBank=String(t.fromBank||'').trim();
       const toBank=String(t.toBank||'').trim();
-      if(type!=='transfer'&&!mapBank.has(bank))
+      if(type!=='transfer'&&bank&&!mapBank.has(bank))
         throw Error('Transaction uses unrecognized bank: '+bank);
       if(type==='transfer'&&(!mapBank.has(fromBank)||!mapBank.has(toBank)))
         throw Error('Transfer banks are missing from account snapshot.');
-      if(type==='income')balanceMap.set(bank,money(balanceMap.get(bank)+amount));
-      if(type==='expense')balanceMap.set(bank,money(balanceMap.get(bank)-amount));
+      if(type==='income'&&bank)balanceMap.set(bank,money(balanceMap.get(bank)+amount));
+      if(type==='expense'&&bank)balanceMap.set(bank,money(balanceMap.get(bank)-amount));
       if(type==='transfer'){
         balanceMap.set(fromBank,money(balanceMap.get(fromBank)-amount));
         balanceMap.set(toBank,money(balanceMap.get(toBank)+amount));
@@ -92,7 +92,8 @@
         throw Error('Invalid transaction date');
       return {
         id:'native-entry-'+String(t.id||index),
-        bankId:type==='transfer'?mapBank.get(fromBank).id:mapBank.get(bank).id,
+        bankId:type==='transfer'?mapBank.get(fromBank).id:(bank?mapBank.get(bank).id:''),
+        bankUnassigned:type!=='transfer'&&!bank,
         type:type[0].toUpperCase()+type.slice(1),
         amount,category:String(t.category||'Other').slice(0,80),
         note:String(t.note||'').slice(0,500),
@@ -148,9 +149,11 @@
         throw Error('Brave already has records. Export a local backup first, then use a separate empty browser profile/device for this account. Nothing was overwritten.');
       }
       const {account}=imported;
+      const unassigned=imported.entries.filter(e=>e.bankUnassigned).length;
       if(!confirm('Import verified source account backup for '+account.name+' ('+account.email+')?\n'+
         imported.banks.length+' banks, '+imported.entries.length+' transactions, '+
         imported.plans.length+' plans, '+imported.loans.length+' loans.\n\n'+
+        (unassigned?unassigned+' original transactions have no bank. They will remain in history as unassigned and will not change any bank balance.\n\n':'')+
         'This is a ONE-TIME local copy, NOT automatic Google Sheets sync. Continue?'))return;
       const next={
         banks:imported.banks,
