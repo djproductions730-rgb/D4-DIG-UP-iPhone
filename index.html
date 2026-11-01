@@ -31,6 +31,32 @@
 .spend-mini .mini-hint{font-size:10px;margin-top:4px;opacity:.8}
 .spend-feature:active,.spend-mini:active{transform:scale(.985)}
 .quick-tile:focus-visible,.spend-feature:focus-visible,.spend-mini:focus-visible{outline:3px solid #6553e2;outline-offset:3px}
+
+/* Six-tab iOS navigation and loan management */
+.bottom{gap:2px;padding-left:5px;padding-right:5px}
+.navbtn{font-size:9px;padding:8px 1px;min-width:0;gap:5px}
+.navbtn .ico{font-size:20px}
+.loan-hero{background:linear-gradient(118deg,#151d42,#38369e 63%,#7460df);padding:22px;border-radius:22px;color:white;margin:10px 0 12px}
+.loan-hero-meta{font-size:11px;opacity:.8;font-weight:850;letter-spacing:1px}
+.loan-hero-total{font-size:30px;font-weight:900;letter-spacing:-1px;margin:8px 0 15px;overflow-wrap:anywhere}
+.loan-hero-foot{display:flex;justify-content:space-between;font-size:12px;opacity:.8}
+.loan-caption{font-size:12px;line-height:1.55;color:#6e748e;margin:12px 1px 17px}
+.loan-card{background:white;border:1px solid #e5e7f4;border-radius:22px;padding:17px;margin:13px 0;box-shadow:0 6px 17px #20245a0c}
+.loan-card-head{display:flex;gap:12px;align-items:center}
+.loan-symbol{display:grid;place-items:center;background:#ece8ff;border-radius:15px;width:48px;height:48px;font-size:25px}
+.loan-title{font-size:17px;font-weight:850;color:#252545}
+.loan-small-btn{background:#eeeafe;color:#543cb7;padding:9px 11px;border-radius:11px;font-size:12px;font-weight:800}
+.loan-balance-label{font-weight:850;font-size:10px;letter-spacing:1px;color:#7f839d;margin-top:23px}
+.loan-balance{font-size:27px;font-weight:900;color:#2d2465;margin-top:6px}
+.loan-stats{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:16px}
+.loan-stats>div{background:#f5f4ff;border-radius:13px;padding:12px 10px}
+.loan-stats small{display:block;color:#737b95;font-size:11px}
+.loan-stats strong{display:block;color:#273351;font-size:15px;margin-top:7px}
+.loan-bottom{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:#727a91;font-size:11px;margin-top:14px}
+.loan-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
+.loan-actions button{padding:12px 8px;border-radius:12px;font-size:12px;font-weight:800}
+.loan-pay{background:#5444dc;color:white}
+.loan-history{background:#e7eafd;color:#4338ab}
 </style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
@@ -38,7 +64,7 @@
 const KEY='d4webv15', fmt=n=>'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}), tidy=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const catalog=['State Bank of India','HDFC Bank','ICICI Bank','Axis Bank','Punjab National Bank','Bank of Baroda','Canara Bank','Union Bank of India','Indian Bank','Bank of India','Indian Overseas Bank','UCO Bank','Central Bank of India','Bank of Maharashtra','Punjab & Sind Bank','Kotak Mahindra Bank','Federal Bank','IDFC FIRST Bank','IndusInd Bank','YES BANK','RBL Bank','Bandhan Bank','DCB Bank','City Union Bank','Karur Vysya Bank','Tamilnad Mercantile Bank','South Indian Bank','Karnataka Bank','CSB Bank','Jammu & Kashmir Bank','Nainital Bank','Dhanlaxmi Bank','AU Small Finance Bank','Equitas Small Finance Bank','Ujjivan Small Finance Bank','Utkarsh Small Finance Bank','Suryoday Small Finance Bank','ESAF Small Finance Bank','Jana Small Finance Bank','Shivalik Small Finance Bank','Capital Small Finance Bank','Airtel Payments Bank','India Post Payments Bank','Fino Payments Bank','Jio Payments Bank'];
 const cats={Food:['🍔','#fa9e48'],Family:['👨‍👩‍👧','#6d7dff'],Petrol:['⛽','#ef5d62'],Movies:['🎬','#9059d7'],Shopping:['🛍️','#f58ab1'],Travel:['🚗','#54aaf5'],Bills:['🧾','#3dbb97'],Other:['📦','#9295ab']};
-const tabs=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['settings','⚙','Settings']];
+const tabs=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Spends'],['plans','◈','Plans'],['loans','▣','Loans'],['settings','⚙','Settings']];
 let raw;try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){raw={}}
 let data={banks:Array.isArray(raw.banks)?raw.banks:[],entries:Array.isArray(raw.entries)?raw.entries:[],plans:Array.isArray(raw.plans)?raw.plans:[],loans:Array.isArray(raw.loans)?raw.loans:[],source:String(raw.source||''),exportedAt:String(raw.exportedAt||raw.originalSnapshotAt||'')};let tab='home',selectedBank=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){alert('Device storage is full; export a backup before adding more entries.');}render()}
@@ -56,7 +82,7 @@ const exp=thisMonth.filter(e=>e.type==='Expense').reduce((sum,e)=>sum+Number(e.a
 let html='<div class="hero"><small>🏦 TOTAL BANK BALANCE</small><div class="balance">'+(hasBank?fmt(total()):'Add your bank')+'</div><div class="hero-footer"><span>'+data.banks.length+' accounts</span><span>My wallet</span></div></div>';
 html+='<div class="split" style="margin:12px 0"><div class="smallstat"><div class="muted">↙ Income · This month</div><strong class="value" style="color:#08945a">'+fmt(inc)+'</strong></div><div class="smallstat"><div class="muted">↗ Expenses · This month</div><strong class="value" style="color:#df3e62">'+fmt(exp)+'</strong></div></div>';
 html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">One-tap access</span></div>';
-const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['plans','🎯','Plans & EMI','quick-pink']];
+const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink']];
 html+='<div class="quick-grid">'+actions.map(([id,icon,name,theme])=>'<button type="button" class="quick-tile '+theme+'" data-quick="'+id+'" aria-label="'+tidy(name)+'"><span class="quick-icon" aria-hidden="true">'+icon+'</span><span class="quick-name">'+name+'</span></button>').join('')+'</div>';
 html+='<div class="section-head"><h2>🏆 Top Spends</h2><span class="pill">All-time expenses</span></div>';
 if(!top.length)html+='<div class="card empty"><div class="symbol">🛍️</div><b>No expenses recorded yet</b><p class="muted">Use Add Expense to see your biggest spending categories here.</p></div>';
@@ -70,10 +96,15 @@ return html;
 }
 function banksPage(){let out='<div class="section-head"><h2>🏦 My Banks</h2><button class="button" onclick="openBankPicker()">+ Add Bank</button></div><div class="hero"><small>TOTAL MANUALLY ENTERED BALANCE</small><div class="balance">'+(data.banks.length?fmt(total()):'Not set')+'</div><div class="hero-footer">'+data.banks.length+' accounts · Multiple accounts per bank supported</div></div>';if(!data.banks.length)return out+'<div class="card empty"><div class="symbol">🏛️</div><b>No banks added here yet</b><p class="muted">Your older bank records are still in the original D4 database.</p><button class="button" onclick="openBankPicker()">Choose Bank</button></div>';return out+'<h2>Bank Accounts</h2>'+data.banks.map(b=>'<button type="button" class="bank-card" data-bank-id="'+tidy(String(b.id))+'">'+badge(b.name)+'<div class="grow"><div class="label">'+tidy(b.name)+'</div><small>'+tidy(b.nick||'Account')+'</small></div><div class="price">'+fmt(b.balance)+'</div><span class="chev">›</span></button>').join('')}
 function history(){let out='<div class="section-head"><h2>⇄ Transactions</h2><button class="button" onclick="openTransaction()">+ Add</button></div><div class="muted" style="margin:0 0 12px">Food, Family, Petrol, Movies and custom spending notes.</div>';if(!data.entries.length)return out+'<div class="card empty">🧾<p><b>No local history yet</b></p><p class="muted">Your old Google Sheets transactions do not automatically appear here.</p></div>';return out+data.entries.slice().reverse().map(e=>{const b=data.banks.find(b=>String(b.id)===String(e.bankId));return '<div class="card row"><div class="badge-icon">'+categoryIcon(e.category)+'</div><div class="grow"><div class="label">'+tidy(e.category)+'</div><div class="muted">'+tidy(e.note||'No note')+'</div><div class="muted">'+tidy(e.type==='Transfer'?(e.fromBank+' → '+e.toBank):(b?.name||e.bank||'Unassigned original entry'))+'</div></div><div class="right"><div class="value txamount '+(e.type==='Expense'?'expense':e.type==='Transfer'?'':'income')+'">'+(e.type==='Expense'?'−':e.type==='Transfer'?'⇄':'+')+fmt(e.amount)+'</div><div class="muted">'+tidy(new Date(e.created||e.when||Date.now()).toLocaleDateString('en-IN'))+'</div></div></div>'}).join('')}
-function plans(){const ps=Array.isArray(data.plans)?data.plans:[],ls=Array.isArray(data.loans)?data.loans:[];let h='<h2>🎯 Future Plans & Loans</h2>';if(!ps.length&&!ls.length)return h+'<div class="card empty">No plans or loans here yet. Import the private D4 backup through Settings if you have one.</div>';if(ps.length){h+='<h3>Future Plans</h3>';h+=ps.map(p=>'<div class="card"><strong>'+tidy(p.name)+'</strong><p>Target: <b>'+fmt(p.target||0)+'</b> · Saved: '+fmt(p.saved||0)+'</p>'+(p.actualSpent?'<p>Spent: '+fmt(p.actualSpent)+'</p>':'')+(p.dueDate?'<div class="muted">Target date: '+tidy(String(p.dueDate).slice(0,10))+'</div>':'')+'</div>').join('')}if(ls.length){h+='<h3>Loans & EMI</h3>';h+=ls.map(l=>{const paid=(l.payments||[]).reduce((s,p)=>s+Number(p.amount||0),0);return '<div class="card"><strong>🪙 '+tidy(l.name)+'</strong><div class="muted">'+tidy(l.lender||'Loan')+'</div><p>Original principal: <b>'+fmt(l.principal||0)+'</b></p><p>EMI: <b>'+fmt(l.emi||0)+'</b> · Payments recorded: '+fmt(paid)+'</p><div class="muted">Current outstanding requires loan-interest recalculation; imported values are reference only.</div></div>'}).join('')}return h+'<p class="muted">Imported plans and loans are a snapshot. Paying an EMI here does not send money or update your original Google Sheet.</p>'}
+function plans(){
+ const ps=Array.isArray(data.plans)?data.plans:[];
+ let html='<div class="section-head"><h2>🎯 Future Plans</h2></div><div class="card"><b>Plan Budgets & Goals</b><p class="muted">Your savings goals are separate from Loans & EMI. Existing plans are preserved as local snapshots.</p></div>';
+ if(!ps.length)return html+'<div class="card empty">No future plans yet.</div>';
+ return html+ps.map(p=>'<div class="card"><strong>🎯 '+tidy(p.name||'Unnamed Plan')+'</strong><p>Target: <b>'+fmt(p.target||0)+'</b> · Saved: '+fmt(p.saved||0)+'</p>'+(p.actualSpent?'<p>Spent: '+fmt(p.actualSpent)+'</p>':'')+(p.dueDate?'<div class="muted">Target date: '+tidy(String(p.dueDate).slice(0,10))+'</div>':'')+'</div>').join('');
+}
 function settings(){return '<h2>⚙ Settings & Backup</h2><div class="notice"><strong>🔒 Account separation</strong>This iPhone Safari app is currently local to this device. It does NOT sign in separately for different people and does NOT sync with the Android APK. Each person must use their own verified login in the original D4 app. Never import or share another user’s private backup.</div><div class="card"><b>Your data stays on this device</b><p class="muted">This public GitHub Pages site stores bank balances and transactions locally in this Safari browser, not in your Google Sheet. Clearing Safari site data can erase local entries.</p><div class="row"><button class="button" onclick="exportBackup()">↓ Download Backup</button><button class="button ghost" onclick="document.getElementById(\'restore\').click()">↑ Import Old D4 Data</button></div><input type="file" id="restore" accept=".json,application/json" class="hidden" onchange="importBackup(this)"><p class="muted">Choose D4_Old_Data_3_Banks_7_Transactions.json from iPhone Files → Downloads. A file showing 0 banks and 0 transactions is the wrong backup. This imports a local snapshot only; it does not live sync.</p></div><div class="notice"><strong>Original D4 finance account</strong>Your older balances and history are on a separate Google Sheets-backed app. Use your previous D4 DIG UP login to access them; this iPhone quick-start is not a replacement database.</div><div class="card"><b>Bank logos</b><p class="muted">Colour-coded bank initials are placeholders. Official logo assets are not connected yet.</p></div>'}
 function go(next){tab=next;selectedBank=null;closeSheet();render();window.scrollTo({top:0,behavior:'instant'})}
-function render(){document.getElementById('nav').innerHTML=tabs.map(([id,ic,label])=>'<button type="button" class="navbtn '+(id===tab?'active':'')+'" data-tab="'+tidy(id)+'"><span class="ico">'+ic+'</span>'+label+'</button>').join('');let html=tab==='home'?home():tab==='banks'?banksPage():tab==='transactions'?history():tab==='plans'?plans():settings();document.getElementById('view').innerHTML=html}
+function render(){document.getElementById('nav').innerHTML=tabs.map(([id,ic,label])=>'<button type="button" class="navbtn '+(id===tab?'active':'')+'" data-tab="'+tidy(id)+'"><span class="ico">'+ic+'</span>'+label+'</button>').join('');let html=tab==='home'?home():tab==='banks'?banksPage():tab==='transactions'?history():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html}
 function showSheet(title,inner){document.getElementById('sheet').innerHTML='<div class="sheet-head"><h2>'+tidy(title)+'</h2><button class="x" aria-label="Close" onclick="closeSheet()">×</button></div>'+inner;document.getElementById('overlay').classList.add('open')}
 function closeSheet(){document.getElementById('overlay').classList.remove('open')}
 function openSpendCategory(category){
@@ -112,6 +143,8 @@ async function importBackup(input){const file=input.files?.[0];if(!file)return;t
 // Stable click handlers: avoid broken quoted inline handlers for dynamically named items.
 document.getElementById('nav').addEventListener('click',e=>{const target=e.target.closest('[data-tab]');if(target){e.preventDefault();go(target.dataset.tab)}});
 document.getElementById('view').addEventListener('click',e=>{
+const loan=e.target.closest('[data-loan-action]');
+if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId);return;}
 const spend=e.target.closest('[data-spend]');
 if(spend){e.preventDefault();openSpendCategory(spend.dataset.spend);return;}
 const quick=e.target.closest('[data-quick]');
@@ -121,12 +154,12 @@ case 'income':openTransaction('Income');break;
 case 'transfer':openTransfer();break;
 case 'bank':openBankPicker();break;
 case 'history':go('transactions');break;
-case 'plans':go('plans');break;
+case 'loans':go('loans');break;
 }return;}
 const target=e.target.closest('[data-bank-id]');
 if(target){e.preventDefault();openBankDetail(target.dataset.bankId)}
 });
-document.getElementById('sheet').addEventListener('click',e=>{const target=e.target.closest('[data-bank-choice]');if(target){e.preventDefault();chooseBank(target.dataset.bankChoice)}});
+document.getElementById('sheet').addEventListener('click',e=>{const loan=e.target.closest('[data-loan-action]');if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId,loan.dataset.paymentId);return;}const target=e.target.closest('[data-bank-choice]');if(target){e.preventDefault();chooseBank(target.dataset.bankChoice)}});
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});render();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
-</script></body></html>
+</script><script src="./loans.js"></script></body></html>
