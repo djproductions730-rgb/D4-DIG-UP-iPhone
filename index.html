@@ -82,6 +82,25 @@
 .loan-status.paid{background:#d9f6e9;color:#0b774c;border:1px solid #a6e5c5}
 .loan-status.upcoming{background:#e7efff;color:#2452a6}
 .loan-status.neutral{background:#e9edf2;color:#56617c}
+
+/* Chart-free home analytics */
+.analytics-panel{background:#fff;border:1px solid #dddff6;border-radius:22px;padding:17px;box-shadow:0 7px 22px #2934870c;margin-bottom:17px}
+.analytics-intro{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-bottom:13px;border-bottom:1px solid #eeeef8}
+.analytics-eyebrow{font-size:10px;font-weight:900;letter-spacing:.65px;color:#77749a}
+.analytics-amount{font-size:29px;letter-spacing:-.8px;font-weight:950;margin:9px 0 5px;overflow-wrap:anywhere}
+.analytics-amount.positive{color:#0b8860}.analytics-amount.negative{color:#d34465}
+.analytics-hint{font-size:11px;color:#7c829a;line-height:1.5}
+.analytics-stamp{flex-shrink:0;width:49px;height:49px;background:#eee9ff;border-radius:17px;display:grid;place-items:center;font-size:27px}
+.analytics-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:13px}
+.analytics-metric{min-width:0;border-radius:15px;background:#f5f3ff;padding:13px 11px}
+.analytics-metric:nth-child(2){background:#eaf9f4}.analytics-metric:nth-child(3){background:#fdf2e5}.analytics-metric:nth-child(4){background:#eef3ff}
+.analytics-metric span{display:block;color:#6c7190;font-weight:800;font-size:11px}
+.analytics-metric strong{display:block;color:#262650;font-size:17px;font-weight:900;margin-top:7px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.analytics-metric strong.higher{color:#c94e4e}.analytics-metric strong.lower{color:#087f56}.analytics-metric strong.neutral{font-size:13px;color:#6a6591}
+.analytics-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+.analytics-footer span{color:#8687a1;font-size:10px;line-height:1.5;max-width:65%}
+.analytics-footer button{border-radius:11px;background:#eee9ff;color:#4d3bae;padding:10px 12px;font-weight:850;font-size:11px;white-space:nowrap}
+.analytics-footer button:active{transform:scale(.97)}
 </style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
@@ -96,6 +115,69 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){aler
 function total(){return data.banks.reduce((sum,b)=>sum+(Number(b.balance)||0),0)}
 function badge(name){const n=String(name||'');let bg=n.includes('Axis')?'#a3134f':n.includes('HDFC')?'#1269bd':n.includes('ICICI')?'#dc6019':n.includes('State Bank')?'#1596d3':n.includes('Canara')?'#00a5cc':n.includes('Punjab')?'#a51c54':n.includes('Baroda')?'#f37927':'#554bc1';let letters=n==='State Bank of India'?'SBI':n.split(/\s+/).map(s=>s[0]).join('').slice(0,3).toUpperCase();return '<div class="bank-symbol" style="background:'+bg+'">'+tidy(letters)+'</div>'}
 function categoryIcon(name){return (cats[name]||cats.Other)[0]}
+// Chart-free analytics from the current device's recorded money entries.
+function analyticsDayKey(entry){
+ const raw=String(entry.created||entry.when||entry.date||'');
+ if(/^\d{4}-\d{2}-\d{2}/.test(raw))return raw.slice(0,10);
+ const date=new Date(raw);
+ if(!Number.isFinite(date.getTime()))return '';
+ return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+}
+function analyticsSnapshot(now=new Date()){
+ const year=now.getFullYear(),month=now.getMonth(),day=now.getDate();
+ const monthKey=[year,String(month+1).padStart(2,'0')].join('-');
+ const today=monthKey+'-'+String(day).padStart(2,'0');
+ const prevDate=new Date(year,month-1,1);
+ const prevKey=[prevDate.getFullYear(),String(prevDate.getMonth()+1).padStart(2,'0')].join('-');
+ const prevDays=new Date(year,month,0).getDate();
+ const comparisonCutoff=prevKey+'-'+String(Math.min(day,prevDays)).padStart(2,'0');
+ const monthly=data.entries.filter(e=>{
+  const date=analyticsDayKey(e),type=String(e.type||'').toLowerCase();
+  return date.startsWith(monthKey)&&date<=today&&['income','expense'].includes(type)&&Number.isFinite(Number(e.amount));
+ });
+ const previous=data.entries.filter(e=>analyticsDayKey(e).startsWith(prevKey)&&analyticsDayKey(e)<=comparisonCutoff&&String(e.type||'').toLowerCase()==='expense'&&Number.isFinite(Number(e.amount)));
+ const sum=(entries,type)=>entries.filter(e=>String(e.type||'').toLowerCase()===type).reduce((acc,e)=>acc+Math.max(0,Number(e.amount)||0),0);
+ const income=sum(monthly,'income'),expense=sum(monthly,'expense'),net=income-expense,prevExpense=sum(previous,'expense');
+ const todaySpent=sum(monthly.filter(e=>analyticsDayKey(e)===today),'expense');
+ const avgExpense=expense/Math.max(1,day);
+ let deltaText='No previous spending',deltaClass='neutral',deltaHint='No expense baseline for the same days last month.';
+ if(prevExpense>0){
+  const pct=Math.round(Math.abs(expense-prevExpense)/prevExpense*100);
+  deltaText=(expense>prevExpense?'↑ ':expense<prevExpense?'↓ ':'= ')+pct+'%';
+  deltaClass=expense>prevExpense?'higher':expense<prevExpense?'lower':'neutral';
+  deltaHint=expense>prevExpense?'Spending increased vs the same days last month.':expense<prevExpense?'Spending decreased vs the same days last month.':'Spending is unchanged vs the same days last month.';
+ }else if(expense>0){deltaText='New spending';}
+ return {income,expense,net,todaySpent,avgExpense,prevExpense,monthly,deltaText,deltaClass,deltaHint,
+  monthLabel:now.toLocaleDateString('en-IN',{month:'long',year:'numeric'}),dayCount:day};
+}
+function analyticsHome(){
+ const a=analyticsSnapshot(),netSign=a.net>=0?'positive':'negative';
+ const cashLabel=a.net>=0?'+':'−';
+ let html='<div class="section-head"><h2>✨ Money Analytics</h2><span class="pill">'+tidy(a.monthLabel)+'</span></div>';
+ html+='<div class="analytics-panel"><div class="analytics-intro"><div><span class="analytics-eyebrow">💼 NET CASH FLOW · THIS MONTH</span><div class="analytics-amount '+netSign+'">'+cashLabel+fmt(Math.abs(a.net))+'</div><div class="analytics-hint">Income '+fmt(a.income)+' · Expenses '+fmt(a.expense)+'</div></div><div class="analytics-stamp">✨</div></div>';
+ html+='<div class="analytics-grid">'+
+  '<div class="analytics-metric"><span>💸 Spent today</span><strong>'+fmt(a.todaySpent)+'</strong></div>'+
+  '<div class="analytics-metric"><span>📅 Daily average</span><strong>'+fmt(a.avgExpense)+'</strong></div>'+
+  '<div class="analytics-metric"><span>🧾 This month</span><strong>'+a.monthly.length+' entries</strong></div>'+
+  '<div class="analytics-metric"><span>↔ vs Last Month</span><strong class="'+a.deltaClass+'">'+tidy(a.deltaText)+'</strong></div>'+
+  '</div><div class="analytics-footer"><span>'+tidy(a.deltaHint)+'</span><button type="button" data-analytics="details">View details →</button></div></div>';
+ return html;
+}
+function analyticsDetails(){
+ const a=analyticsSnapshot();
+ const expenseItems=a.monthly.filter(e=>String(e.type||'').toLowerCase()==='expense');
+ const categoryTotals={};
+ for(const entry of expenseItems){const category=String(entry.category||'Other');categoryTotals[category]=(categoryTotals[category]||0)+Math.max(0,Number(entry.amount)||0);}
+ const ranked=Object.entries(categoryTotals).sort((left,right)=>right[1]-left[1]);
+ let content='<p class="muted">Summary for '+tidy(a.monthLabel)+' through today. Based on manual entries stored on this device; transfers excluded.</p>';
+ content+='<div class="split"><div class="smallstat"><div class="muted">↙ Money received</div><strong class="value" style="color:#078a5b">'+fmt(a.income)+'</strong></div><div class="smallstat"><div class="muted">↗ Money spent</div><strong class="value" style="color:#d93d65">'+fmt(a.expense)+'</strong></div></div>';
+ content+='<div class="card"><b>Net cash flow: '+(a.net>=0?'+':'−')+fmt(Math.abs(a.net))+'</b><p class="muted">'+tidy(a.deltaHint)+'</p><p class="muted">Last month (same dates): '+fmt(a.prevExpense)+' expenses</p></div>';
+ content+='<h2>Biggest expenses this month</h2>';
+ content+=ranked.length?ranked.slice(0,6).map(([name,amount],index)=>'<div class="card row"><div class="badge-icon">'+categoryIcon(name)+'</div><div class="grow"><div class="label">'+tidy(name)+'</div><div class="muted">#'+(index+1)+' expense category</div></div><div class="value">'+fmt(amount)+'</div></div>').join(''):'<div class="card empty">No recorded expenses this month yet.</div>';
+ content+='<h2>Recent monthly entries</h2>';
+ content+=a.monthly.length?a.monthly.slice().reverse().slice(0,8).map(e=>'<div class="card row"><div class="grow"><div class="label">'+tidy(e.category||e.type||'Entry')+'</div><div class="muted">'+tidy(e.note||analyticsDayKey(e)||'')+'</div></div><div class="value">'+(String(e.type||'').toLowerCase()==='income'?'+':'−')+fmt(Math.max(0,Number(e.amount)||0))+'</div></div>').join(''):'<div class="card empty">No entries for this month.</div>';
+ showSheet('Money Analytics',content);
+}
 function home(){
 const groups={};
 for(const e of data.entries){if(e.type==='Expense'){const key=e.category||'Other';groups[key]=(groups[key]||0)+Number(e.amount||0)}}
@@ -109,6 +191,7 @@ html+='<div class="split" style="margin:12px 0"><div class="smallstat"><div clas
 html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">One-tap access</span></div>';
 const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink']];
 html+='<div class="quick-grid">'+actions.map(([id,icon,name,theme])=>'<button type="button" class="quick-tile '+theme+'" data-quick="'+id+'" aria-label="'+tidy(name)+'"><span class="quick-icon" aria-hidden="true">'+icon+'</span><span class="quick-name">'+name+'</span></button>').join('')+'</div>';
+html+=analyticsHome();
 html+='<div class="section-head"><h2>🏆 Top Spends</h2><span class="pill">All-time expenses</span></div>';
 if(!top.length)html+='<div class="card empty"><div class="symbol">🛍️</div><b>No expenses recorded yet</b><p class="muted">Use Add Expense to see your biggest spending categories here.</p></div>';
 else{
@@ -170,6 +253,8 @@ document.getElementById('nav').addEventListener('click',e=>{const target=e.targe
 document.getElementById('view').addEventListener('click',e=>{
 const loan=e.target.closest('[data-loan-action]');
 if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId);return;}
+const analytics=e.target.closest('[data-analytics]');
+if(analytics){e.preventDefault();if(analytics.dataset.analytics==='details')analyticsDetails();return;}
 const spend=e.target.closest('[data-spend]');
 if(spend){e.preventDefault();openSpendCategory(spend.dataset.spend);return;}
 const quick=e.target.closest('[data-quick]');
