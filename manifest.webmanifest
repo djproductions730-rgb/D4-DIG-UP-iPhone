@@ -1,10 +1,24 @@
 {
   "name": "D4 DIG UP",
   "short_name": "D4 DIG UP",
-  "description": "Personal finance tracker prototype",
+  "description": "D4 DIG UP iPhone spending and bank tracker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f5f4fc",
-  "theme_color": "#4537a8"
+  "theme_color": "#4537a8",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.png",
+      "type": "image/png",
+      "sizes": "180x180",
+      "purpose": "any"
+    }
+  ]
 }
