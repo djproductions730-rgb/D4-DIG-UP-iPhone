@@ -61,7 +61,7 @@ function loanDueSummary(l,onDate=loanLocalToday()){
  const nextAmount=firstUnpaid<months?Math.max(0,Math.round((emi*(firstUnpaid+1)-paid)*100)/100):0;
  // Most recently due EMI has been paid: status PAID, show the next pending due date.
  // Suppress the next-seven-days reminder until the next EMI is actually due.
- if(paid>0&&(dueCount===0||paid+0.009>=emi*dueCount)){
+ if((dueCount===0&&paid+0.009>=emi)||(dueCount>0&&paid+0.009>=emi*dueCount)){
   return {kind:'paid',label:'✅ Paid',date:nextDate,due:0,amount:nextAmount,emi:st.emi,st};
  }
  const due=Math.max(0,Math.round((emi*dueCount-paid)*100)/100);
