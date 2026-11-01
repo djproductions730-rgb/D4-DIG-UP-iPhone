@@ -1,5 +1,5 @@
-const CACHE = 'd4-iphone-loans-v2';
-const ASSETS = ['./','./index.html','./loans.js','./manifest.webmanifest','./icon.svg'];
+const CACHE = 'd4-iphone-verified-migration-v3';
+const ASSETS = ['./','./index.html','./loans.js','./migration.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
