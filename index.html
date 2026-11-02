@@ -397,6 +397,30 @@ function pxEditLog(entry){
  const edits=Array.isArray(entry.pxEdits)?entry.pxEdits:[];
  return '<details><summary>Edit history ('+edits.length+')</summary>'+ (edits.slice().reverse().map(edit=>'<p>'+tidy(new Date(edit.at).toLocaleString('en-IN'))+'<br>'+(Array.isArray(edit.changes)?edit.changes:[]).map(c=>tidy(c.field+': '+(c.before||'—')+' → '+(c.after||'—'))).join('<br>')+'</p>').join('')||'<p>No recorded edits.</p>')+'</details>';
 }
+const pxHistoryFilters={type:'All',office:'',merchant:''};
+function pxFilteredHistory(records){
+ const filters=pxHistoryFilters;
+ const expenses=records.filter(r=>r.type==='Expense');
+ const merchants=[...new Set(expenses.filter(r=>!filters.office||r.office===filters.office).map(r=>r.merchant).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+ if(!merchants.includes(filters.merchant))filters.merchant='';
+ const visible=records.filter(r=>(filters.type==='All'||r.type===filters.type)&&(filters.type!=='Expense'||((!filters.office||r.office===filters.office)&&(!filters.merchant||r.merchant===filters.merchant))));
+ const subtotal=visible.reduce((n,r)=>n+(r.type==='Expense'?r.paise:0),0);
+ return {visible,merchants,subtotal};
+}
+function pxHistoryControls(result,escape,amount){
+ function select(key,label,options){
+  return '<label>'+label+'<select class="input" data-history-key="'+key+'">'+options.map(([value,title])=>'<option value="'+escape(value)+'"'+(pxHistoryFilters[key]===value?' selected':'')+'>'+escape(title)+'</option>').join('')+'</select></label>';
+ }
+ let html=select('type','Transaction type',[['All','All transactions'],['Expense','Expense'],['Income','Money credited']]);
+ if(pxHistoryFilters.type==='Expense'){
+  html+=select('office','Office',[['','All locations'],['In Office','In Office'],['Out of Office','Out of Office']])+select('merchant','Merchant',[['','All merchants'],...result.merchants.map(name=>[name,name])]);
+ }
+ if(pxHistoryFilters.type!=='Income')html+='<div class="pxrow"><span>Expense subtotal</span><b class="pxout">'+amount+'</b></div>';
+ return html;
+}
+document.addEventListener('change',e=>{
+ if(e.target.matches('.pxwallet [data-history-key]')){pxHistoryFilters[e.target.dataset.historyKey]=e.target.value;render()}
+});
 function pluxeePage(){
  const range=pxRange();
  const ids=new Set(pluxeeAccounts().map(b=>String(b.id)));
@@ -409,8 +433,12 @@ function pluxeePage(){
  const received=total('Income'),spent=total('Expense');
  const ranking=pluxeeRanking(items).map((m,i)=>'<div class="pxrow"><span>'+(i+1)+'. '+tidy(m.name)+'</span><b class="pxout">'+fmt(m.paise/100)+'</b></div>').join('')||'<p>No Pluxee spends in this period.</p>';
  const entryIndices=new Map(data.entries.map((e,i)=>[e,i]));
- const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No Pluxee entries in this period.</p>';
- return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Transaction history</h3>${rows}<h3>Top Spends</h3>${ranking}</section>`;
+ const result=pxFilteredHistory(items.slice().sort((a,b)=>new Date(b.created||b.when||b.date)-new Date(a.created||a.when||a.date)).map(e=>({
+  entry:e,type:e.type,paise:Math.round(Number(e.amount)*100),office:officeSpendCategories.includes(e.category)?e.category.replace(' Spend',''):'',merchant:officeSpendCategories.includes(e.category)?String(e.note||'').split(' · ')[0].trim():''
+ })));
+ const controls=pxHistoryControls(result,tidy,fmt(result.subtotal/100));
+ const rows=result.visible.map(({entry:e})=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No matching transactions.</p>';
+ return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<h3>Recent History</h3>${controls}${rows}</section>`;
 }
 function openPluxee(type){
  const expense=type==='Expense';
