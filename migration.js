@@ -32,7 +32,7 @@
     if(!Number.isFinite(n) || Math.abs(n)>100000000000)throw Error('Invalid '+label);
     return money(n);
   };
-  const linkedCurrent=()=>[data.banks,data.entries,data.plans,data.loans]
+  const linkedCurrent=()=>[data.banks,data.entries,data.plans,data.loans,data.savings]
     .some(arr=>Array.isArray(arr)&&arr.length>0);
 
   // Never run this blindly: two accounts may share a bank display name.
