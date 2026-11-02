@@ -103,7 +103,39 @@
 .analytics-footer button:active{transform:scale(.97)}
 
 body.d4-logged-out .bottom,body.d4-logged-out header>.buddy,body.d4-logged-out header>.profile-trigger{display:none}
-</style><link rel="stylesheet" href="./assets/savings-portraits.css"><style>.saving-picture{position:relative;width:min(100%,260px);margin:0 auto}.saving-picture .savings-portrait.large{width:100%;margin:0}.saving-dial{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 18px 18px;padding:18px 5px 7px;text-align:center;color:white;background:linear-gradient(transparent,#131926 40%)}.saving-wheel{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:-.08em}.saving-wheel>span,.saving-wheel i{display:block}.saving-wheel i{font-style:normal;height:1em}.saving-wheel>span{animation:savings-spin var(--duration) cubic-bezier(.18,.7,.22,1) forwards}@keyframes savings-spin{to{transform:translateY(var(--travel))}}.saving-dial small{display:block;font:700 10px system-ui;letter-spacing:.16em}.saving-dial strong{display:block;font:bold clamp(18px,6vw,30px) ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#ffda75;overflow-wrap:anywhere}</style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+</style><link rel="stylesheet" href="./assets/savings-portraits.css"><style>.saving-picture{position:relative;width:min(100%,260px);margin:0 auto}.saving-picture .savings-portrait.large{width:100%;margin:0}.saving-dial{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 18px 18px;padding:18px 5px 7px;text-align:center;color:white;background:linear-gradient(transparent,#131926 40%)}.saving-wheel{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:-.08em}.saving-wheel>span,.saving-wheel i{display:block}.saving-wheel i{font-style:normal;height:1em}.saving-wheel>span{animation:savings-spin var(--duration) cubic-bezier(.18,.7,.22,1) forwards}@keyframes savings-spin{to{transform:translateY(var(--travel))}}.saving-dial small{display:block;font:700 10px system-ui;letter-spacing:.16em}.saving-dial strong{display:block;font:bold clamp(18px,6vw,30px) ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#ffda75;overflow-wrap:anywhere}</style><style>
+#d4-intro{display:none}
+html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;pointer-events:none;background:radial-gradient(ellipse at center,#34235c,#120e21 72%);animation:d4-exit 1.65s both}
+#d4-intro svg{width:min(49vw,210px);height:auto;filter:drop-shadow(0 18px 36px #100925);animation:d4-badge .75s ease-out both}
+#d4-intro .launch-d4{animation:d4-arrive .7s cubic-bezier(.2,.8,.25,1) both}
+#d4-intro .launch-name{animation:d4-title .65s .18s ease-out both}
+#d4-intro .launch-rule{transform-box:fill-box;transform-origin:center;animation:d4-rule .5s .22s ease-out both}
+@keyframes d4-badge{from{transform:scale(.88);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes d4-arrive{from{transform:translateY(-52px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes d4-title{from{transform:translateY(50px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes d4-rule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes d4-exit{0%,76%{opacity:1}100%{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){html.d4-launch #d4-intro{display:none}}
+</style><script>
+(function(){
+ const key='d4-intro-seen-v1';
+ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ try{if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1')}catch(_){}
+ document.documentElement.classList.add('d4-launch');
+ window.setTimeout(()=>document.documentElement.classList.remove('d4-launch'),1700);
+})();
+</script></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<defs>
+<linearGradient id="launch-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141338"/><stop offset=".55" stop-color="#4d2395"/><stop offset="1" stop-color="#202884"/></linearGradient>
+<linearGradient id="launch-ink" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8dda"/><stop offset=".5" stop-color="#c46df9"/><stop offset="1" stop-color="#4ed6ff"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="110" fill="url(#launch-bg)"/>
+<rect x="14" y="14" width="484" height="484" rx="101" fill="none" stroke="#bb78ff" stroke-opacity=".8" stroke-width="9"/>
+<path d="M36 255 Q70 90 248 40" fill="none" stroke="#b49aff" stroke-width="11" stroke-opacity=".24"/>
+<text class="launch-d4" x="256" y="287" font-family="Arial,Helvetica,sans-serif" font-size="215" font-weight="900" text-anchor="middle" fill="url(#launch-ink)" letter-spacing="-14">D4</text>
+<rect class="launch-rule" x="93" y="329" width="326" height="7" rx="3.5" fill="#ac85ff"/>
+<text class="launch-name" x="256" y="407" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="800" text-anchor="middle" letter-spacing="4" fill="#fff">DIG UP</text>
+</svg></div><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
 // This app is intentionally local-only; no finance data is sent to the public GitHub repository.
