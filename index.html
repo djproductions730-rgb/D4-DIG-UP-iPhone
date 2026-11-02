@@ -472,7 +472,41 @@ function pluxeePage(){
  })));
  const controls=pxHistoryControls(result,tidy,fmt(result.subtotal/100));
  const rows=result.visible.map(({entry:e,merchant})=>'<div class="pxrow"><span>'+(e.type==='Expense'?pxMerchantLogo(merchant||e.category):'')+tidy(pxSpendChannel(e)?[pxSpendChannel(e),e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No matching transactions.</p>';
- return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>Available balance</span><strong class="px-available">${fmt(accountBalance(pluxeeAccounts()))}</strong></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<details class="px-history" ${historyOpen?'open':'' }><summary>Recent History</summary>${controls}${rows}</details></section>`;
+ return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>Remaining balance</span><strong class="px-available">${fmt(accountBalance(pluxeeAccounts()))}</strong><button type="button" onclick="editPluxeeBalance()">Edit balance</button></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<details class="px-history" ${historyOpen?'open':'' }><summary>Recent History</summary>${controls}${rows}</details></section>`;
+}
+function pxPaise(value){
+ if(value==null||String(value).trim()==='')throw Error('Enter an amount.');
+ const amount=Number(value),paise=Math.round(amount*100);
+ if(!Number.isFinite(amount)||Math.abs(amount)>1e11||Math.abs(paise/100-amount)>0.000001)throw Error('Enter a valid amount with up to two decimal places.');
+ return paise;
+}
+function pxWriteWallet(bankId,amountPaise,entry){
+ const banks=data.banks.slice();
+ let index=banks.findIndex(b=>isPluxeeAccount(b)&&String(b.id)===String(bankId));
+ if(index<0&&bankId!=null)throw Error('Wallet changed. Reopen Pluxee.');
+ const bank=index<0?{id:crypto.randomUUID(),name:'Pluxee',nick:'Meal wallet',balance:0}:{...banks[index]};
+ const previous=pxPaise(bank.balance);
+ const nextPaise=entry?previous+(entry.type==='Income'?amountPaise:-amountPaise):amountPaise;
+ bank.balance=pxPaise(nextPaise/100)/100;
+ if(index<0)banks.push(bank);else banks[index]=bank;
+ const entries=entry?data.entries.concat({...entry,amount:amountPaise/100,bankId:bank.id}):data.entries;
+ const next={...data,banks,entries};
+ try{localStorage.setItem(KEY,JSON.stringify(next))}catch(_){throw Error('Could not save on this device. Please retry.')}
+ data=next;
+}
+function editPluxeeBalance(){
+ const wallets=pluxeeAccounts();
+ showSheet('Edit Pluxee balance','<form id="px-balance"><p>Enter the current balance shown in your Pluxee account.</p>'+(wallets.length>1?'<label class="field">Wallet<select class="input" name="wallet">'+wallets.map((b,i)=>'<option value="'+i+'">'+tidy(b.nick||b.name)+' · '+fmt(b.balance)+'</option>').join('')+'</select></label>':'')+'<label class="field">Remaining balance (₹)<input name="amount" class="input" type="number" step="0.01" required></label><button class="button">Save balance</button></form>');
+ const form=document.getElementById('px-balance');
+ const selected=()=>wallets[Number(form.elements.wallet?.value||0)];
+ const fill=()=>{form.elements.amount.value=Number(selected()?.balance||0).toFixed(2)};
+ if(form.elements.wallet)form.elements.wallet.onchange=fill;
+ fill();
+ form.onsubmit=e=>{
+  e.preventDefault();
+  try{pxWriteWallet(selected()?.id,pxPaise(form.elements.amount.value),null)}catch(error){alert(error.message);return}
+  closeSheet();render();
+ };
 }
 function openPluxee(type){
  const expense=type==='Expense';
@@ -491,11 +525,8 @@ function openPluxee(type){
   if(!Number.isFinite(amount)||amount<=0)return;
   let note=fields.note.value.trim();
   if(expense){try{note=merchantNote(form,note)}catch(error){alert(error.message);return}}
-  let bank=pluxeeAccounts()[0];
-  if(!bank){bank={id:crypto.randomUUID(),name:'Pluxee',nick:'Meal wallet',balance:0};data.banks.push(bank);}
-  bank.balance=Math.round((Number(bank.balance)+(type==='Income'?amount:-amount))*100)/100;
-  data.entries.push({bankId:bank.id,type,amount,category:expense?fields.location.value:'Allowance',note,created:new Date().toISOString()});
-  closeSheet();save();
+  try{pxWriteWallet(pluxeeAccounts()[0]?.id,pxPaise(fields.amount.value),{type,category:expense?fields.location.value:'Allowance',note,created:new Date().toISOString()})}catch(error){alert(error.message);return}
+  closeSheet();render();
  };
 }
 
