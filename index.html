@@ -319,22 +319,34 @@ function analyticsDetails(){
  content+=a.monthly.length?a.monthly.slice().reverse().slice(0,8).map(e=>'<div class="card row"><div class="grow"><div class="label">'+tidy(e.category||e.type||'Entry')+'</div><div class="muted">'+tidy(e.note||analyticsDayKey(e)||'')+'</div></div><div class="value">'+(String(e.type||'').toLowerCase()==='income'?'+':'−')+fmt(Math.max(0,Number(e.amount)||0))+'</div></div>').join(''):'<div class="card empty">No entries for this month.</div>';
  showSheet('Money Analytics',content);
 }
-const officeSpendCategories=['In Office Spend','Out of Office Spend'];
-function merchantFields(){
- return '<label class="field">Merchant<select class="input" name="merchant"><option>Swiggy</option><option>Zomato</option><option>Zepto</option><option>Others</option></select></label><label class="field" style="display:none">Shop or app name<input class="input" name="merchantName" maxlength="80" disabled></label>';
+const officeSpendCategories=['In Office','Online'];
+function pxSpendChannel(entry){
+ const category=entry.category;
+ if(category==='In Office Spend')return 'In Office';
+ if(category==='Out of Office Spend'){
+  const name=String(entry.note||'').split(' · ')[0].trim();
+  return /^(swiggy|zomato|zomoto|zepto)$/i.test(name)?'Online':'Out of Office';
+ }
+ return officeSpendCategories.includes(category)?category:'';
 }
-function syncMerchant(form,enabled=true){
- const merchant=form.elements.merchant, name=form.elements.merchantName;
- merchant.disabled=!enabled;
- const custom=enabled&&merchant.value==='Others';
- name.parentElement.style.display=custom?'':'none';
- name.required=custom;
+function merchantFields(){
+ return '<label class="field">Online merchant<select class="input" name="merchant"><option>Swiggy</option><option>Zomato</option><option>Zepto</option><option>Others</option></select></label><label class="field"><span data-merchant-label></span><input class="input" name="merchantName" maxlength="80"></label>';
+}
+function syncMerchant(form,enabled,channel){
+ const merchant=form.elements.merchant,name=form.elements.merchantName;
+ const online=enabled&&channel==='Online',office=enabled&&channel==='In Office';
+ merchant.disabled=!online;
+ merchant.parentElement.style.display=online?'':'none';
+ const custom=office||(online&&merchant.value==='Others');
  name.disabled=!custom;
+ name.required=custom;
+ name.parentElement.style.display=custom?'':'none';
+ name.parentElement.querySelector('[data-merchant-label]').textContent=office?'Canteen or shop name':'Shop or app name';
 }
 function merchantNote(form,note){
  const fields=form.elements;
- const name=fields.merchant.value==='Others'?fields.merchantName.value.trim():fields.merchant.value;
- if(!name)throw Error('Enter the shop or app name.');
+ const name=fields.merchantName.disabled?fields.merchant.value:fields.merchantName.value.trim();
+ if(!name)throw Error('Enter the merchant name.');
  return [name,note.trim()].filter(Boolean).join(' · ');
 }
 function pluxeeAccounts(){
@@ -344,7 +356,7 @@ function pluxeeRanking(items){
  const totals=new Map();
  for(const entry of items){
   if(entry.type!=='Expense')continue;
-  const name=(officeSpendCategories.includes(entry.category)?String(entry.note||'').split(' · ')[0].trim():'')||'Unspecified merchant';
+  const name=(pxSpendChannel(entry)?String(entry.note||'').split(' · ')[0].trim():'')||'Unspecified merchant';
   const key=name.toLowerCase();
   const merchant=totals.get(key)||{name,paise:0};
   merchant.paise+=Math.round(Number(entry.amount)*100);
@@ -425,7 +437,7 @@ function pxHistoryControls(result,escape,amount){
  }
  let html=select('type','Transaction type',[['All','All transactions'],['Expense','Expense'],['Income','Money credited']]);
  if(pxHistoryFilters.type==='Expense'){
-  html+=select('office','Office',[['','All locations'],['In Office','In Office'],['Out of Office','Out of Office']])+select('merchant','Merchant',[['','All merchants'],...result.merchants.map(name=>[name,name])]);
+  html+=select('office','Spend channel',[['','All locations'],['In Office','In Office'],['Online','Online']])+select('merchant','Merchant',[['','All merchants'],...result.merchants.map(name=>[name,name])]);
  }
  if(pxHistoryFilters.type!=='Income')html+='<div class="pxrow"><span>Expense subtotal</span><b class="pxout">'+amount+'</b></div>';
  return html;
@@ -450,16 +462,16 @@ function pluxeePage(){
  }).slice().reverse();
  const total=type=>items.filter(e=>e.type===type).reduce((sum,e)=>sum+Number(e.amount),0);
  const received=total('Income'),spent=total('Expense');
- const officeFilters=['All','In Office Spend','Out of Office Spend'];
+ const officeFilters=['All',...officeSpendCategories];
  const filterButtons=officeFilters.map(office=>`<button type="button" data-px-office="${office}" aria-pressed="${pxTopOffice===office}">${office.replace(' Spend','')}</button>`).join('');
- const leaders=pluxeeRanking(pxTopOffice==='All'?items:items.filter(e=>e.category===pxTopOffice));
+ const leaders=pluxeeRanking(pxTopOffice==='All'?items:items.filter(e=>pxSpendChannel(e)===pxTopOffice));
  const ranking='<div class="px-office">'+filterButtons+'</div>'+(leaders.length?'<div class="px-podium">'+leaders.map((m,i)=>'<div class="px-place">'+pxMerchantLogo(m.name)+'<span>'+tidy(m.name)+'</span><b class="pxout">'+fmt(m.paise/100)+'</b><strong>#'+(i+1)+'</strong></div>').join('')+'</div>':'<p>No matching spends in this period.</p>');
  const entryIndices=new Map(data.entries.map((e,i)=>[e,i]));
  const result=pxFilteredHistory(items.slice().sort((a,b)=>new Date(b.created||b.when||b.date)-new Date(a.created||a.when||a.date)).map(e=>({
-  entry:e,type:e.type,paise:Math.round(Number(e.amount)*100),office:officeSpendCategories.includes(e.category)?e.category.replace(' Spend',''):'',merchant:officeSpendCategories.includes(e.category)?String(e.note||'').split(' · ')[0].trim():''
+  entry:e,type:e.type,paise:Math.round(Number(e.amount)*100),office:pxSpendChannel(e),merchant:pxSpendChannel(e)?String(e.note||'').split(' · ')[0].trim():''
  })));
  const controls=pxHistoryControls(result,tidy,fmt(result.subtotal/100));
- const rows=result.visible.map(({entry:e,merchant})=>'<div class="pxrow"><span>'+(e.type==='Expense'?pxMerchantLogo(merchant||e.category):'')+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No matching transactions.</p>';
+ const rows=result.visible.map(({entry:e,merchant})=>'<div class="pxrow"><span>'+(e.type==='Expense'?pxMerchantLogo(merchant||e.category):'')+tidy(pxSpendChannel(e)?[pxSpendChannel(e),e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No matching transactions.</p>';
  return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<details class="px-history" ${historyOpen?'open':'' }><summary>Recent History</summary>${controls}${rows}</details></section>`;
 }
 function openPluxee(type){
@@ -467,7 +479,12 @@ function openPluxee(type){
  const details=expense?'<label class="field">Expense category<select class="input" name="location">'+officeSpendCategories.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+merchantFields():'';
  showSheet(type==='Income'?'Money Credited':'Pluxee spend','<form id="pxform">'+details+'<label class="field">Amount (₹)<input class="input" name="amount" type="number" min="0.01" step="0.01" required></label><label class="field">Note<input class="input" name="note" maxlength="150"></label><button class="button">Save</button></form>');
  const form=document.getElementById('pxform');
- if(expense)form.elements.merchant.onchange=()=>syncMerchant(form);
+ if(expense){
+  const refresh=()=>syncMerchant(form,true,form.elements.location.value);
+  form.elements.merchant.onchange=refresh;
+  form.elements.location.onchange=refresh;
+  refresh();
+ }
  form.onsubmit=event=>{
   event.preventDefault();
   const fields=event.currentTarget.elements, amount=Number(fields.amount.value);
@@ -603,7 +620,7 @@ openTransaction=function(initialType='Expense'){
  function refresh(){
   const enabled=type.value==='Expense'&&officeSpendCategories.includes(category.value);
   box.hidden=!enabled;
-  syncMerchant(form,enabled);
+  syncMerchant(form,enabled,category.value);
   form.querySelectorAll('[data-category-choice]').forEach(button=>{
    if(officeSpendCategories.includes(button.dataset.categoryChoice))button.hidden=type.value!=='Expense';
   });
