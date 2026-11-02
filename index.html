@@ -103,7 +103,7 @@
 .analytics-footer button:active{transform:scale(.97)}
 
 body.d4-logged-out .bottom,body.d4-logged-out header>.buddy,body.d4-logged-out header>.profile-trigger{display:none}
-</style><link rel="stylesheet" href="./assets/savings-portraits.css"></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+</style><link rel="stylesheet" href="./assets/savings-portraits.css"><style>.saving-picture{position:relative;width:min(100%,260px);margin:0 auto}.saving-picture .savings-portrait.large{width:100%;margin:0}.saving-dial{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 18px 18px;padding:18px 5px 7px;text-align:center;color:white;background:linear-gradient(transparent,#131926 40%)}.saving-wheel{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:-.08em}.saving-wheel>span,.saving-wheel i{display:block}.saving-wheel i{font-style:normal;height:1em}.saving-wheel>span{animation:savings-spin var(--duration) cubic-bezier(.18,.7,.22,1) forwards}@keyframes savings-spin{to{transform:translateY(var(--travel))}}.saving-dial small{display:block;font:700 10px system-ui;letter-spacing:.16em}.saving-dial strong{display:block;font:bold clamp(18px,6vw,30px) ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#ffda75;overflow-wrap:anywhere}</style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
 // This app is intentionally local-only; no finance data is sent to the public GitHub repository.
@@ -140,28 +140,60 @@ function savingsPortrait(stage,large=false){
  const cell=growthStages.indexOf(stage);
  return '<span class="savings-portrait'+(large?' large':'')+'" aria-hidden="true" style="--x:'+((cell%4)*100/3)+'%;--y:'+(Math.floor(cell/4)*50)+'%"></span>';
 }
+
+function savingsAccounts(){
+ const accounts=new Map();
+ for(const entry of data.savings||[]){
+  const id=String(entry.bankId||'');
+  if(!accounts.has(id))accounts.set(id,{id,label:entry.bankLabel||'Earlier savings · bank unspecified',amount:0});
+  accounts.get(id).amount+=entry.paise;
+ }
+ return accounts;
+}
+function rollSavingsTotal(from,to){
+ const display=document.getElementById('savingCounter');
+ if(!display||window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+ const final=savingsMoney(to),previous=savingsMoney(from).replace(/\D/g,'').split('').reverse();
+ let offset=final.replace(/\D/g,'').length;
+ display.innerHTML=Array.from(final,c=>{
+  if(!/\d/.test(c))return c;
+  const first=Number(previous[--offset]||0),steps=10+(Number(c)-first+10)%10;
+  const strip=Array.from({length:steps+1},(_,i)=>'<i>'+((first+i)%10)+'</i>').join('');
+  return '<span class="saving-wheel"><span style="--travel:-'+steps+'em;--duration:'+(650+Math.min(offset,6)*70)+'ms">'+strip+'</span></span>';
+ }).join('');
+ setTimeout(()=>{if(display.isConnected)display.textContent=final;},1150);
+}
 function savingsPage(){
  const entries=data.savings||[],{paise,stage,next}=growthState(entries);
- const history=entries.slice().reverse().map(e=>'<div class="card row"><span>'+tidy(new Date(e.date).toLocaleDateString('en-IN'))+'</span><strong>'+ (e.paise>0?'+':'−')+savingsMoney(Math.abs(e.paise))+'</strong></div>').join('');
+ const history=entries.slice().reverse().map(e=>'<div class="card row"><span>'+tidy(new Date(e.date).toLocaleDateString('en-IN'))+'<br><small>'+tidy(e.bankLabel||'Earlier savings · bank unspecified')+'</small></span><strong>'+ (e.paise>0?'+':'−')+savingsMoney(Math.abs(e.paise))+'</strong></div>').join('');
  const progress=next?'<progress aria-label="Progress to next age" style="width:100%" value="'+(paise-stage[0]*100)+'" max="'+((next[0]-stage[0])*100)+'"></progress><p>'+savingsMoney(next[0]*100-paise)+' to age '+next[1]+' · '+next[3]+'</p>':'<p>Grandfather milestone reached 🎉</p>';
- return '<button class="button ghost" onclick="go(\'home\')">‹ Home</button><h2>Savings Journey</h2><div class="hero"><small>TOTAL SAVED</small><div class="balance">'+savingsMoney(paise)+'</div>'+savingsPortrait(stage,true)+'<h2>'+stage[3]+(stage[1]?' · Age '+stage[1]:'')+'</h2>'+progress+'</div>'+
- '<p class="muted">Record money you set aside or take back. This is a separate savings log.</p><button class="button" onclick="openSaving(false)">＋ Add savings</button> '+(paise?'<button class="button ghost" onclick="openSaving(true)">Withdraw</button>':'')+
- '<details class="card"><summary>Baby to grandfather · All milestones</summary>'+growthStages.slice(1).map(s=>'<p>'+savingsPortrait(s)+' '+s[3]+' · Age '+s[1]+' · '+savingsMoney(s[0]*100)+(paise>=s[0]*100?' ✓':'')+'</p>').join('')+'</details><h2>Savings history</h2>'+(history||'<p class="muted">Your first saving will appear here.</p>');
+ return '<button class="button ghost" onclick="go(\'home\')">‹ Home</button><h2>Savings Journey</h2><div class="hero"><div class="saving-picture">'+savingsPortrait(stage,true)+'<div class="saving-dial" aria-label="Total saved '+savingsMoney(paise)+'"><small>TOTAL SAVED</small><strong id="savingCounter" aria-hidden="true">'+savingsMoney(paise)+'</strong></div></div><h2>'+stage[3]+(stage[1]?' · Age '+stage[1]:'')+'</h2>'+progress+'</div>'+
+ '<p class="muted">Track how much of each bank balance you have set aside.</p><button class="button" onclick="openSaving(false)">＋ Add savings</button> '+(paise?'<button class="button ghost" onclick="openSaving(true)">Withdraw</button>':'')+
+ '<h2>Saved by bank</h2>'+Array.from(savingsAccounts().values()).map(a=>'<div class="card row"><span>'+tidy(a.label)+'</span><strong>'+savingsMoney(a.amount)+'</strong></div>').join('')+'<details class="card"><summary>Baby to grandfather · All milestones</summary>'+growthStages.slice(1).map(s=>'<p>'+savingsPortrait(s)+' '+s[3]+' · Age '+s[1]+' · '+savingsMoney(s[0]*100)+(paise>=s[0]*100?' ✓':'')+'</p>').join('')+'</details><h2>Savings history</h2>'+(history||'<p class="muted">Your first saving will appear here.</p>');
 }
 function openSaving(withdraw){
  const title=withdraw?'Withdraw savings':'Add savings';
- showSheet(title,'<form id="savingForm"><label class="field" for="savingAmount">Amount (₹)</label><input id="savingAmount" class="input" required type="number" inputmode="decimal" min="0.01" step="0.01"><button class="button">'+title+'</button></form>');
+ const accounts=savingsAccounts();
+ const choices=withdraw?Array.from(accounts.values()).filter(a=>a.amount>0):data.banks.map(b=>({id:String(b.id),label:b.name+(b.nick?' · '+b.nick:'')}));
+ if(!choices.length){showSheet(title,'<p>Add a bank account to start saving.</p><button class="button" onclick="openBankPicker()">Add bank</button>');return;}
+ const options=choices.map((a,i)=>'<option value="'+i+'">'+tidy(a.label)+(withdraw?' · '+savingsMoney(a.amount):'')+'</option>').join('');
+ showSheet(title,'<form id="savingForm"><label class="field" for="savingBank">Bank account</label><select required class="input" id="savingBank"><option value="">Choose account</option>'+options+'</select><label class="field" for="savingAmount">Amount (₹)</label><input id="savingAmount" class="input" required type="number" inputmode="decimal" min="0.01" step="0.01"><button class="button">'+title+'</button></form>');
  document.getElementById('savingForm').onsubmit=event=>{
   event.preventDefault();
   const amount=Number(document.getElementById('savingAmount').value);
   const paise=Math.round(amount*100);
   if(!Number.isSafeInteger(paise)||paise<=0)return alert('Enter a valid amount.');
   const entries=data.savings||[];
-  const updated=[...entries,{paise:withdraw?-paise:paise,date:new Date().toISOString()}];
+  const choice=document.getElementById('savingBank').value;
+  const bank=choices[Number(choice)];
+  if(choice===''||!bank)return alert('Choose a bank account.');
+  if(withdraw&&paise>(savingsAccounts().get(bank.id)?.amount||0))return alert('Amount exceeds savings in this account.');
+  const before=growthState(entries).paise;
+  const updated=[...entries,{bankId:bank.id,bankLabel:bank.label,paise:withdraw?-paise:paise,date:new Date().toISOString()}];
   if(!validSavings(updated))return alert('Amount exceeds the available balance or supported range.');
   const next={...data,savings:updated};
   try{localStorage.setItem(KEY,JSON.stringify(next));}catch(_){return alert('Could not save on this device.');}
-  data=next;closeSheet();render();
+  data=next;closeSheet();render();rollSavingsTotal(before,before+(withdraw?-paise:paise));
  };
 }
 
