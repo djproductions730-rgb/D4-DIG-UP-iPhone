@@ -352,7 +352,7 @@ function pluxeeRanking(items){
  }
  return Array.from(totals.values()).sort((a,b)=>b.paise-a.paise||a.name.localeCompare(b.name)).slice(0,3);
 }
-let pxUnit='Month', pxOffset=0;
+let pxUnit='Day', pxOffset=0;
 function pxRange(today=new Date()){
  const y=today.getFullYear(),m=today.getMonth(),d=today.getDate();
  let start,end,options;
@@ -369,8 +369,17 @@ function pxContains(range,raw){
  const date=new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw)?raw+'T00:00:00':raw);
  return date>=range.start && date<range.end;
 }
+function pxDateKey(date){
+ return [date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+}
+function pxPick(day,today=new Date()){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return;
+ pxUnit='Day';
+ pxOffset=Math.round((Date.parse(day+'T00:00:00Z')-Date.parse(pxDateKey(today)+'T00:00:00Z'))/86400000);
+}
 function pxControls(label){
  const units=['Day','Month','Year'].map(unit=>`<button type="button" data-px-unit="${unit}" aria-pressed="${unit===pxUnit}">${unit}</button>`).join('');
+ if(pxUnit==='Day')return `<div class="pxperiod"><div>${units}</div><label>History date<input type="date" class="input" data-px-date value="${pxDateKey(pxRange().start)}"></label></div>`;
  return `<div class="pxperiod"><div>${units}</div><div><button type="button" data-px-step="-1" aria-label="Previous ${pxUnit}">‹</button><strong>${label}</strong><button type="button" data-px-step="1" aria-label="Next ${pxUnit}" ${pxOffset>=0?'disabled':''}>›</button></div></div>`;
 }
 function pxChange(button){
@@ -381,6 +390,13 @@ document.addEventListener('click',event=>{
  const button=event.target.closest('.pxwallet [data-px-unit],.pxwallet [data-px-step]');
  if(button){pxChange(button);render()}
 });
+document.addEventListener('change',event=>{
+ if(event.target.matches('.pxwallet [data-px-date]')&&event.target.value){pxPick(event.target.value);render()}
+});
+function pxEditLog(entry){
+ const edits=Array.isArray(entry.pxEdits)?entry.pxEdits:[];
+ return '<details><summary>Edit history ('+edits.length+')</summary>'+ (edits.slice().reverse().map(edit=>'<p>'+tidy(new Date(edit.at).toLocaleString('en-IN'))+'<br>'+(Array.isArray(edit.changes)?edit.changes:[]).map(c=>tidy(c.field+': '+(c.before||'—')+' → '+(c.after||'—'))).join('<br>')+'</p>').join('')||'<p>No recorded edits.</p>')+'</details>';
+}
 function pluxeePage(){
  const range=pxRange();
  const ids=new Set(pluxeeAccounts().map(b=>String(b.id)));
@@ -392,8 +408,9 @@ function pluxeePage(){
  const total=type=>items.filter(e=>e.type===type).reduce((sum,e)=>sum+Number(e.amount),0);
  const received=total('Income'),spent=total('Expense');
  const ranking=pluxeeRanking(items).map((m,i)=>'<div class="pxrow"><span>'+(i+1)+'. '+tidy(m.name)+'</span><b class="pxout">'+fmt(m.paise/100)+'</b></div>').join('')||'<p>No Pluxee spends in this period.</p>';
- const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b></div>').join('')||'<p>No Pluxee entries in this period.</p>';
- return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<h3>Activity</h3>${rows}</section>`;
+ const entryIndices=new Map(data.entries.map((e,i)=>[e,i]));
+ const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b><button data-edit-entry="'+entryIndices.get(e)+'">Edit</button></div>'+pxEditLog(e)).join('')||'<p>No Pluxee entries in this period.</p>';
+ return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2></div>${pxControls(range.label)}<div class="pxstats"><div>↙ Received<b>${fmt(received)}</b></div><div>↗ Spent<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Transaction history</h3>${rows}<h3>Top Spends</h3>${ranking}</section>`;
 }
 function openPluxee(type){
  const expense=type==='Expense';
