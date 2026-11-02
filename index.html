@@ -136,7 +136,7 @@ html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-
  document.documentElement.classList.add('d4-launch');
  window.setTimeout(()=>document.documentElement.classList.remove('d4-launch'),3850);
 })();
-</script><style>.pxwallet{background:#f7f6fc;color:#28243a;padding:18px;border-radius:20px;font:15px system-ui}.pxwallet .pxhero{background:linear-gradient(120deg,#302675,#6250ba);color:white;padding:20px;border-radius:16px}.pxwallet h2{margin:6px 0 0;font:700 32px system-ui;color:inherit}.pxwallet small{letter-spacing:.08em}.pxstats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.pxstats div{background:#ffffff;color:#494457;border-radius:14px;padding:13px}.pxstats b{color:#167147;display:block;font:700 24px system-ui;overflow-wrap:anywhere}.pxwallet button{background:white;border:1px solid #bdb5da;color:#45368b;border-radius:12px;padding:11px;font-weight:650}.pxrow{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dedbe7;padding:12px 0;gap:10px}.pxrow span{overflow-wrap:anywhere}.pxrow b{white-space:nowrap}</style></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+</script><style>.pxwallet{background:#f7f6fc;color:#28243a;padding:18px;border-radius:20px;font:15px system-ui}.pxwallet .pxhero{background:linear-gradient(120deg,#302675,#6250ba);color:white;padding:20px;border-radius:16px}.pxwallet h2{margin:6px 0 0;font:700 32px system-ui;color:inherit}.pxwallet small{letter-spacing:.08em}.pxstats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.pxstats div{background:#ffffff;color:#494457;border-radius:14px;padding:13px}.pxstats b{color:#167147;display:block;font:700 24px system-ui;overflow-wrap:anywhere}.pxwallet button{background:white;border:1px solid #bdb5da;color:#45368b;border-radius:12px;padding:11px;font-weight:650}.pxrow{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dedbe7;padding:12px 0;gap:10px}.pxrow span{overflow-wrap:anywhere}.pxrow b{white-space:nowrap}.pxwallet .pxout{color:#b42336}.pxwallet .pxin{color:#167147}</style></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
 <linearGradient id="launch-gold" x2="1" y2=".5"><stop stop-color="#d59838"/><stop offset=".45" stop-color="#ffe4a5"/><stop offset="1" stop-color="#eeb855"/></linearGradient>
 <linearGradient id="launch-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141338"/><stop offset=".55" stop-color="#4d2395"/><stop offset="1" stop-color="#202884"/></linearGradient>
@@ -340,6 +340,18 @@ function merchantNote(form,note){
 function pluxeeAccounts(){
  return data.banks.filter(bank=>/^pluxee$/i.test(String(bank.name).trim()));
 }
+function pluxeeRanking(items){
+ const totals=new Map();
+ for(const entry of items){
+  if(entry.type!=='Expense')continue;
+  const name=(officeSpendCategories.includes(entry.category)?String(entry.note||'').split(' · ')[0].trim():'')||'Unspecified merchant';
+  const key=name.toLowerCase();
+  const merchant=totals.get(key)||{name,paise:0};
+  merchant.paise+=Math.round(Number(entry.amount)*100);
+  totals.set(key,merchant);
+ }
+ return Array.from(totals.values()).sort((a,b)=>b.paise-a.paise||a.name.localeCompare(b.name)).slice(0,3);
+}
 function pluxeePage(){
  const now=new Date(), month=now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  const ids=new Set(pluxeeAccounts().map(b=>String(b.id)));
@@ -351,8 +363,9 @@ function pluxeePage(){
  }).slice().reverse();
  const total=type=>items.filter(e=>e.type===type).reduce((sum,e)=>sum+Number(e.amount),0);
  const received=total('Income'),spent=total('Expense');
- const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b>'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b></div>').join('')||'<p>No Pluxee entries this month.</p>';
- return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>${month}</span></div><div class="pxstats"><div>↙ Received this month<b>${fmt(received)}</b></div><div>↗ Spent this month<b>${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Received</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Monthly activity</h3>${rows}</section>`;
+ const ranking=pluxeeRanking(items).map((m,i)=>'<div class="pxrow"><span>'+(i+1)+'. '+tidy(m.name)+'</span><b class="pxout">'+fmt(m.paise/100)+'</b></div>').join('')||'<p>No Pluxee spends this month.</p>';
+ const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b></div>').join('')||'<p>No Pluxee entries this month.</p>';
+ return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>${month}</span></div><div class="pxstats"><div>↙ Received this month<b>${fmt(received)}</b></div><div>↗ Spent this month<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Received</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<h3>Monthly activity</h3>${rows}</section>`;
 }
 function openPluxee(type){
  const expense=type==='Expense';
