@@ -319,33 +319,30 @@ function analyticsDetails(){
  content+=a.monthly.length?a.monthly.slice().reverse().slice(0,8).map(e=>'<div class="card row"><div class="grow"><div class="label">'+tidy(e.category||e.type||'Entry')+'</div><div class="muted">'+tidy(e.note||analyticsDayKey(e)||'')+'</div></div><div class="value">'+(String(e.type||'').toLowerCase()==='income'?'+':'−')+fmt(Math.max(0,Number(e.amount)||0))+'</div></div>').join(''):'<div class="card empty">No entries for this month.</div>';
  showSheet('Money Analytics',content);
 }
-const officeSpendCategories=['In Office','Online'];
+const officeSpendCategories=['In Office','Out of Office'];
+const pxOfficeShops=['Meet and Eat','Bakery Shop','Waffles Shop','Lassi Shop'];
 function pxSpendChannel(entry){
- const category=entry.category;
- if(category==='In Office Spend')return 'In Office';
- if(category==='Out of Office Spend'){
-  const name=String(entry.note||'').split(' · ')[0].trim();
-  return /^(swiggy|zomato|zomoto|zepto)$/i.test(name)?'Online':'Out of Office';
- }
- return officeSpendCategories.includes(category)?category:'';
+ if(entry.category==='In Office Spend')return 'In Office';
+ if(['Online','Out of Office Spend'].includes(entry.category))return 'Out of Office';
+ return officeSpendCategories.includes(entry.category)?entry.category:'';
 }
 function merchantFields(){
- return '<label class="field">Online merchant<select class="input" name="merchant"><option>Swiggy</option><option>Zomato</option><option>Zepto</option><option>Others</option></select></label><label class="field"><span data-merchant-label></span><input class="input" name="merchantName" maxlength="80"></label>';
+ const shops=pxOfficeShops.map(shop=>'<option>'+shop+'</option>').join('');
+ return '<label class="field">Office shop<select class="input" name="officeShop">'+shops+'</select></label><label class="field">Merchant<select class="input" name="merchant"><option>Swiggy</option><option>Zomato</option><option>Zepto</option><option>Others</option></select></label><label class="field">Shop or app name<input class="input" name="merchantName" maxlength="80"></label>';
 }
 function syncMerchant(form,enabled,channel){
- const merchant=form.elements.merchant,name=form.elements.merchantName;
- const online=enabled&&channel==='Online',office=enabled&&channel==='In Office';
- merchant.disabled=!online;
- merchant.parentElement.style.display=online?'':'none';
- const custom=office||(online&&merchant.value==='Others');
- name.disabled=!custom;
- name.required=custom;
- name.parentElement.style.display=custom?'':'none';
- name.parentElement.querySelector('[data-merchant-label]').textContent=office?'Canteen or shop name':'Shop or app name';
+ const fields=form.elements,office=enabled&&channel==='In Office',outside=enabled&&channel==='Out of Office';
+ for(const [field,visible] of [[fields.officeShop,office],[fields.merchant,outside],[fields.merchantName,outside&&fields.merchant.value==='Others']]){
+  field.disabled=!visible;
+  field.required=visible;
+  field.parentElement.style.display=visible?'':'none';
+ }
 }
 function merchantNote(form,note){
  const fields=form.elements;
- const name=fields.merchantName.disabled?fields.merchant.value:fields.merchantName.value.trim();
+ let name=fields.officeShop.value;
+ if(fields.officeShop.disabled)name=fields.merchantName.disabled?fields.merchant.value:fields.merchantName.value.trim();
+ else if(!pxOfficeShops.includes(name))throw Error('Choose an office shop.');
  if(!name)throw Error('Enter the merchant name.');
  return [name,note.trim()].filter(Boolean).join(' · ');
 }
@@ -431,13 +428,14 @@ function pxFilteredHistory(records){
  const subtotal=visible.reduce((n,r)=>n+(r.type==='Expense'?r.paise:0),0);
  return {visible,merchants,subtotal};
 }
+function filtersOfficeLabel(){return pxHistoryFilters.office==='In Office'?'Office shop':'Merchant'}
 function pxHistoryControls(result,escape,amount){
  function select(key,label,options){
   return '<label>'+label+'<select class="input" data-history-key="'+key+'">'+options.map(([value,title])=>'<option value="'+escape(value)+'"'+(pxHistoryFilters[key]===value?' selected':'')+'>'+escape(title)+'</option>').join('')+'</select></label>';
  }
  let html=select('type','Transaction type',[['All','All transactions'],['Expense','Expense'],['Income','Money credited']]);
  if(pxHistoryFilters.type==='Expense'){
-  html+=select('office','Spend channel',[['','All locations'],['In Office','In Office'],['Online','Online']])+select('merchant','Merchant',[['','All merchants'],...result.merchants.map(name=>[name,name])]);
+  html+=select('office','Spend channel',[['','All locations'],['In Office','In Office'],['Out of Office','Out of Office']])+select('merchant',filtersOfficeLabel(),[['',pxHistoryFilters.office==='In Office'?'All office shops':'All merchants'],...result.merchants.map(name=>[name,name])]);
  }
  if(pxHistoryFilters.type!=='Income')html+='<div class="pxrow"><span>Expense subtotal</span><b class="pxout">'+amount+'</b></div>';
  return html;
