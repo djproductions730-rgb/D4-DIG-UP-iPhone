@@ -103,7 +103,7 @@
 .analytics-footer button:active{transform:scale(.97)}
 
 body.d4-logged-out .bottom,body.d4-logged-out header>.buddy,body.d4-logged-out header>.profile-trigger{display:none}
-</style></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+</style><link rel="stylesheet" href="./assets/savings-portraits.css"></head><body><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
 // This app is intentionally local-only; no finance data is sent to the public GitHub repository.
@@ -136,13 +136,17 @@ function validSavings(entries){
 function savingsMoney(paise){
  return '₹'+(paise/100).toLocaleString('en-IN',{maximumFractionDigits:2});
 }
+function savingsPortrait(stage,large=false){
+ const cell=growthStages.indexOf(stage);
+ return '<span class="savings-portrait'+(large?' large':'')+'" aria-hidden="true" style="--x:'+((cell%4)*100/3)+'%;--y:'+(Math.floor(cell/4)*50)+'%"></span>';
+}
 function savingsPage(){
  const entries=data.savings||[],{paise,stage,next}=growthState(entries);
  const history=entries.slice().reverse().map(e=>'<div class="card row"><span>'+tidy(new Date(e.date).toLocaleDateString('en-IN'))+'</span><strong>'+ (e.paise>0?'+':'−')+savingsMoney(Math.abs(e.paise))+'</strong></div>').join('');
  const progress=next?'<progress aria-label="Progress to next age" style="width:100%" value="'+(paise-stage[0]*100)+'" max="'+((next[0]-stage[0])*100)+'"></progress><p>'+savingsMoney(next[0]*100-paise)+' to age '+next[1]+' · '+next[3]+'</p>':'<p>Grandfather milestone reached 🎉</p>';
- return '<button class="button ghost" onclick="go(\'home\')">‹ Home</button><h2>Savings Journey</h2><div class="hero"><small>TOTAL SAVED</small><div class="balance">'+savingsMoney(paise)+'</div><div style="font-size:64px">'+stage[2]+'</div><h2>'+stage[3]+(stage[1]?' · Age '+stage[1]:'')+'</h2>'+progress+'</div>'+
+ return '<button class="button ghost" onclick="go(\'home\')">‹ Home</button><h2>Savings Journey</h2><div class="hero"><small>TOTAL SAVED</small><div class="balance">'+savingsMoney(paise)+'</div>'+savingsPortrait(stage,true)+'<h2>'+stage[3]+(stage[1]?' · Age '+stage[1]:'')+'</h2>'+progress+'</div>'+
  '<p class="muted">Record money you set aside or take back. This is a separate savings log.</p><button class="button" onclick="openSaving(false)">＋ Add savings</button> '+(paise?'<button class="button ghost" onclick="openSaving(true)">Withdraw</button>':'')+
- '<details class="card"><summary>Baby to grandfather · All milestones</summary>'+growthStages.slice(1).map(s=>'<p>'+s[2]+' '+s[3]+' · Age '+s[1]+' · '+savingsMoney(s[0]*100)+(paise>=s[0]*100?' ✓':'')+'</p>').join('')+'</details><h2>Savings history</h2>'+(history||'<p class="muted">Your first saving will appear here.</p>');
+ '<details class="card"><summary>Baby to grandfather · All milestones</summary>'+growthStages.slice(1).map(s=>'<p>'+savingsPortrait(s)+' '+s[3]+' · Age '+s[1]+' · '+savingsMoney(s[0]*100)+(paise>=s[0]*100?' ✓':'')+'</p>').join('')+'</details><h2>Savings history</h2>'+(history||'<p class="muted">Your first saving will appear here.</p>');
 }
 function openSaving(withdraw){
  const title=withdraw?'Withdraw savings':'Add savings';
@@ -243,7 +247,7 @@ html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">On
 const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink']];
 html+='<div class="quick-grid">'+actions.map(([id,icon,name,theme])=>'<button type="button" class="quick-tile '+theme+'" data-quick="'+id+'" aria-label="'+tidy(name)+'"><span class="quick-icon" aria-hidden="true">'+icon+'</span><span class="quick-name">'+name+'</span></button>').join('')+'</div>';
 const journey=growthState(data.savings||[]);
-html+='<button class="card row" style="width:100%;text-align:left" onclick="go(\'savings\')"><strong>'+journey.stage[2]+' Savings Journey</strong><span>'+savingsMoney(journey.paise)+' ›</span></button>';
+html+='<button class="card row" style="width:100%;text-align:left" onclick="go(\'savings\')"><strong>'+savingsPortrait(journey.stage)+' Savings Journey</strong><span>'+savingsMoney(journey.paise)+' ›</span></button>';
 html+=analyticsHome();
 html+='<div class="section-head"><h2>🏆 Top Spends</h2><span class="pill">All-time expenses</span></div>';
 if(!top.length)html+='<div class="card empty"><div class="symbol">🛍️</div><b>No expenses recorded yet</b><p class="muted">Use Add Expense to see your biggest spending categories here.</p></div>';
