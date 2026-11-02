@@ -81,7 +81,10 @@ function loanDateLabel(v){
 }
 function loansPage(){
  const list=Array.isArray(data.loans)?data.loans:[];
- const statuses=list.map(l=>({loan:l,...loanDueSummary(l)}));
+ const all=list.map(l=>({loan:l,...loanDueSummary(l)}));
+ const isClosed=x=>Number(x.loan.principal)>0 && x.st.outstanding===0;
+ const closed=all.filter(isClosed);
+ const statuses=all.filter(x=>!isClosed(x));
  const totalOutstanding=statuses.reduce((a,x)=>a+x.st.outstanding,0);
  const monthly=statuses.filter(x=>x.kind!=='paid'&&loanScheduleReady(x.loan)).reduce((a,x)=>a+x.emi,0);
  const dueNow=statuses.filter(x=>x.kind==='overdue'||x.kind==='today');
@@ -108,8 +111,9 @@ function loansPage(){
   html+='<div class="section-head"><h2>📅 Unpaid EMI · Next 7 Days</h2><span class="pill">Pending only</span></div>';
   html+='<div class="loan-upcoming">'+upcoming.slice(0,4).map(x=>'<div class="loan-upcoming-row"><div class="loan-calendar-icon">📅</div><div class="grow"><strong>'+tidy(x.loan.name||'Loan')+'</strong><div class="muted">'+tidy(loanDateLabel(x.date))+' · '+tidy(x.label)+'</div></div><div class="loan-upcoming-right"><strong>'+fmt(x.amount)+'</strong><button type="button" data-loan-action="pay" data-loan-id="'+tidy(x.loan.id)+'">Record</button></div></div>').join('')+'</div>';
  }
- html+='<div class="section-head"><h2>🪙 My Loans</h2><span class="pill">'+list.length+' accounts</span></div>';
- html+=statuses.map(x=>{
+ html+='<div class="section-head"><h2>Pending &amp; ongoing loans</h2><span class="pill">'+statuses.length+' accounts</span></div>';
+ if(!statuses.length)html+='<p class="muted">No pending or ongoing loans.</p>';
+ const loanCard=x=>{
   const l=x.loan,st=x.st,paid=(l.payments||[]).reduce((a,p)=>a+(Number(p.amount)||0),0);
   const badgeKind=x.kind==='overdue'?'danger':x.kind==='today'?'today':x.kind==='soon'?'soon':x.kind==='setup'?'setup':'neutral';
   const schedule=loanScheduleReady(l)?(x.kind==='paid'?(x.date?'Next due: '+loanDateLabel(x.date):'No next EMI scheduled'):(x.date?'Due: '+loanDateLabel(x.date):'No future EMI due date')):'EMI schedule not configured';
@@ -120,7 +124,12 @@ function loansPage(){
    '<div class="loan-stats"><div><small>Monthly EMI</small><strong>'+fmt(st.emi)+'</strong></div><div><small>Total recorded paid</small><strong>'+fmt(paid)+'</strong></div></div>'+
    '<div class="loan-bottom"><span>📅 '+tidy(schedule)+'</span><span>'+rate+'</span></div>'+
    '<div class="loan-actions"><button class="loan-pay" type="button" data-loan-action="pay" data-loan-id="'+tidy(l.id)+'">💸 Record EMI</button><button class="loan-history" type="button" data-loan-action="history" data-loan-id="'+tidy(l.id)+'">🧾 History</button></div></div>';
- }).join('');
+ };
+ html+=statuses.map(loanCard).join('');
+ if(closed.length){
+  html+='<details class="card"><summary><strong>Closed Loans ('+closed.length+')</strong></summary>';
+  html+=closed.map(x=>'<div class="card row"><div class="grow"><b>'+tidy(x.loan.name||'Loan')+'</b><div class="muted">Paid off · '+fmt(x.st.paid)+' recorded</div></div><button type="button" class="loan-history" data-loan-action="history" data-loan-id="'+tidy(x.loan.id)+'">History</button></div>').join('')+'</details>';
+ }
  html+='<p class="loan-caption">✅ Paid means the current scheduled EMI is covered by recorded payments; its next due date stays visible. Only unpaid or partially paid EMIs show reminders. Dates and balances are estimates, not lender confirmations or push notifications. Bank payments are not sent and Google Sheets is not updated.</p>';
  return html;
 }
