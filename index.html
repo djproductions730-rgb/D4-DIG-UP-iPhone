@@ -365,12 +365,12 @@ function pluxeePage(){
  const received=total('Income'),spent=total('Expense');
  const ranking=pluxeeRanking(items).map((m,i)=>'<div class="pxrow"><span>'+(i+1)+'. '+tidy(m.name)+'</span><b class="pxout">'+fmt(m.paise/100)+'</b></div>').join('')||'<p>No Pluxee spends this month.</p>';
  const rows=items.map(e=>'<div class="pxrow"><span>'+tidy(officeSpendCategories.includes(e.category)?[e.category,e.note].filter(Boolean).join(' · '):e.note||(e.type==='Income'?'Meal allowance':'Meal spend'))+'</span><b class="'+(e.type==='Income'?'pxin':'pxout')+'">'+(e.type==='Income'?'+':'−')+fmt(e.amount)+'</b></div>').join('')||'<p>No Pluxee entries this month.</p>';
- return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>${month}</span></div><div class="pxstats"><div>↙ Received this month<b>${fmt(received)}</b></div><div>↗ Spent this month<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Received</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<h3>Monthly activity</h3>${rows}</section>`;
+ return `<section class="pxwallet"><div class="pxhero"><small>D4 DIG UP &nbsp; / &nbsp; MEAL WALLET</small><h2>Pluxee</h2><span>${month}</span></div><div class="pxstats"><div>↙ Received this month<b>${fmt(received)}</b></div><div>↗ Spent this month<b class="pxout">${fmt(spent)}</b></div></div><div class="pxactions"><button onclick="openPluxee('Income')">+ Money Credited</button> <button onclick="openPluxee('Expense')">+ Spend</button></div><h3>Top Spends</h3>${ranking}<h3>Monthly activity</h3>${rows}</section>`;
 }
 function openPluxee(type){
  const expense=type==='Expense';
  const details=expense?'<label class="field">Expense category<select class="input" name="location">'+officeSpendCategories.map(c=>'<option>'+c+'</option>').join('')+'</select></label>'+merchantFields():'';
- showSheet(type==='Income'?'Pluxee received':'Pluxee spend','<form id="pxform">'+details+'<label class="field">Amount (₹)<input class="input" name="amount" type="number" min="0.01" step="0.01" required></label><label class="field">Note<input class="input" name="note" maxlength="150"></label><button class="button">Save</button></form>');
+ showSheet(type==='Income'?'Money Credited':'Pluxee spend','<form id="pxform">'+details+'<label class="field">Amount (₹)<input class="input" name="amount" type="number" min="0.01" step="0.01" required></label><label class="field">Note<input class="input" name="note" maxlength="150"></label><button class="button">Save</button></form>');
  const form=document.getElementById('pxform');
  if(expense)form.elements.merchant.onchange=()=>syncMerchant(form);
  form.onsubmit=event=>{
