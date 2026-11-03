@@ -1,5 +1,5 @@
-const CACHE='d4-trip-app-v4-firebase-session';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./firebase-config.js','./firebase-sync.js'];
+const CACHE='d4-trip-app-v5-night-atlas';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
   self.skipWaiting();
