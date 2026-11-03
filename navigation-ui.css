@@ -16,3 +16,10 @@ nav#nav .rail-current{position:absolute;right:-4px;width:3px;height:17px;border-
 @media(prefers-reduced-motion:reduce){nav#nav .navbtn{transition:none}}
 
 .pluxee-brand-symbol{display:inline-grid;place-items:center;vertical-align:middle;width:29px;height:29px;margin-right:7px;border-radius:9px;background:#fff1;box-shadow:inset 0 0 0 1px #ffffff30;color:inherit}.pluxee-brand-symbol svg{width:22px;height:22px}.pxhero h2{display:flex;align-items:center;gap:6px}
+
+
+/* Official Pluxee assets, shown on the brand's dark background for contrast. */
+.pluxee-original-symbol{display:block;object-fit:contain;width:25px;height:25px;padding:4px;border-radius:6px;background:#15194b;box-sizing:border-box}
+nav#nav [data-tab="pluxee"] .rail-symbol{background:#15194b}nav#nav [data-tab="pluxee"].active .rail-symbol{background:#15194b;box-shadow:0 0 0 2px #8beaab}
+.pluxee-brand-symbol{background:#15194b}.pluxee-original-wordmark{display:block;width:85px;height:30px;overflow:hidden}.pluxee-original-wordmark img{display:block;width:158px;max-width:none;height:30px;object-fit:contain}
+.quick-tile[data-quick^="pluxee-"] .quick-icon{position:relative;background:#15194b}.quick-tile[data-quick^="pluxee-"] .pluxee-original-symbol{width:30px;height:30px;padding:5px}.pluxee-action-direction{position:absolute;bottom:-3px;right:-3px;display:grid;place-items:center;width:17px;height:17px;border-radius:6px;background:#16734b;color:#fff;font-size:13px;font-weight:900;border:1px solid #fff}.quick-tile[data-quick="pluxee-spend"] .pluxee-action-direction{background:#a12462}

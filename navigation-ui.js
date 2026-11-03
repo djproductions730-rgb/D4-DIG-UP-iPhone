@@ -11,7 +11,7 @@
  pluxee:'<rect x="2" y="5" width="20" height="15" rx="5"/><path d="M8 16V9h4a3 3 0 0 1 0 6h-4"/><path d="m17 3 2-2m1 4 3-1" stroke="#ff647d"/>'
  };
  const colors={home:'#6e5bf0',banks:'#397ddc',transactions:'#d35f9d',plans:'#bc8126',savings:'#258d75',loans:'#9771d5',pluxee:'#e24770',settings:'#657993'};
- function symbol(id){return '<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[id]+'</svg>';}
+ function symbol(id){if(id==='pluxee')return '<img class="pluxee-original-symbol" src="./assets/brands/pluxee-symbol.png" alt="" width="25" height="25">';return '<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+paths[id]+'</svg>';}
  const nav=document.getElementById('nav');
  nav.classList.add('icon-rail');nav.setAttribute('aria-label','Main sections');
  const toggle=document.createElement('button');toggle.type='button';toggle.id='sectionMenu';toggle.className='section-menu';toggle.setAttribute('aria-label','Expand section menu');toggle.setAttribute('aria-controls','nav');toggle.setAttribute('aria-expanded','false');toggle.innerHTML='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h11M4 18h16"/></svg>';
@@ -27,9 +27,11 @@
   document.querySelector('.app>header .subtitle').textContent=tabs.find(([id])=>id===tab)?.[2]||'Your finance buddy';
   const pluxeeHeading=tab==='pluxee'?document.querySelector('.pxhero h2'):document.querySelector('.px-home-balances button span');
   if(pluxeeHeading)pluxeeHeading.insertAdjacentHTML('afterbegin','<span class="pluxee-brand-symbol">'+symbol('pluxee')+'</span>');
+  if(tab==='pluxee'){const heading=document.querySelector('.pxhero h2');if(heading)heading.innerHTML='<span class="pluxee-original-wordmark"><img src="./assets/brands/pluxee-logo.png" alt="Pluxee" width="158" height="30"></span>'; }
   // Keep the frequent entry actions; every section remains available in the rail.
-  if(tab==='home')document.querySelectorAll('.quick-tile[data-quick]').forEach(button=>{button.hidden=!['expense','income','transfer'].includes(button.dataset.quick)});
-  document.querySelectorAll('.quick-tile[data-quick="pluxee"],.quick-tile[data-quick="pluxee-credit"],.quick-tile[data-quick="pluxee-spend"]').forEach(button=>{const icon=button.querySelector('.quick-icon');if(icon)icon.innerHTML=symbol('pluxee')});
+  if(tab==='home')document.querySelectorAll('.quick-tile[data-quick]').forEach(button=>{button.hidden=!['expense','income','transfer','pluxee-credit','pluxee-spend'].includes(button.dataset.quick)});
+  document.querySelectorAll('.quick-tile[data-quick="pluxee"],.quick-tile[data-quick="pluxee-credit"],.quick-tile[data-quick="pluxee-spend"]').forEach(button=>{const icon=button.querySelector('.quick-icon');if(icon)icon.innerHTML=symbol('pluxee')+'<span class="pluxee-action-direction" aria-hidden="true">'+(button.dataset.quick==='pluxee-credit'?'＋':'−')+'</span>'});
  };
  render();
 })();
+
