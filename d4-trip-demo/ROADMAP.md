@@ -31,6 +31,15 @@
 - Existing production `firebase.json` still points to private-only `firestore.rules`. No shared client feature is enabled.
 - A client cannot alter trip roles/payments by locally selecting a display name.
 
+### M05 client integration (4 Nov update)
+- `shared-beta.js` mounts an independently scoped Secure Groups preview in Settings; cross-account actions are disabled by default.
+- `shared-runtime.js` prepares callable `createTrip`/`redeemInvite` and authenticated Firestore `getTrip` for a later approved rollout.
+- `firebase-config.js` explicitly sets `D4_TRIP_SHARED_ROLLOUT = false`; without a configured App Check site key the runtime also fails closed.
+- Secure account identity and UID-scoped trip references are kept separate from locally editable demo profiles and local trip/payment data.
+- Client-side tests cover invalid invites, verification, async account switching, stored trip reference isolation and HTML escaping.
+- Browser smoke tests inspect the disabled security preview on both desktop and mobile, with screenshots as GitHub Actions artifacts.
+- **No live two-account integration yet**: production callable endpoints, App Check, deployable membership rules, UID migration and real-device QA remain gated.
+
 ### Required before M05 release
 1. Configure trusted Functions environment `D4_TRIP_MAIN_OWNER_UID`; review Main Admin UID and verified sign-in.
 2. Enable/configure App Check for callable endpoints.
