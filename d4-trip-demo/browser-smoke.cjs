@@ -3,6 +3,8 @@
 // Runs against local static server and never contacts a live Firebase database.
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const BASE='http://127.0.0.1:8765/';
 const seed = {
@@ -25,6 +27,8 @@ async function smoke(browser,label,viewport,mobile) {
     if(!localStorage.getItem('d4_trip_offline_v2'))
       localStorage.setItem('d4_trip_offline_v2',JSON.stringify(dataset));
     localStorage.setItem('d4_trip_offline_profile_v2','Admin');
+    // Keep existing app smoke tests deterministic; intro is checked via explicit Replay.
+    sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
   },seed);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   await page.locator('[data-action="entry-select-trip"][data-id="m3-browser-smoke"]').click();
@@ -67,9 +71,19 @@ async function smoke(browser,label,viewport,mobile) {
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
   assert.equal(data.trips[0].members.includes('New Person'),false);
+  await page.locator('[data-action="replay-intro"]').click();
+  await page.locator('#d4Intro').waitFor({state:'visible'});
+  assert.equal(await page.locator('[data-d4-intro-skip]').count(),1);
+  await page.waitForTimeout(3400);
+  const output = path.join(__dirname,'preview',label+'-cinematic.png');
+  fs.mkdirSync(path.dirname(output),{recursive:true});
+  await page.screenshot({path:output,animations:'allow'});
+  await page.locator('[data-d4-intro-skip]').click();
+  await page.locator('#d4Intro').waitFor({state:'hidden'});
+  assert.equal(await page.locator('[data-action="entry-select-trip"]').first().isVisible(),true);
   assert.deepEqual(pageErrors,[],label+' runtime exceptions');
   await context.close();
-  console.log('PASS browser smoke: '+label+' payments / save / remove / reload');
+  console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
 }
 (async()=>{
   const browser=await chromium.launch({headless:true});
