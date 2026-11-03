@@ -27,3 +27,7 @@ for (const required of [
   'allow read, write: if false'
 ]) if (!rules.includes(required)) throw new Error('Missing restrictive Firestore rule: '+required);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
+const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs')], {
+  stdio: 'inherit'
+});
+if (tests.status !== 0) process.exit(tests.status || 1);

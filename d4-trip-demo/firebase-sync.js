@@ -18,7 +18,7 @@ const configured = Boolean(config && typeof config === 'object' &&
   config.apiKey && config.authDomain && config.projectId && config.appId);
 const bridge = {
   configured, user: null, linked: false, ready: false, remote: null,
-  revision: 0, dirty: false, saving: false, sequence: 0,
+  revision: 0, dirty: false, saving: false, sequence: 0, session: 0, serverReady: false,
   status: configured ? 'Waiting for sign in' : 'Firebase configuration not added',
   error: '', stop: null, timer: null, cloudDb: null, auth: null,
   localChanged, panel
@@ -33,7 +33,8 @@ const refresh = () => {
       ['profile','entry'].includes(local().view())) local().render();
 };
 const notify = s => local()?.toast?.(s);
-const docRef = () => doc(bridge.cloudDb, 'users', bridge.user.uid, 'snapshots', 'primary');
+const docRef = (uid = bridge.user.uid) => doc(bridge.cloudDb, 'users', uid, 'snapshots', 'primary');
+const currentSession = (session, uid) => bridge.session === session && bridge.user?.uid === uid;
 const validData = data => data && Array.isArray(data.trips) && data.trips.every(t =>
   t && typeof t.id === 'string' && typeof t.name === 'string' &&
   Array.isArray(t.members) && Array.isArray(t.expenses) && t.chats);
@@ -59,6 +60,8 @@ function panel() {
     rows.push('<p class="muted" style="font-size:13px">Status: ' + safe(bridge.status) + '</p>');
     if (bridge.linked) {
       rows.push('<p class="tiny">Firestore real-time listener is active. Local changes are uploaded only to this account. Conflicting revisions are stopped, not overwritten.</p>');
+    } else if (!bridge.serverReady) {
+      rows.push('<p class="muted">Waiting for a confirmed cloud backup check. Upload and restore are unavailable until the server responds.</p>');
     } else if (bridge.remote) {
       rows.push('<div class="notice">Cloud backup found (revision ' + Number(bridge.remote.revision || 0) + '). Restore it to this device to start live sync. A JSON backup of current local data will download first.</div>');
       rows.push('<button type="button" class="btn small mint" data-cloud-action="restore">⬇ Restore cloud data & enable sync</button>');
@@ -75,10 +78,15 @@ function panel() {
 }
 
 function localChanged() {
+  bridge.sequence += 1;
+  // Protect edits made during Auth/server startup, before the listener relinks.
+  const linkedUid = localStorage.getItem(LINK_KEY);
+  if (linkedUid && (!bridge.user || bridge.user.uid === linkedUid)) {
+    localStorage.setItem(DIRTY_KEY, linkedUid);
+  }
   if (!bridge.linked || !bridge.user) return;
   bridge.dirty = true;
   localStorage.setItem(DIRTY_KEY, bridge.user.uid);
-  bridge.sequence += 1;
   bridge.status = 'Unsynced local edits (will retry)';
   if (bridge.timer) clearTimeout(bridge.timer);
   bridge.timer = setTimeout(flush, 450);
@@ -87,6 +95,7 @@ function localChanged() {
 async function flush() {
   if (!bridge.linked || !bridge.user || !bridge.dirty || bridge.saving) return;
   bridge.saving = true;
+  const session = bridge.session, uid = bridge.user.uid, ref = docRef(uid);
   const sentSequence = bridge.sequence;
   const expected = bridge.revision;
   const data = local()?.getData?.();
@@ -100,13 +109,16 @@ async function flush() {
   }
   try {
     const nextRevision = await runTransaction(bridge.cloudDb, async tx => {
-      const ref = docRef(), snap = await tx.get(ref);
+      if (!currentSession(session, uid)) throw Error('Account changed; upload cancelled.');
+      const snap = await tx.get(ref);
+      if (!currentSession(session, uid)) throw Error('Account changed; upload cancelled.');
       const actual = snap.exists() ? snap.data().revision : 0;
       if (actual !== expected) throw Error('Cloud data changed on another device. Sync stopped to protect both versions.');
       const revision = actual + 1;
-      tx.set(ref, { data, revision, updatedBy: bridge.user.uid, updatedAt: serverTimestamp() });
+      tx.set(ref, { data, revision, updatedBy: uid, updatedAt: serverTimestamp() });
       return revision;
     });
+    if (!currentSession(session, uid)) return;
     bridge.revision = nextRevision;
     if (bridge.sequence === sentSequence) {
       bridge.dirty = false;
@@ -116,10 +128,12 @@ async function flush() {
       bridge.status = 'Uploading newer local edits';
     }
   } catch (e) {
+    if (!currentSession(session, uid)) return;
     bridge.status = 'Sync stopped — local data is safe';
     bridge.error = formatError(e);
     bridge.linked = false; // Never overwrite a newer cloud version automatically.
   } finally {
+    if (!currentSession(session, uid)) return;
     bridge.saving = false;
     refresh();
     if (bridge.linked && bridge.dirty) {
@@ -131,12 +145,14 @@ async function flush() {
 function watchSnapshot(user) {
   if (bridge.stop) bridge.stop();
   const watchedUid = user.uid;
+  const session = bridge.session;
   bridge.stop = onSnapshot(docRef(), { includeMetadataChanges: true }, snap => {
-    if (bridge.user?.uid !== watchedUid || snap.metadata.hasPendingWrites) return;
+    if (!currentSession(session, watchedUid) || snap.metadata.hasPendingWrites) return;
     if (snap.metadata.fromCache) {
       if (!bridge.linked) bridge.status = 'Offline cache available; waiting for server';
       refresh(); return;
     }
+    bridge.serverReady = true;
     bridge.remote = snap.exists() ? snap.data() : null;
     // Reconnect automatically after a normal reload, but never discard unsent local edits.
     const previouslyLinked = localStorage.getItem(LINK_KEY) === watchedUid;
@@ -148,11 +164,9 @@ function watchSnapshot(user) {
       bridge.linked = true;
       bridge.status = 'Live sync reconnected';
     }
-    if (!bridge.linked && pendingLocal) {
-      bridge.status = 'Unsynced device changes — export a backup before restoring';
-    }
     if (!bridge.linked) {
-      bridge.status = bridge.remote ? 'Cloud backup available' : 'Cloud backup not yet created';
+      bridge.status = pendingLocal ? 'Unsynced device changes — export a backup before restoring' :
+        bridge.remote ? 'Cloud backup available' : 'Cloud backup not yet created';
       refresh(); return;
     }
     const incomingRevision = Number(bridge.remote?.revision || 0);
@@ -173,6 +187,9 @@ function watchSnapshot(user) {
     bridge.status = 'Updated live from another device';
     refresh();
   }, err => {
+    if (!currentSession(session, watchedUid)) return;
+    bridge.serverReady = false;
+    bridge.linked = false;
     bridge.status = 'Cloud listener unavailable';
     bridge.error = formatError(err);
     refresh();
@@ -197,7 +214,8 @@ async function signIn(mode) {
 }
 
 async function restoreCloud() {
-  if (!bridge.user || !bridge.remote || !validData(bridge.remote.data)) {
+  if (bridge.saving) return;
+  if (!bridge.user || !bridge.serverReady || !bridge.remote || !validData(bridge.remote.data)) {
     bridge.error = 'Valid cloud backup is not available.'; refresh(); return;
   }
   if (!confirm('A D4 Trip local JSON backup will download first. Then replace the current on-device trip data with the cloud version?')) return;
@@ -216,7 +234,7 @@ async function restoreCloud() {
 }
 
 async function uploadFirst() {
-  if (!bridge.user || bridge.remote) return;
+  if (!bridge.user || !bridge.serverReady || bridge.remote || bridge.saving) return;
   if (!confirm('Upload ALL current on-device D4 Trip data (including demo sample trips) to this account? Your local data stays here.')) return;
   const data = local()?.getData?.();
   if (!validData(data)) { bridge.error = 'Invalid local dataset'; refresh(); return; }
@@ -224,20 +242,35 @@ async function uploadFirst() {
     bridge.error = 'Local dataset exceeds safe Firestore size (900 KB). Export JSON backup; reduce embedded bills.';
     refresh(); return;
   }
+  const session = bridge.session, uid = bridge.user.uid, ref = docRef(uid);
+  const sentSequence = bridge.sequence;
+  bridge.saving = true;
   try {
     await runTransaction(bridge.cloudDb, async tx => {
-      const ref = docRef(), snap = await tx.get(ref);
+      if (!currentSession(session, uid)) throw Error('Account changed; upload cancelled.');
+      const snap = await tx.get(ref);
+      if (!currentSession(session, uid)) throw Error('Account changed; upload cancelled.');
       if (snap.exists()) throw Error('Cloud backup was created on another device. Upload refused.');
-      tx.set(ref, { data, revision: 1, updatedAt: serverTimestamp(), updatedBy: bridge.user.uid });
+      tx.set(ref, { data, revision: 1, updatedAt: serverTimestamp(), updatedBy: uid });
     });
+    if (!currentSession(session, uid)) return;
     bridge.revision = 1;
     bridge.linked = true;
-    localStorage.setItem(LINK_KEY, bridge.user.uid);
-    localStorage.removeItem(DIRTY_KEY);
+    localStorage.setItem(LINK_KEY, uid);
+    bridge.dirty = bridge.sequence !== sentSequence;
+    if (bridge.dirty) localStorage.setItem(DIRTY_KEY, uid);
+    else localStorage.removeItem(DIRTY_KEY);
     bridge.error = '';
     bridge.status = 'Live sync enabled (revision 1)';
     refresh(); notify('☁️ Initial cloud backup saved');
-  } catch (e) { bridge.error = formatError(e); refresh(); }
+  } catch (e) {
+    if (currentSession(session, uid)) { bridge.error = formatError(e); refresh(); }
+  } finally {
+    if (currentSession(session, uid)) {
+      bridge.saving = false;
+      if (bridge.linked && bridge.dirty) bridge.timer = setTimeout(flush, 450);
+    }
+  }
 }
 
 document.addEventListener('click', async event => {
@@ -260,10 +293,12 @@ if (configured) {
     bridge.cloudDb = getFirestore(app);
     await setPersistence(bridge.auth, browserLocalPersistence);
     onAuthStateChanged(bridge.auth, user => {
+      bridge.session += 1;
       if (bridge.stop) { bridge.stop(); bridge.stop = null; }
       if (bridge.timer) clearTimeout(bridge.timer);
       bridge.user = user;
       bridge.remote = null;
+      bridge.serverReady = false;
       bridge.linked = false;
       bridge.dirty = false;
       bridge.saving = false;

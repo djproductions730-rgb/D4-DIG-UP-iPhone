@@ -22,7 +22,8 @@
 
 ## Safety checks before using
 
-- Run `node check.cjs` to inspect syntax and restrictive rules.
+- Run `node check.cjs` to inspect syntax, restrictive rule wiring and eight deterministic sync regression tests (no npm dependencies). These mock Firebase; they do not prove deployed rules or live connectivity.
+- The bridge waits for a server-confirmed backup check before allowing the first upload. Startup edits prevent automatic restore; edits during an initial upload remain queued. Transactions and listeners are bound to the initiating auth session, including sign-out/sign-in to the same UID.
 - Verify unauthenticated Firestore reads and writes are denied and other-user snapshots are denied.
 - Test a fresh test account, two browsers, edit trip fee/expense, and verify same-account changes arrive via snapshot.
 - Test simultaneous edits to trigger revision conflict — one copy must not overwrite the other.
