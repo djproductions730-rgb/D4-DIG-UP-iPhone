@@ -13,7 +13,7 @@ const options={region:'asia-south2',enforceAppCheck:true,maxInstances:10};
 function endpoint(method){
   return onCall(options,async request=>{
     try{
-      return await service[method]({auth:request.auth,...request.data});
+      return await service[method]({...(request.data && typeof request.data==='object' && !Array.isArray(request.data) ? request.data : {}),auth:request.auth});
     }catch(error){
       const message=String(error?.message||'Request failed').slice(0,220);
       const denied=/only|access denied|verified|unauthori|revoke this user|cannot open chat|inactive/i.test(message);
