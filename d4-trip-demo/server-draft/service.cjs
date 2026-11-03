@@ -113,6 +113,10 @@ function makeService(db,options={}){
       const trip=await tx.get(t);
       if(!trip.exists)throw Error('Trip not found');
       const existing=await tx.get(m);
+      const issuer=await tx.get(memberRef(t,inv.issuedBy));
+      if(!issuer.exists || issuer.data().status!=='active' ||
+         !['owner','admin'].includes(issuer.data().role))
+        throw Error('Invite issuer no longer authorized');
       if(existing.exists)throw Error('Existing membership requires admin review');
       tx.create(m,{displayName:name,role:'member',status:'active',
         paidCents:0,createdAt:now()});
