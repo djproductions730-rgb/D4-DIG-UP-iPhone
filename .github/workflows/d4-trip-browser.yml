@@ -1,0 +1,33 @@
+name: D4 Trip Chromium UI Smoke
+on:
+  push:
+    branches: [feature/d4-trip-firebase-private-sync]
+    paths:
+      - 'd4-trip-demo/**'
+      - '.github/workflows/d4-trip-browser.yml'
+  pull_request:
+    paths:
+      - 'd4-trip-demo/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Chromium test runner
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run local browser smoke checks (desktop and mobile)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory d4-trip-demo > /tmp/d4-trip-smoke-http.log 2>&1 &
+          sleep 2
+          node d4-trip-demo/browser-smoke.cjs
