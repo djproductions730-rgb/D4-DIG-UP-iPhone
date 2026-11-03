@@ -4,7 +4,7 @@
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
-  getAuth, onAuthStateChanged, signInWithEmailAndPassword,
+  getAuth, sendEmailVerification, reload, onAuthStateChanged, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import {
@@ -23,6 +23,8 @@ const bridge = {
   error: '', stop: null, timer: null, cloudDb: null, auth: null,
   localChanged, panel
 };
+const designatedOwner = '2FYUUnPp1JX8wvv9HSvL6QoyaCq2';
+bridge.isVerifiedOwner = () => bridge.user?.uid === designatedOwner && bridge.user.emailVerified === true;
 window.D4TripCloud = bridge;
 const safe = s => String(s ?? '').replace(/[&<>"']/g, c => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -58,6 +60,9 @@ function panel() {
   } else {
     rows.push('<p>Signed in: <strong>' + safe(bridge.user.email || bridge.user.uid) + '</strong></p>');
     rows.push('<p class="muted" style="font-size:13px">Status: ' + safe(bridge.status) + '</p>');
+    if (bridge.user.uid === designatedOwner && !bridge.user.emailVerified) {
+      rows.push('<div class="notice">Verify your email to unlock D’s private trip controls.</div><button class="btn small mint" data-cloud-action="verify-email">Send verification email</button> <button class="btn small ghost" data-cloud-action="check-email">I verified my email</button>');
+    }
     if (bridge.linked) {
       rows.push('<p class="tiny">Firestore real-time listener is active. Local changes are uploaded only to this account. Conflicting revisions are stopped, not overwritten.</p>');
     } else if (!bridge.serverReady) {
@@ -278,6 +283,15 @@ document.addEventListener('click', async event => {
   if (!action || !bridge.configured) return;
   event.preventDefault();
   if (action === 'sign-in' || action === 'sign-up') await signIn(action);
+  if (action === 'verify-email' || action === 'check-email') {
+    const user = bridge.auth?.currentUser;
+    if (!user || user.uid !== designatedOwner) return;
+    try {
+      if (action === 'verify-email') { await sendEmailVerification(user); notify('Verification email sent. Open the link in your inbox.'); }
+      else { await reload(user); await user.getIdToken(true); if (bridge.auth.currentUser === user) { bridge.user=user; notify(user.emailVerified?'Email verified. D can now add a trip.':'Email verification is still pending.'); } }
+    } catch (e) { bridge.error=formatError(e); }
+    refresh();
+  }
   if (action === 'sign-out') {
     localStorage.removeItem(LINK_KEY);
     await signOut(bridge.auth);
@@ -307,7 +321,7 @@ if (configured) {
       bridge.status = user ? 'Checking cloud backup' : 'Signed out';
       bridge.ready = true;
       if (user) watchSnapshot(user);
-      refresh();
+      local()?.render?.();
     }, err => { bridge.error = formatError(err); bridge.ready = true; refresh(); });
   } catch (e) { bridge.error = formatError(e); bridge.ready = true; refresh(); }
 } else { bridge.ready = true; refresh(); }
