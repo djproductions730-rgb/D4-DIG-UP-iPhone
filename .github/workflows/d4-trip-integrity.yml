@@ -1,0 +1,20 @@
+name: D4 Trip integration syntax checks
+on:
+  pull_request:
+    paths:
+      - 'd4-trip-demo/**'
+      - '.github/workflows/d4-trip-integrity.yml'
+  push:
+    paths:
+      - 'd4-trip-demo/**'
+      - '.github/workflows/d4-trip-integrity.yml'
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check D4 Trip JavaScript and Firebase wiring
+        run: node d4-trip-demo/check.cjs
