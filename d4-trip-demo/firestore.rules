@@ -1,6 +1,43 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Private, authenticated cross-device backup/sync for the same Firebase UID.
+    // This is NOT a shared trip permissions model.
+    match /users/{userId}/snapshots/{snapshotId} {
+      function isOwner() {
+        return signedIn() &&
+          request.auth.uid == userId &&
+          snapshotId == 'primary';
+      }
+
+      function validSnapshot() {
+        return request.resource.data.keys().hasAll(
+          ['data', 'revision', 'updatedBy', 'updatedAt']) &&
+          request.resource.data.keys().hasOnly(
+          ['data', 'revision', 'updatedBy', 'updatedAt']) &&
+          request.resource.data.data is map &&
+          request.resource.data.data.trips is list &&
+          request.resource.data.revision is int &&
+          request.resource.data.revision > 0 &&
+          request.resource.data.updatedBy == request.auth.uid &&
+          request.resource.data.updatedAt == request.time;
+      }
+
+      allow get: if isOwner();
+      allow list: if false;
+      allow create: if isOwner() && validSnapshot() &&
+        request.resource.data.revision == 1;
+      allow update: if isOwner() && validSnapshot() &&
+        request.resource.data.revision == resource.data.revision + 1;
+      allow delete: if false;
+    }
+
+    // Everything else, including shared trip and admin mutations, stays
+    // disabled until trusted server-side memberships and rules are deployed.
     match /{document=**} {
       allow read, write: if false;
     }
