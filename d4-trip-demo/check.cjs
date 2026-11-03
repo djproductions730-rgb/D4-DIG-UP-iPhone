@@ -6,10 +6,35 @@ const path = require('node:path');
 const dir = __dirname;
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const moduleSrc = fs.readFileSync(path.join(dir, 'firebase-sync.js'), 'utf8');
+const introSrc = fs.readFileSync(path.join(dir, 'intro.js'), 'utf8');
+const introCss = fs.readFileSync(path.join(dir, 'intro.css'), 'utf8');
+const introLogo = fs.readFileSync(path.join(dir, 'intro-logo.svg'), 'utf8');
+const swSrc = fs.readFileSync(path.join(dir, 'sw.js'), 'utf8');
 const rules = fs.readFileSync(path.join(dir, 'firestore.rules'), 'utf8');
 const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)];
 if (inline.length !== 1) throw new Error('Expected one D4 Trip app inline script');
 new vm.Script(inline[0][1], { filename: 'index.html.inline.js' });
+new vm.Script(introSrc, {filename:'intro.js'});
+for (const required of [
+  'id="d4Intro"',
+  'data-d4-intro-skip',
+  'data-action="replay-intro"',
+  '<link rel="stylesheet" href="./intro.css"',
+  '<script defer src="./intro.js"',
+  'src="./intro-logo.svg"'
+]) if(!html.includes(required)) throw new Error('Cinematic intro missing integration: '+required);
+for (const required of [
+  '@media(prefers-reduced-motion:reduce)',
+  '.d4-cinema__skip',
+  'd4-cinema__scene--mountain',
+  'd4-cinema__scene--coast',
+  'd4-cinema__scene--fjord'
+]) if(!introCss.includes(required)) throw new Error('Cinematic CSS missing: '+required);
+if(!introLogo.includes('D4 Trip cinematic logo')) throw new Error('Intro logo missing accessible title');
+for(const asset of ['intro.css','intro.js','intro-logo.svg'])
+  if(!swSrc.includes("'./"+asset+"'")) throw new Error('PWA does not cache cinematic asset: '+asset);
+console.log('PASS: cinematic intro script, controls, visuals, replay and offline cache');
+
 const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], {
   input: moduleSrc, encoding: 'utf8'
 });
