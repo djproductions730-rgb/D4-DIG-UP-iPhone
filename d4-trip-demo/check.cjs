@@ -45,7 +45,7 @@ for (const [name, source] of milestone03) {
 }
 console.log('PASS: Milestone 03 feature and safety regression assertions');
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
-const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs')], {
+const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs'), path.join(dir, 'milestone03.behavior.test.cjs')], {
   stdio: 'inherit'
 });
 if (tests.status !== 0) process.exit(tests.status || 1);
