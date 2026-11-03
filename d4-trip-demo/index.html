@@ -142,6 +142,20 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 /* v2.4 no-page-scroll collection: compact overview + full-screen popup */
 .cc-open-members{display:flex;width:100%;align-items:center;justify-content:space-between;gap:8px;border:0;border-radius:15px;padding:15px 13px;background:linear-gradient(105deg,#086c86,#04a69a);color:#fff;font-size:13px;font-weight:900;box-shadow:0 8px 20px #047b7630}.cc-open-members span{font-size:10px;font-weight:700;color:#e1fff8}.cc-open-members b{font-size:19px}.cc-popup-backdrop{z-index:5000!important;align-items:center;justify-content:center}.cc-popup{display:flex;flex-direction:column;background:#f4fbf9;color:#173f43;border-radius:24px;width:min(94vw,480px);height:min(84dvh,760px);max-height:84dvh;overflow:hidden;box-shadow:0 25px 80px #0008}.cc-popup-top{display:flex;align-items:center;justify-content:space-between;padding:18px 17px 12px;background:linear-gradient(120deg,#036579,#00a59a);color:#fff}.cc-popup-top h2{font-size:21px;margin:4px 0 0}.cc-popup-top small{font-size:11px;color:#d0fff5}.cc-popup-close{border:0;border-radius:50%;background:#ffffff30;color:#fff;width:36px;height:36px;font-size:20px}.cc-popup-total{display:flex;justify-content:space-around;gap:5px;background:#fff;padding:13px 5px;font-size:11px;font-weight:900}.cc-popup .cc-filters{padding:0 12px;flex-shrink:0}.cc-popup-list{padding:6px 12px 15px;overflow-y:auto;overscroll-behavior:contain;flex:1;min-height:0}.cc-popup-bottom{background:#fff;border-top:1px solid #cde6df;padding:12px 15px;text-align:center;font-size:12px;color:#578078}.cc-popup-bottom button{border:0;border-radius:12px;padding:13px;color:#fff;font-weight:900;width:100%}.cc-empty{text-align:center;padding:24px}
 @media(max-width:760px){.app-shell .main:has(.compact-collection){overflow:hidden!important}.compact-collection{height:calc(100dvh - 190px);display:flex;flex-direction:column;overflow:hidden}.compact-collection .cc-hero{padding:10px;margin-top:8px}.compact-collection .cc-ring{width:105px;height:105px}.compact-collection .cc-ring>div{width:82px;height:82px}.compact-collection .cc-ring b{font-size:23px}.compact-collection .cc-stat{padding:5px 9px}.compact-collection .cc-stat strong{font-size:14px}.compact-collection .cc-banner{padding:10px 15px}.compact-collection .cc-banner h2{font-size:19px}.compact-collection .cc-sun{font-size:30px}.compact-collection .cc-actions{margin:9px 0}.compact-collection .cc-footnote{font-size:9px;margin:8px 0}.cc-popup{width:100vw;height:100dvh;max-height:100dvh;border-radius:0}.cc-popup-backdrop{padding:0!important}}
+
+/* v2.5 zero-scroll member payment grid */
+.cc-simple-popup .cc-table-head,.cc-simple-popup .cc-table-row{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.9fr) minmax(0,.9fr) minmax(0,.95fr) ${admin?"" : ""};align-items:center;gap:5px}
+.cc-simple-popup .cc-table-head{grid-template-columns:1.15fr .9fr .9fr .95fr ${""};background:#dcefeb;color:#42756f;font-size:9px;font-weight:900;padding:10px 8px;border-radius:8px}
+.cc-simple-popup .cc-table-row{grid-template-columns:1.15fr .9fr .9fr .95fr ${""};font-size:11px;padding:9px 7px;border-bottom:1px solid #e1efeb;background:#fff;border-radius:6px}
+.cc-simple-popup .cc-table-row:has(.cc-tiny-edit),.cc-simple-popup .cc-table-head:has(span:nth-child(5)){grid-template-columns:1.1fr .85fr .85fr .9fr 25px}
+.cc-simple-popup .cc-table-body{flex:1;min-height:0;overflow:hidden;padding:4px 10px}
+.cc-simple-popup .cc-table-head{margin:0 10px}
+.cc-name{font-weight:850;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cc-money-paid{color:#09834f;font-size:10px}.cc-money-due{color:#d05d37;font-size:10px}
+.cc-status{font-size:9px;font-weight:900;white-space:nowrap}.cc-status.paid{color:#0b9655}.cc-status.partial{color:#b9780e}.cc-status.pending{color:#d24d47}
+.cc-tiny-edit{border:0;background:#dff5ed;color:#067d6b;border-radius:7px;width:24px;height:25px}
+.cc-pagination{display:flex;align-items:center;justify-content:space-between;padding:8px 13px;background:#eef8f5;font-size:11px;font-weight:800;color:#4e7772}
+.cc-pagination button{background:#fff;border:1px solid #c1e0d8;color:#087b73;border-radius:9px;padding:8px 12px;font-weight:800}.cc-pagination button:disabled{opacity:.35}
+@media(max-width:760px){.cc-simple-popup .cc-table-row{padding:10px 5px}.cc-simple-popup .cc-table-head{padding:9px 5px}.cc-simple-popup .cc-table-body{overflow:hidden}}
 </style>
 </head>
 <body>
@@ -273,15 +287,17 @@ return `<section class="compact-collection">
 </section>`;
 }
 
+let collectionPage=0;
 function showCollectionMembers(){
  const t=current();if(!t)return;
  const c=collectionTotals(t),admin=isTripAdmin(t);
  const rows=c.rows.filter(r=>collectionFilter==='all'||(collectionFilter==='paid'?r.status==='Paid':collectionFilter==='partial'?r.status==='Partial':r.status==='Pending'));
+ const pageSize=8,totalPages=Math.max(1,Math.ceil(rows.length/pageSize));collectionPage=Math.max(0,Math.min(collectionPage,totalPages-1));
+ const visible=rows.slice(collectionPage*pageSize,(collectionPage+1)*pageSize);
  const pills=[['all','All',c.rows.length],['paid','Paid',c.full],['partial','Partial',c.partial],['pending','Unpaid',c.unpaid]].map(([k,l,n])=>'<button class="cc-filter '+(collectionFilter===k?'selected':'')+'" data-action="collection-popup-filter" data-filter="'+k+'">'+l+' '+n+'</button>').join('');
- const members=rows.map(r=>'<div class="cc-person"><span class="cc-avatar">'+esc(r.member[0])+'</span><div class="cc-person-data"><b>'+esc(r.member)+'</b><small>'+money(r.paid)+' / '+money(r.target)+'</small><div class="cc-mini-track"><span style="width:'+(r.target?Math.min(100,r.paid/r.target*100):0)+'%;background:'+(r.status==='Paid'?'#13ae64':r.status==='Partial'?'#ff971f':'#e9a9a2')+'"></span></div></div><div class="cc-person-status">'+collectionPill(r.status)+'<small>'+money(r.pending)+' due</small></div>'+(admin?'<button class="cc-person-add" data-action="collection-member-pay" data-member="'+esc(r.member)+'">＋</button>':'')+'</div>').join('');
- $('#modalRoot').innerHTML='<div class="modal-backdrop cc-popup-backdrop"><div class="cc-popup" role="dialog" aria-modal="true" aria-label="All member payments"><div class="cc-popup-top"><div><small>🌴 '+esc(t.name)+'</small><h2>👥 Member Payments</h2></div><button class="cc-popup-close" data-action="close-modal">✕</button></div><div class="cc-popup-total"><span>🟢 Paid '+c.full+'</span><span>🟠 Partial '+c.partial+'</span><span>🔴 Unpaid '+c.unpaid+'</span></div><div class="cc-filters">'+pills+'</div><div class="cc-popup-list">'+(members||'<p class="cc-empty">No members in this category.</p>')+'</div><div class="cc-popup-bottom">'+(admin?'<button class="cc-primary" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Record Payment</button>':'<span>🔒 View Only — Admins manage payments</span>')+'</div></div></div>';
+ const members=visible.map(r=>'<div class="cc-table-row"><span class="cc-name">'+esc(r.member)+'</span><b class="cc-money-paid">'+money(r.paid)+'</b><b class="cc-money-due">'+money(r.pending)+'</b><span class="cc-status '+r.status.toLowerCase()+'">'+(r.status==='Paid'?'✓ Paid':r.status==='Partial'?'◐ Partial':'● Unpaid')+'</span>'+(admin?'<button class="cc-tiny-edit" data-action="collection-member-pay" data-member="'+esc(r.member)+'" aria-label="Add payment for '+esc(r.member)+'">✎</button>':'')+'</div>').join('');
+ $('#modalRoot').innerHTML='<div class="modal-backdrop cc-popup-backdrop"><div class="cc-popup cc-simple-popup" role="dialog" aria-modal="true" aria-label="Member payment summary"><div class="cc-popup-top"><div><small>🌴 '+esc(t.name)+'</small><h2>Member Payments</h2></div><button class="cc-popup-close" data-action="close-modal">✕</button></div><div class="cc-popup-total"><span>🟢 Paid '+c.full+'</span><span>🟠 Partial '+c.partial+'</span><span>🔴 Unpaid '+c.unpaid+'</span></div><div class="cc-filters">'+pills+'</div><div class="cc-table-head"><span>PERSON</span><span>PAID</span><span>PENDING</span><span>STATUS</span>'+(admin?'<span></span>':'')+'</div><div class="cc-table-body">'+(members||'<p class="cc-empty">No members in this category.</p>')+'</div><div class="cc-pagination"><button data-action="collection-page-prev" '+(collectionPage===0?'disabled':'')+'>← Previous</button><span>Page '+(collectionPage+1)+' / '+totalPages+'</span><button data-action="collection-page-next" '+(collectionPage>=totalPages-1?'disabled':'')+'>Next →</button></div><div class="cc-popup-bottom">'+(admin?'<button class="cc-primary" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':'<span>🔒 View Only</span>')+'</div></div></div>';
 }
-
 function collectionSave(t,member,value,method='Manual',note=''){
  if(!isTripAdmin(t))throw Error('Trip Admin access needed to record payments');
  if(!t.members.includes(member))throw Error('Choose a valid trip member');
@@ -457,8 +473,10 @@ if(!ex.some(e=>e.receipt)&&!t.files.length)report=report.replace(/<section><h2>8
 function action(el){const id=el.dataset.action,t=current(),ctx=el.dataset.ctx;switch(id){
 case 'enter-app':go('home');break;
  case 'entry-select-trip':{const tt=trip(el.dataset.id);if(!canSee(tt))return toast('Trip access denied');activeTrip=tt.id;daySelected=datesInTrip(tt)[0];go('collections');break;}
- case 'collection-members':collectionFilter='all';showCollectionMembers();break;
-case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';showCollectionMembers();break;
+ case 'collection-members':collectionFilter='all';collectionPage=0;showCollectionMembers();break;
+case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';collectionPage=0;showCollectionMembers();break;
+case 'collection-page-prev':collectionPage=Math.max(0,collectionPage-1);showCollectionMembers();break;
+case 'collection-page-next':collectionPage++;showCollectionMembers();break;
 case 'collection-member-pay':if(!isTripAdmin(t))return toast('Admins only');openModal('collection-payment',{tripId:t.id,member:el.dataset.member,returnTo:view});break;
 case 'collection-filter':collectionFilter=el.dataset.filter||'all';render();break;
  case 'entry-back':go('entry');break;
