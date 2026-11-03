@@ -637,7 +637,7 @@ if(target){e.preventDefault();openBankDetail(target.dataset.bankId)}
 document.getElementById('sheet').addEventListener('click',e=>{const loan=e.target.closest('[data-loan-action]');if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId,loan.dataset.paymentId);return;}const target=e.target.closest('[data-bank-choice]');if(target){e.preventDefault();chooseBank(target.dataset.bankChoice)}});
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});render();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
-</script><script src="./loans.js"></script><script src="./migration.js?v=bankless-import-10"></script><script src="./settings.js"></script><script src="./transaction-edit.js?v=family-art-8"></script><script src="./history-filters.js?v=family-art-8"></script><script src="./plans-budget.js?v=plan-history-7"></script><script src="./category-style.js?v=family-art-8"></script><script src="./bank-logos.js?v=family-art-8"></script><script>
+</script><script src="./loans.js"></script><script src="./migration.js?v=bankless-import-10"></script><script src="./settings.js"></script><script src="./transaction-edit.js?v=family-art-8"></script><script src="./history-filters.js?v=family-art-8"></script><script src="./plans-budget.js?v=plan-history-7"></script><script src="./category-style.js?v=internet-allowance-9"></script><script src="./bank-logos.js?v=family-art-8"></script><script>
 for(const category of officeSpendCategories)cats[category]=cats.Food;
 const openBeforeOffice=openTransaction;
 openTransaction=function(initialType='Expense'){
