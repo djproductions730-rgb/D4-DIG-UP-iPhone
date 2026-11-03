@@ -80,7 +80,9 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(await page.locator('[data-d4-shared-form]').count(),0);
   const groupPreview=path.join(__dirname,'preview',label+'-secure-groups.png');
   fs.mkdirSync(path.dirname(groupPreview),{recursive:true});
-  await page.locator('#d4-shared-panel').screenshot({path:groupPreview});
+  await page.evaluate(()=>document.querySelector('#d4-shared-panel')?.scrollIntoView({block:'center'}));
+  await page.waitForTimeout(500);
+  await page.screenshot({path:groupPreview,animations:'disabled'});
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('[data-action="replay-intro"]').click();
   await page.locator('#d4Intro').waitFor({state:'visible'});
