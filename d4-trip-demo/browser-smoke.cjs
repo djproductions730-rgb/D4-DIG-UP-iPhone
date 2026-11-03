@@ -85,10 +85,35 @@ async function smoke(browser,label,viewport,mobile) {
   await context.close();
   console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
 }
+async function firstVisitIntro(browser) {
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('#d4Intro').waitFor({state:'visible'});
+  assert.equal(await page.locator('#d4Intro img[src="./intro-logo.svg"]').count(),1);
+  await page.locator('[data-d4-intro-skip]').click();
+  await page.locator('#d4Intro').waitFor({state:'hidden'});
+  await page.reload({waitUntil:'domcontentloaded'});
+  assert.equal(await page.locator('#d4Intro').isVisible(),false,
+    'intro must run once per tab session');
+  assert.deepEqual(errors,[],'fresh first-visit intro has no runtime errors');
+  await context.close();
+  const reduced = await browser.newContext({reducedMotion:'reduce'});
+  const reducedPage=await reduced.newPage();
+  await reducedPage.goto(BASE,{waitUntil:'domcontentloaded'});
+  assert.equal(await reducedPage.locator('#d4Intro').isVisible(),false,
+    'reduced motion preference disables automatic animation');
+  await reduced.close();
+  console.log('PASS intro first-open / session repeat / reduced-motion');
+}
+
 (async()=>{
   const browser=await chromium.launch({headless:true});
   try{
     await smoke(browser,'desktop',{width:1280,height:800},false);
     await smoke(browser,'mobile',{width:390,height:844},true);
+    await firstVisitIntro(browser);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
