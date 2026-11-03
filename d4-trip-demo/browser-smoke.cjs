@@ -78,6 +78,9 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('#d4-shared-panel').waitFor();
   assert.match(await page.locator('#d4-shared-panel').innerText(),/Real multi-account sharing is OFF/);
   assert.equal(await page.locator('[data-d4-shared-form]').count(),0);
+  const groupPreview=path.join(__dirname,'preview',label+'-secure-groups.png');
+  fs.mkdirSync(path.dirname(groupPreview),{recursive:true});
+  await page.locator('#d4-shared-panel').screenshot({path:groupPreview});
   await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('[data-action="replay-intro"]').click();
   await page.locator('#d4Intro').waitFor({state:'visible'});
