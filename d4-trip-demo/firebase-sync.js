@@ -11,6 +11,8 @@ import {
   getFirestore, doc, onSnapshot, runTransaction, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 
+const LINK_KEY = 'd4_trip_firebase_linked_uid_v1';
+const DIRTY_KEY = 'd4_trip_firebase_dirty_uid_v1';
 const config = window.D4_TRIP_FIREBASE_CONFIG;
 const configured = Boolean(config && typeof config === 'object' &&
   config.apiKey && config.authDomain && config.projectId && config.appId);
@@ -75,6 +77,7 @@ function panel() {
 function localChanged() {
   if (!bridge.linked || !bridge.user) return;
   bridge.dirty = true;
+  localStorage.setItem(DIRTY_KEY, bridge.user.uid);
   bridge.sequence += 1;
   bridge.status = 'Unsynced local edits (will retry)';
   if (bridge.timer) clearTimeout(bridge.timer);
@@ -107,6 +110,7 @@ async function flush() {
     bridge.revision = nextRevision;
     if (bridge.sequence === sentSequence) {
       bridge.dirty = false;
+      localStorage.removeItem(DIRTY_KEY);
       bridge.status = 'Synced — revision ' + nextRevision;
     } else {
       bridge.status = 'Uploading newer local edits';
@@ -134,6 +138,19 @@ function watchSnapshot(user) {
       refresh(); return;
     }
     bridge.remote = snap.exists() ? snap.data() : null;
+    // Reconnect automatically after a normal reload, but never discard unsent local edits.
+    const previouslyLinked = localStorage.getItem(LINK_KEY) === watchedUid;
+    const pendingLocal = localStorage.getItem(DIRTY_KEY) === watchedUid;
+    if (!bridge.linked && previouslyLinked && !pendingLocal &&
+        bridge.remote && validData(bridge.remote.data)) {
+      local()?.setData?.(bridge.remote.data);
+      bridge.revision = Number(bridge.remote.revision) || 0;
+      bridge.linked = true;
+      bridge.status = 'Live sync reconnected';
+    }
+    if (!bridge.linked && pendingLocal) {
+      bridge.status = 'Unsynced device changes — export a backup before restoring';
+    }
     if (!bridge.linked) {
       bridge.status = bridge.remote ? 'Cloud backup available' : 'Cloud backup not yet created';
       refresh(); return;
@@ -191,6 +208,8 @@ async function restoreCloud() {
     bridge.dirty = false;
     bridge.error = '';
     bridge.linked = true;
+    localStorage.setItem(LINK_KEY, bridge.user.uid);
+    localStorage.removeItem(DIRTY_KEY);
     bridge.status = 'Live sync enabled (revision ' + bridge.revision + ')';
     refresh(); notify('☁️ Cloud data restored; live sync enabled');
   } catch (e) { bridge.error = formatError(e); refresh(); }
@@ -213,6 +232,8 @@ async function uploadFirst() {
     });
     bridge.revision = 1;
     bridge.linked = true;
+    localStorage.setItem(LINK_KEY, bridge.user.uid);
+    localStorage.removeItem(DIRTY_KEY);
     bridge.error = '';
     bridge.status = 'Live sync enabled (revision 1)';
     refresh(); notify('☁️ Initial cloud backup saved');
@@ -224,7 +245,10 @@ document.addEventListener('click', async event => {
   if (!action || !bridge.configured) return;
   event.preventDefault();
   if (action === 'sign-in' || action === 'sign-up') await signIn(action);
-  if (action === 'sign-out') await signOut(bridge.auth);
+  if (action === 'sign-out') {
+    localStorage.removeItem(LINK_KEY);
+    await signOut(bridge.auth);
+  }
   if (action === 'restore') await restoreCloud();
   if (action === 'upload-first') await uploadFirst();
 });
