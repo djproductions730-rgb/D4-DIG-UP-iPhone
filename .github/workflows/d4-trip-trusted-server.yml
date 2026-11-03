@@ -32,6 +32,8 @@ jobs:
           node --check d4-trip-demo/server-draft/service.cjs
           node --check d4-trip-demo/server-draft/index.js
           node --check d4-trip-demo/server-draft/service.test.cjs
+          node --check d4-trip-demo/server-draft/callable-auth.test.cjs
+          node --test d4-trip-demo/server-draft/callable-auth.test.cjs
       - name: Install Firestore emulator and trusted Admin SDK
         run: npm install --no-save --no-audit --no-fund --package-lock=false firebase-admin@13.5.0 firebase-tools@15.30.1
       - name: Test invite, role, payment, and private chat transactions on emulator
