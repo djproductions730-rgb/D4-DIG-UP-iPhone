@@ -10,10 +10,19 @@
 
 **This is NOT YET the shared multi-user live trip app.** Different Firebase accounts cannot see the same trip using this branch. Local demo-name roles, client-generated trip codes and admin-only chat remain local; **DO NOT use them for real permissions**. Shared access requires a trusted server invite redemption flow, verified Firebase UID-to-trip membership, enforced Main Admin/Trip Admin roles, per-trip writes, and regression/security testing.
 
-## Required Firebase Console setup
+## Verified Firebase setup — 3 November 2026
+
+- Project `d4-trip`, registered Web App `1:734858180381:web:9c9c83993ec136f1b453f4`; public config is committed.
+- Email/Password sign-in enabled and confirmed in Firebase Console. Passwordless email link remains disabled.
+- Standard edition `(default)` Firestore database created in **Delhi (`asia-south2`)**, using production mode. No billing upgrade or scheduled backups enabled.
+- This branch's private snapshot rules published and confirmed in Console rule history.
+- Rules Playground simulations: unauthenticated private snapshot read denied; matching owner UID read allowed; different UID read denied. These simulations do not create test accounts or trip data, and do not establish end-to-end client sync.
+- Application deployment/merge, real-account two-device sync, write authorization tests and shared-trip support are still pending. Existing device data was not uploaded or changed during setup.
+
+## Setup reference (for another project or redeployment)
 
 1. Firebase Console > D4 Trip project > Project Settings > Your apps > select the **registered Web App** > SDK setup and configuration > **Config**.
-2. Copy only the **public Web App client config** to `d4-trip-demo/firebase-config.js` replacing `null`. Minimum required: `apiKey`, `authDomain`, `projectId`, `appId`; include `messagingSenderId` if provided. **Never add service-account JSON or private keys.**
+2. Set only the **public Web App client config** in `d4-trip-demo/firebase-config.js`. The registered `d4-trip` config is already present. Minimum required: `apiKey`, `authDomain`, `projectId`, `appId`; include `messagingSenderId` if provided. **Never add service-account JSON or private keys.**
 3. Authentication > Sign-in method > enable **Email/Password**. Authentication > Settings > Authorized domains > add `djproductions730-rgb.github.io` if needed for the chosen sign-in provider.
 4. Create Firestore Database in **production mode** if absent.
 5. Publish **this exact** `d4-trip-demo/firestore.rules` file in Firestore Database > Rules, or use Firebase CLI from `d4-trip-demo`: `firebase deploy --only firestore:rules --project YOUR_PROJECT_ID`. Never use `allow read, write: if true`.
@@ -37,6 +46,6 @@
 - Expiring server-validated invitation codes, no UI-name-based authorization.
 - Firestore per-trip documents and payment transactions; real-time group and admins-only message collections.
 - Rules tests in Firebase Emulator, App Check/rate-limit/abuse safeguards, Storage rules, live integration QA.
-- Firebase project configuration plus deploy/Console access.
+- Production client deployment and end-to-end verification against the configured Firebase project.
 
 **Do not claim shared live mode is active until these gates pass.**
