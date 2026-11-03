@@ -26,6 +26,24 @@ for (const required of [
   'allow list: if false',
   'allow read, write: if false'
 ]) if (!rules.includes(required)) throw new Error('Missing restrictive Firestore rule: '+required);
+const milestone03 = [
+  ['member save confirmation', "button='Save Member'"],
+  ['member remove action', "case 'remove-member':"],
+  ['financial history removal guard', "if(hasHistory)return toast("],
+  ['advance payment stage', '<option value="advance">Advance payment</option>'],
+  ['balance payment stage', '<option value="balance">Remaining / balance payment</option>'],
+  ['full payment stage', '<option value="full">Full payment</option>'],
+  ['overpayment validation', 'Amount exceeds remaining'],
+  ['paid/partial/unpaid counts', 'd4-payment-counts'],
+  ['main admin chat selector', 'id="directChatMember"'],
+  ['direct chat sending blocked pending secure backend', "if(room.startsWith('direct:'))return toast("],
+  ['chat navigation retains selected room', "if(v==='chat'&&!chatRoom)"],
+  ['realistic banner images', 'images.unsplash.com/photo-1507525428034-b723cf961d3e']
+];
+for (const [name, source] of milestone03) {
+  if (!html.includes(source)) throw new Error('Milestone 03 regression: '+name);
+}
+console.log('PASS: Milestone 03 feature and safety regression assertions');
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
 const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs')], {
   stdio: 'inherit'
