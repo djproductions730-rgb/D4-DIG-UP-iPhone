@@ -79,6 +79,20 @@ test('owner can promote an admin, admin can revoke ordinary member only',async()
   await assert.rejects(service.changeRole({auth:owner,tripId:tid,memberUid:another.uid,role:'admin'}),/Invalid active member/);
 });
 
+
+test('revoking an admin disables all unredeemed invite codes from that admin',async()=>{
+  const tid=await trip();
+  await add(tid,member,'Alice');
+  await service.changeRole({auth:owner,tripId:tid,memberUid:member.uid,role:'admin'});
+  const {code}=await service.issueInvite({auth:member,tripId:tid});
+  await service.revokeMember({auth:owner,tripId:tid,memberUid:member.uid});
+  await assert.rejects(
+    service.redeemInvite({auth:third,code,displayName:'Charlie'}),
+    /Invite issuer no longer authorized/
+  );
+  assert.equal((await memberDoc(tid,third.uid).get()).exists,false);
+});
+
 test('advance and balance payments update correct paise and preserve audit history',async()=>{
   const tid=await trip();
   await add(tid,member,'Alice');
