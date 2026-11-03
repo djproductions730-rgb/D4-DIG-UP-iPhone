@@ -31,7 +31,7 @@ function harness() {
     money: n => '₹' + Number(n).toFixed(2),
     esc: value => String(value).replace(/[&<>"']/g, c =>
       ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c])),
-    sec: () => '',
+    sec: (_title,action) => action ? '<button data-action="'+action+'">Add</button>' : '',
     toast: n => notices.push(n)
   });
   vm.runInContext(source, context, {filename:'d4-trip-milestone03-functions.js'});
