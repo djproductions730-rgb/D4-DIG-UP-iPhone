@@ -6,6 +6,11 @@ const path = require('node:path');
 const dir = __dirname;
 const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const moduleSrc = fs.readFileSync(path.join(dir, 'firebase-sync.js'), 'utf8');
+const sharedUi = fs.readFileSync(path.join(dir, 'shared-beta.js'), 'utf8');
+const sharedRuntime = fs.readFileSync(path.join(dir, 'shared-runtime.js'), 'utf8');
+const webConfig = fs.readFileSync(path.join(dir, 'firebase-config.js'), 'utf8');
+const deployment = JSON.parse(fs.readFileSync(path.join(dir, 'firebase.json'), 'utf8'));
+
 const introSrc = fs.readFileSync(path.join(dir, 'intro.js'), 'utf8');
 const introCss = fs.readFileSync(path.join(dir, 'intro.css'), 'utf8');
 const introLogo = fs.readFileSync(path.join(dir, 'intro-logo.svg'), 'utf8');
@@ -15,6 +20,14 @@ const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/scrip
 if (inline.length !== 1) throw new Error('Expected one D4 Trip app inline script');
 new vm.Script(inline[0][1], { filename: 'index.html.inline.js' });
 new vm.Script(introSrc, {filename:'intro.js'});
+new vm.Script(sharedUi, {filename:'shared-beta.js'});
+if (deployment.firestore.rules !== 'firestore.rules') throw new Error('Shared draft must not be enabled in production configuration');
+if (!webConfig.includes('window.D4_TRIP_SHARED_ROLLOUT = false')) throw new Error('Live shared groups must default OFF');
+for (const item of ['<script src="./shared-beta.js"></script>','<script type="module" src="./shared-runtime.js"></script>','window.D4TripShared?.panel?.()']) if (!html.includes(item)) throw new Error('Secure beta preview not connected: '+item);
+for (const asset of ['shared-beta.js','shared-runtime.js']) if (!swSrc.includes("'./"+asset+"'")) throw new Error('Secure beta asset not cached: '+asset);
+const sharedCheck=spawnSync(process.execPath,['--input-type=module','--check'],{input:sharedRuntime,encoding:'utf8'});
+if (sharedCheck.status!==0)throw new Error('Shared runtime syntax invalid: '+sharedCheck.stderr);
+console.log('PASS: guarded secure groups panel, disabled server rollout and runtime scripts');
 for (const required of [
   'id="d4Intro"',
   'data-d4-intro-skip',
@@ -70,7 +83,7 @@ for (const [name, source] of milestone03) {
 }
 console.log('PASS: Milestone 03 feature and safety regression assertions');
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
-const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs'), path.join(dir, 'milestone03.behavior.test.cjs')], {
+const tests = spawnSync(process.execPath, ['--test', path.join(dir, 'firebase-sync.test.cjs'), path.join(dir, 'milestone03.behavior.test.cjs'), path.join(dir, 'shared-beta.test.cjs')], {
   stdio: 'inherit'
 });
 if (tests.status !== 0) process.exit(tests.status || 1);
