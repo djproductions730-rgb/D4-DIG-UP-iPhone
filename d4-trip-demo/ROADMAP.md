@@ -1,31 +1,50 @@
-# D4 Trip — next development milestones
+# D4 Trip — Verified milestone status (4 November 2026)
 
-## Shipped in GitHub Pages demo
-- Trip chooser, separate trip data, collection totals, paid/partial/unpaid member cards
-- Day plans, expense tracking, notes, local chat demo, memories and printable reports
-- PWA manifest, icon, offline shell cache, iOS/Android install help
+## M01 — Offline app foundation: built
+- My Trips, trip chooser, collection tracking, day plans, expenses and split, notes, memories, reports.
+- Device-only local data and backup/export supported.
 
-## M2 — secure shared backend (NOT CONNECTED)
-- Create dedicated Firebase project for D4 Trip
-- Enable Firebase Authentication (phone OTP with authorized domains and abuse protection)
-- Map every Firebase Auth UID to a user profile; no trusting user-entered names for permissions
-- Data model: trips/{tripId}; trips/{tripId}/members/{uid}; trips/{tripId}/payments/{paymentId}; trips/{tripId}/expenses/{expenseId}; trips/{tripId}/plans/{planId}; trips/{tripId}/messages/{messageId}
-- Main Admin is granted via protected server-side custom claim; never by join code alone
-- Join codes: random, expiring, stored hashed on server, redeemed through verified server function, scoped to a trip and role
-- Trip Admin granted only by Main Admin through protected function
-- Transactional payment writes, audit log, member role revocation, access tests
+## M02 — People and payment UI: development branch built
+- Add/Remove Member actions with Save/Confirm flow.
+- Advance/Balance/Full payment labels, paise-safe paid/remaining totals and Paid/Partial/Unpaid counts.
+- Financial history prevents accidental destructive member removal.
+- These role and payment controls are **offline/demo UI only** until shared backend is connected.
 
-## M3 — multi-device sync
-- Replace localStorage data layer with Firestore listeners and offline persistence
-- Preserve a one-time export/import migration path from local demo
-- Real-time group chat and admin-only chat
-- Storage upload rules for receipts and memories
+## M03 — Mobile and desktop QA: automated checks passed
+- Chromium desktop and phone-size smoke tests for advance payment, member Save/Remove and persistence after reload.
+- Mobile Save-button overlay regression fixed.
+- Cinematic travel intro with original D4 globe/metallic logo, Skip, Replay and reduced-motion handling; tested in Chromium.
+- Physical iPhone/Android testing remains a release gate.
 
-## M4 — notifications and release
-- Server-scheduled trip reminders and push notifications (permissions required)
-- Android package via Capacitor or Trusted Web Activity, signing and QA
-- iPhone PWA first; native iOS requires Apple signing/build process
-- Privacy policy, backup, data deletion, production testing
+## M04 — Private Firebase sync: emulator tests passed, real-device testing pending
+- Real Firebase Web configuration and UID-private snapshot rules exist in `firebase-config.js` and `firestore.rules`.
+- Same-account listener/transaction logic, backup-before-restore option and conflict handling.
+- Firestore emulator cross-client sync, anonymous access-denial and cross-UID isolation tests passed.
+- Production two-device account testing and merge/deployment **not completed**.
 
-## Security gate
-Do NOT enable a permissive Firestore rule for testing. The starter rules intentionally deny all reads and writes until authenticated role-aware rules and tests are implemented.
+## M05 — Secure shared membership: trusted backend + rules draft tested, NOT DEPLOYED
+- Undeployed `firestore.shared.draft.rules`: active Firebase UID membership, owner/admin/member roles, private two-person rooms, owner/admin-only chat, immutable payment receipts and audit data.
+- Undeployed `server-draft/`: verified owner trip creation; one-use hashed invite issuance and redemption; admin promotion/demotion; revocation; transaction-safe advance/balance payments; private chat provisioning; audit events.
+- Draft security rules: **9/9 emulator tests passed**.
+- Trusted backend: **8/8 Firestore Emulator tests passed**, plus **1/1 callable identity-spoofing check**.
+- Expired or consumed invites are invalid; unredeemed invites also stop working after issuer revocation.
+- Existing production `firebase.json` still points to private-only `firestore.rules`. No shared client feature is enabled.
+- A client cannot alter trip roles/payments by locally selecting a display name.
+
+### Required before M05 release
+1. Configure trusted Functions environment `D4_TRIP_MAIN_OWNER_UID`; review Main Admin UID and verified sign-in.
+2. Enable/configure App Check for callable endpoints.
+3. Deploy callable server endpoints separately after review.
+4. Map existing user accounts to trusted Firebase UIDs; migrate with explicit backup/export consent.
+5. Wire the app's UI to callable endpoints and authenticated per-trip Firestore listeners.
+6. Test two different real Firebase accounts on physical devices, permission revocation and concurrent payment requests.
+7. Review and deploy `firestore.shared.draft.rules` only after all integration/security checks pass.
+8. Keep the original public GitHub Pages demo unaffected until safe deployment is approved.
+
+## M06 — Notifications and release: pending
+- Authenticated invite onboarding, real-time private/admin chat and cross-account trip sync.
+- Receipts/media storage with restrictive Storage rules.
+- Push notifications and scheduled reminders.
+- Android/iPhone PWA QA; privacy policy, account deletion and backups.
+
+**Important:** No work runs automatically between conversations. Continue from this branch and read CI results before merging.
