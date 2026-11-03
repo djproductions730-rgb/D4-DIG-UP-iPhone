@@ -189,6 +189,31 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 .cc-simple-popup .cc-popup-bottom{background:#111!important;border-top:1px solid #292929!important}
 .cc-simple-popup .cc-tiny-edit{background:#353535!important;color:#fff!important}
 @media(max-width:390px){.cc-simple-popup .cc-member-tile{padding:9px!important}.cc-simple-popup .cc-table-body{gap:7px!important;padding:7px!important}}
+
+/* v2.9 My Trips visual refresh: scenic premium cards, compact mobile screen */
+.d4-new-entry{min-height:100dvh;background:linear-gradient(180deg,#154e72 0,#0d264a 35%,#1e285b 100%);color:#fff;font-family:inherit;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
+.d4-new-sky{height:230px;position:relative;background:radial-gradient(circle at 78% 35%,#ffca7a 0,#ff9e7e 15%,transparent 42%),linear-gradient(130deg,#0a5b91,#6c83bc 53%,#f5b188);padding:25px 22px 12px;overflow:hidden}
+.d4-new-sky:after{content:'🌴';position:absolute;right:12px;bottom:12px;font-size:78px;opacity:.38}
+.d4-new-brand{font-size:27px;font-weight:1000;text-shadow:0 2px 10px #18344a90}.d4-new-brand span{display:inline-block;font-size:12px;border-radius:20px;background:#ffdc4c;color:#173456;padding:4px 9px;transform:rotate(-5deg);vertical-align:middle}
+.d4-new-traveler{position:absolute;right:24px;top:65px;font-size:36px}
+.d4-new-heading{position:absolute;bottom:18px;left:22px;right:20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.d4-new-heading h1{font-size:31px;margin:0;color:#fff}.d4-new-heading span{border:1px solid #d5f4ff;border-radius:30px;background:#12365a;padding:10px 14px;font-size:12px;font-weight:900}
+.d4-new-card-list{display:grid;gap:12px;padding:15px 15px 5px}
+.d4-new-trip-card{width:100%;display:flex;align-items:stretch;min-width:0;min-height:134px;text-align:left;gap:12px;border:2px solid #fff8;border-radius:23px;padding:8px;background:linear-gradient(120deg,#fff3d6,#e2f5e5);color:#0b2441;box-shadow:0 8px 20px #0004;cursor:pointer}
+.d4-new-trip-card:nth-child(2){background:linear-gradient(110deg,#d5f5ff,#b5e3ff)}.d4-new-trip-card:nth-child(3){background:linear-gradient(110deg,#ffdddf,#e4d5ff)}
+.d4-new-photo{width:95px;flex:none;border-radius:17px;background:linear-gradient(155deg,#31a7dc,#ffb767);display:grid;place-items:center;font-size:52px}
+.d4-new-trip-card:nth-child(2) .d4-new-photo{background:linear-gradient(155deg,#7ac5ed,#2c8d68)}.d4-new-trip-card:nth-child(3) .d4-new-photo{background:linear-gradient(155deg,#f9b47d,#7e6ad3)}
+.d4-new-details{display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center;gap:6px}
+.d4-new-details>strong{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.d4-new-details>small{font-size:11px;color:#38566b}
+.d4-new-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:#ffffffc9;border-radius:12px;padding:6px 3px;margin-top:4px}
+.d4-new-money span{display:flex;flex-direction:column;align-items:center;gap:3px;border-right:1px solid #a9c1c7;min-width:0}.d4-new-money span:last-child{border:0}
+.d4-new-money em{font-size:10px;font-style:normal;font-weight:800;color:#078f56}.d4-new-money span:nth-child(2) em{color:#d05d24}.d4-new-money span:nth-child(3) em{color:#7042ad}
+.d4-new-money b{font-size:11px;white-space:nowrap}
+.d4-new-arrow{align-self:center;font-size:24px;color:#075e83;padding:0 3px}
+.d4-new-bottom{padding:15px 25px 7px;text-align:center}.d4-new-bottom button{width:100%;border:0;border-radius:35px;padding:15px;background:linear-gradient(100deg,#f733af,#ffad32);color:#fff;font-size:16px;font-weight:900;box-shadow:0 7px 20px #ee49a84a}.d4-new-bottom small{display:block;margin-top:8px;color:#d5e5fb;font-size:10px}
+.d4-new-disclaimer{text-align:center;color:#bac8de;font-size:9px;padding:4px 10px 12px}
+@media(max-width:760px){.d4-new-entry{height:100dvh;display:flex;flex-direction:column}.d4-new-sky{height:25dvh;min-height:145px;flex:none}.d4-new-card-list{flex:1;min-height:0;overflow:hidden;grid-template-rows:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px}.d4-new-trip-card{min-height:0;padding:6px;border-radius:16px;gap:8px}.d4-new-photo{width:25%;font-size:36px;border-radius:12px}.d4-new-details{gap:3px}.d4-new-details>strong{font-size:15px}.d4-new-details>small{font-size:10px}.d4-new-money{padding:4px 2px;margin-top:2px}.d4-new-money b{font-size:10px}.d4-new-money em{font-size:9px}.d4-new-bottom{flex:none;padding:8px 18px 3px}.d4-new-bottom button{padding:11px}.d4-new-disclaimer{flex:none;padding:3px 8px 6px}}
 </style>
 </head>
 <body>
@@ -300,9 +325,10 @@ function collectionProgress(c){return `<div class="collection-progress" aria-lab
 function collectionEntryCard(t){const c=collectionTotals(t),admin=isTripAdmin(t);return `<article class="collection-entry-card"><div class="collection-entry-header"><div class="entry-trip-icon">${t.emoji}</div><div style="flex:1"><h3>${esc(t.name)}</h3><p>👥 ${t.members.length} people · ${c.each?money(c.each)+' / person':'Target not set'}</p></div>${collectionPill(!c.each?'Not set':c.pending===0?'Paid':'Pending')}</div>${c.each?`${collectionMetrics(c)}${collectionProgress(c)}`:'<div class="notice">👑 Main Admin must set a trip amount to track collections.</div>'}<div class="collection-entry-actions"><button class="btn small mint" data-action="collection-open" data-id="${esc(t.id)}">View Paid / Pending →</button>${admin?`<button class="btn small sun" data-action="collection-quick-add" data-id="${esc(t.id)}">＋ Add Paid</button>`:''}</div></article>`}
 function entryPage(){
  const ts=visibleTrips();
- return `<div class="entry-screen trip-chooser"><header class="entry-top"><div class="entry-logo"><img src="${LOGO_URL}" width="54" height="54" alt="D4 Trip"><div><b>D4 <em>Trip</em></b><small>Plan · Travel · Track · Split</small></div></div><span class="entry-badge">LOCAL DEMO</span></header>
- <section class="entry-hero"><div class="entry-hero-symbol">🌴 ✈️</div><span class="eyebrow">EXPLORE YOUR ADVENTURES</span><h1>Choose your trip.<br><span>Make memories.</span></h1><p>Select a trip first. You will then see its Paid / Pending collection dashboard, followed by that trip's plans, expenses, chats and memories.</p><div class="entry-steps"><span>① My Trips</span><span>② Collection</span><span>③ Trip Dashboard</span></div></section>
- <div class="entry-content"><div class="entry-heading"><h2>🧳 My Trips</h2><span>${ts.length} accessible trips</span></div><div class="entry-trip-list">${ts.map(t=>`<button class="entry-trip-option tone-${esc(t.kind||'other')}" data-action="entry-select-trip" data-id="${esc(t.id)}"><span class="entry-trip-image">${t.emoji}</span><span class="entry-trip-text"><strong>${esc(t.name)}</strong><small>📍 ${esc(t.destination)} · 👥 ${t.members.length} members</small><small>📅 ${shortDate(t.start)} – ${shortDate(t.end)}</small></span><span class="entry-trip-arrow">➜</span></button>`).join('')||'<div class="empty">No trips yet. Create or join a trip from your account.</div>'}</div><div class="entry-bottom"><button class="btn mint" data-action="enter-app">🏠 Open Main App</button><span>Only the trips accessible to this demo profile are shown.</span></div><p class="entry-footnote">🔐 Offline demo only: these role controls are simulated locally; secure accounts and multi-user privacy require a backend.</p></div></div>`;
+ const cards=ts.map(t=>{const c=collectionTotals(t);const kind=String(t.kind||'other').toLowerCase();const photo=kind.includes('goa')?'🏝️':kind.includes('ooty')?'🏔️':kind.includes('pond')?'🌅':t.emoji;
+ return '<button class="d4-new-trip-card d4-kind-'+esc(kind)+'" data-action="entry-select-trip" data-id="'+esc(t.id)+'"><span class="d4-new-photo">'+photo+'</span><span class="d4-new-details"><strong>'+esc(t.name)+'</strong><small>📅 '+shortDate(t.start)+' – '+shortDate(t.end)+'</small><small>👥 '+t.members.length+' Members · 📍 '+esc(t.destination)+'</small><span class="d4-new-money"><span><em>Paid</em><b>'+money(c.paid)+'</b></span><span><em>Pending</em><b>'+money(c.pending)+'</b></span><span><em>Total</em><b>'+money(c.target)+'</b></span></span></span><span class="d4-new-arrow">➜</span></button>';
+ }).join('');
+ return '<div class="d4-new-entry"><div class="d4-new-sky"><div class="d4-new-brand">✈️ D4 Trip <span>Planner</span></div><div class="d4-new-traveler">🧳 🌴 ☀️</div><div class="d4-new-heading"><h1>My Trips</h1><span>✈️ '+ts.length+' Trips</span></div></div><div class="d4-new-card-list">'+(cards||'<p>No trips yet. Create or join one from your account.</p>')+'</div><div class="d4-new-bottom"><button data-action="enter-app">＋ '+(isMain()?'Manage / Create New Trip':'Open Main App / Join Trip')+'</button><small>Choose a trip → Collection → Trip Dashboard</small></div><div class="d4-new-disclaimer">Offline demo: sample data and local role controls only.</div></div>';
 }
 
 let collectionFilter='all';
