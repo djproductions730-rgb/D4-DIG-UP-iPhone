@@ -23,3 +23,11 @@ nav#nav .rail-current{position:absolute;right:-4px;width:3px;height:17px;border-
 nav#nav [data-tab="pluxee"] .rail-symbol{background:#15194b}nav#nav [data-tab="pluxee"].active .rail-symbol{background:#15194b;box-shadow:0 0 0 2px #8beaab}
 .pluxee-brand-symbol{background:#15194b}.pluxee-original-wordmark{display:block;width:85px;height:30px;overflow:hidden}.pluxee-original-wordmark img{display:block;width:158px;max-width:none;height:30px;object-fit:contain}
 .quick-tile[data-quick^="pluxee-"] .quick-icon{position:relative;background:#15194b}.quick-tile[data-quick^="pluxee-"] .pluxee-original-symbol{width:30px;height:30px;padding:5px}.pluxee-action-direction{position:absolute;bottom:-3px;right:-3px;display:grid;place-items:center;width:17px;height:17px;border-radius:6px;background:#16734b;color:#fff;font-size:13px;font-weight:900;border:1px solid #fff}.quick-tile[data-quick="pluxee-spend"] .pluxee-action-direction{background:#a12462}
+
+/* Right-side compact navigation, including the menu toggle and expanded drawer. */
+.app{padding-left:16px;padding-right:calc(var(--rail-width) + 20px)}
+.section-menu{left:auto;right:max(10px,calc(50% - 365px))}
+nav#nav.icon-rail{left:auto;right:max(8px,calc(50% - 367px))}
+nav#nav .rail-current{right:auto;left:-4px}
+.section-menu-open nav#nav .rail-current{right:auto;left:4px}
+@media(max-width:400px){.app{padding-left:10px;padding-right:74px}nav#nav.icon-rail{left:auto;right:7px}.section-menu{left:auto;right:12px}}
