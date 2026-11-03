@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {initializeTestEnvironment,assertFails,assertSucceeds} = require('@firebase/rules-unit-testing');
-const {doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc, serverTimestamp} = require('firebase/firestore');
+const {doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp} = require('firebase/firestore');
 let env;
 const PROJ='demo-d4-trip-rules-qa';
 
@@ -82,4 +82,30 @@ test('malformed new data and untrusted other collections remain denied',async()=
   await assertFails(setDoc(doc(alice,'trips/trip1'),{name:'Fake shared trip'}));
   await assertFails(getDoc(doc(alice,'trips/trip1')));
   await assertFails(setDoc(doc(alice,'trips/trip1/messages/msg1'),{text:'not authorized'}));
+});
+
+test('two separate clients signed in as the same UID receive live revisions', {timeout:15000}, async()=>{
+  const first=auth('alice').firestore();
+  const second=auth('alice').firestore();
+  const firstRef=doc(first,pathFor('alice'));
+  const secondRef=doc(second,pathFor('alice'));
+  await assertSucceeds(setDoc(firstRef,data()));
+  let unsubscribe=()=>{};
+  let timeout;
+  try{
+    const seen=new Promise((resolve,reject)=>{
+      unsubscribe=onSnapshot(secondRef,snap=>{
+        if(snap.exists() && snap.data().revision===2) resolve(snap.data().revision);
+      },reject);
+    });
+    await assertSucceeds(setDoc(firstRef,data(2)));
+    const received=await Promise.race([
+      seen,
+      new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error('Same-UID live update not received')),10000);})
+    ]);
+    assert.equal(received,2);
+  }finally{
+    clearTimeout(timeout);
+    unsubscribe();
+  }
 });
