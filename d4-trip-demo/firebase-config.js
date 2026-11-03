@@ -13,3 +13,7 @@ window.D4_TRIP_FIREBASE_CONFIG = {
   appId: "1:734858180381:web:9c9c83993ec136f1b453f4",
   measurementId: "G-ES040GJNKG"
 };
+
+// M05: secure shared groups remain OFF until verified server/App Check/rules release.
+window.D4_TRIP_SHARED_ROLLOUT = false;
+window.D4_TRIP_APP_CHECK_SITE_KEY = '';
