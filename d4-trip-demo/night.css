@@ -21,3 +21,12 @@ body :is(.nav-emoji,.feature-icon,.category-icon,.activity-symbol,.metric .symbo
 :focus-visible{outline:2px solid #c0f3e2!important;outline-offset:3px}
 .hero::before,.hero::after{content:none!important}.d4-new-brand span{background:transparent!important;transform:none!important;box-shadow:none!important;color:#cae4e4!important}.collection-teaser,.gate-hero,.memory-banner,.entry-bottom{background-color:#15232e!important;color:#e3eced!important}.collection-teaser{background-image:none!important}.quick .bubble{color:#a8dfd6!important;background:linear-gradient(145deg,#304859,#122333)!important}.feature-icon .night-icon,.symbol .night-icon{width:22px;height:22px}
 body .section-heading h2{color:#8af5aa!important}
+
+/* Make each collection total readable on its own surface. */
+body .cc-plain-summary>div{background:#202b37;border:1px solid #435363}
+body .cc-plain-summary>div:nth-child(2){background:#12362e;border-color:#326252}
+body .cc-plain-summary>div:nth-child(3){background:#382a24;border-color:#604b40}
+body .cc-plain-summary>div small{color:#e0e9ed}
+body .cc-plain-summary>div b{color:#f5f9fc!important}
+body .cc-plain-summary>div:nth-child(2) b{color:#99f6ba!important}
+body .cc-plain-summary>div:nth-child(3) b{color:#ffd3a8!important}
