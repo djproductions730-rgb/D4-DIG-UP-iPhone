@@ -77,6 +77,7 @@ function panel() {
     rows.push('<div class="row" style="margin-top:10px"><button type="button" class="btn small ghost" data-cloud-action="sign-out">Sign out</button></div>');
     rows.push('<p class="tiny">Signing out does not delete local device data. Photos/videos held in IndexedDB are device-only; metadata and inline attachments are limited by the Firestore document size.</p>');
   }
+  rows.push('<div class="row" style="margin-top:10px"><button type="button" class="btn small ghost" data-cloud-action="backup">⬇ Download device JSON backup</button></div>');
   if (bridge.error) rows.push('<div class="notice" role="alert">⚠️ ' + safe(bridge.error) + '</div>');
   rows.push('</section>');
   return rows.join('');
@@ -292,9 +293,14 @@ document.addEventListener('click', async event => {
     } catch (e) { bridge.error=formatError(e); }
     refresh();
   }
+  if (action === 'backup') {
+    try { local()?.backup?.(); notify('Local D4 Trip backup download requested'); }
+    catch (e) { bridge.error = formatError(e); refresh(); }
+  }
   if (action === 'sign-out') {
-    localStorage.removeItem(LINK_KEY);
-    await signOut(bridge.auth);
+    if (!confirm('Sign out of Firebase? Your trip data will stay on this browser and may still be visible to others using this device. Download a backup if needed.')) return;
+    try { await signOut(bridge.auth); localStorage.removeItem(LINK_KEY); }
+    catch (e) { bridge.error = formatError(e); refresh(); }
   }
   if (action === 'restore') await restoreCloud();
   if (action === 'upload-first') await uploadFirst();
