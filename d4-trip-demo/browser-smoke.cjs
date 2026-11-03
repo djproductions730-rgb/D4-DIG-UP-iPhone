@@ -71,6 +71,14 @@ async function smoke(browser,label,viewport,mobile) {
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
   assert.equal(data.trips[0].members.includes('New Person'),false);
+  // The secure Groups UI must be visible as a clearly disabled preview,
+  // not as an enabled cross-account network feature.
+  await page.locator('[data-action="enter-app"]').click();
+  await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
+  await page.locator('#d4-shared-panel').waitFor();
+  assert.match(await page.locator('#d4-shared-panel').innerText(),/Real multi-account sharing is OFF/);
+  assert.equal(await page.locator('[data-d4-shared-form]').count(),0);
+  await page.reload({waitUntil:'domcontentloaded'});
   await page.locator('[data-action="replay-intro"]').click();
   await page.locator('#d4Intro').waitFor({state:'visible'});
   assert.equal(await page.locator('[data-d4-intro-skip]').count(),1);
