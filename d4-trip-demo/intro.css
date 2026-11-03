@@ -43,6 +43,7 @@ body.d4-intro-playing{overflow:hidden}
 @keyframes d4-pulse{from{opacity:.42;transform:scale(.87)}to{opacity:.9;transform:scale(1.18)}}
 @keyframes d4-spin{to{transform:rotate(360deg)}}
 @keyframes d4-progress{to{transform:scaleX(1)}}
+.d4-cinema:not(.playing) *,.d4-cinema:not(.playing) *::before,.d4-cinema:not(.playing) *::after{animation:none!important}
 @media(max-width:600px){
 .d4-cinema__flightline{width:148vw;top:41%}
 .d4-cinema__focus{transform:translateY(-3vh)}
