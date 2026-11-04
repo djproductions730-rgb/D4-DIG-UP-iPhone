@@ -1,4 +1,4 @@
-const CACHE='d4-trip-app-v7-team-release';
+const CACHE='d4-trip-app-v8-password-reset';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js','./team-sync.js'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
