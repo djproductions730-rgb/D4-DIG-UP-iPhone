@@ -47,7 +47,7 @@ function panel() {
   let rows = [
     '<section class="card" id="d4-cloud-panel" style="margin-bottom:16px">',
     '<h3>☁️ Firebase Cloud Sync <span class="pill">Private beta</span></h3>',
-    '<p class="muted" style="font-size:13px">Sync between your own devices using the same verified Firebase account. Shared trip codes and cross-account admin access are NOT enabled yet.</p>'
+    '<p class="muted" style="font-size:13px">Sign in for private backup or open an invited team trip. Team access requires a verified email; local trip codes do not grant cloud access.</p>'
   ];
   if (!configured) {
     rows.push('<div class="notice">Firebase Web App config missing. Offline demo and existing backups continue working. Add the registered Web App config to <code>d4-trip-demo/firebase-config.js</code> after enabling Email/Password Authentication and deploying the matching Firestore security rules.</div>');
