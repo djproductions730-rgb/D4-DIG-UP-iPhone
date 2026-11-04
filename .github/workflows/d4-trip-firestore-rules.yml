@@ -1,0 +1,37 @@
+name: D4 Trip Firestore Security Rules
+on:
+  push:
+    branches: [feature/d4-trip-firebase-private-sync]
+    paths:
+      - 'd4-trip-demo/firestore.rules'
+      - 'd4-trip-demo/firestore.rules.test.cjs'
+      - 'd4-trip-demo/firebase.json'
+      - '.github/workflows/d4-trip-firestore-rules.yml'
+  pull_request:
+    paths:
+      - 'd4-trip-demo/firestore.rules'
+      - 'd4-trip-demo/firestore.rules.test.cjs'
+      - 'd4-trip-demo/firebase.json'
+      - '.github/workflows/d4-trip-firestore-rules.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deny-by-default-rules:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Firebase emulator SDK and CLI
+        run: npm install --no-audit --no-fund --no-save --package-lock=false firebase@13.1.0 @firebase/rules-unit-testing@6.0.0 firebase-tools@15.30.1
+      - name: Test private UID boundaries and write safety on emulator
+        run: npx firebase emulators:exec --only firestore --project demo-d4-trip-rules-qa --config d4-trip-demo/firebase.json "node d4-trip-demo/firestore.rules.test.cjs"
