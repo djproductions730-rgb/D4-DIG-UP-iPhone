@@ -4,7 +4,7 @@
  */
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {
-  getAuth, sendEmailVerification, reload, onAuthStateChanged, signInWithEmailAndPassword,
+  getAuth, sendPasswordResetEmail, sendEmailVerification, reload, onAuthStateChanged, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence
 } from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import {
@@ -20,7 +20,7 @@ const bridge = {
   configured, user: null, linked: false, ready: false, remote: null,
   revision: 0, dirty: false, saving: false, sequence: 0, session: 0, serverReady: false,
   status: configured ? 'Waiting for sign in' : 'Firebase configuration not added',
-  error: '', stop: null, timer: null, cloudDb: null, auth: null,
+  error: '', resetPending: false, resetMessage: '', resetEmail: '', stop: null, timer: null, cloudDb: null, auth: null,
   localChanged, panel
 };
 const designatedOwner = '2FYUUnPp1JX8wvv9HSvL6QoyaCq2';
@@ -54,9 +54,11 @@ function panel() {
   } else if (!bridge.ready) {
     rows.push('<p class="muted">Connecting to Firebase Authentication…</p>');
   } else if (!bridge.user) {
-    rows.push('<div class="field"><label for="d4-cloud-email">Email</label><input id="d4-cloud-email" class="input" type="email" autocomplete="username" placeholder="Email address"></div>');
+    rows.push('<div class="field"><label for="d4-cloud-email">Email</label><input id="d4-cloud-email" class="input" type="email" autocomplete="username" placeholder="Email address" value="' + safe(bridge.resetEmail) + '"></div>');
     rows.push('<div class="field"><label for="d4-cloud-password">Password</label><input id="d4-cloud-password" class="input" type="password" autocomplete="current-password" placeholder="Password (at least 6 characters)"></div>');
     rows.push('<div class="row"><button type="button" class="btn small mint" data-cloud-action="sign-in">Sign in</button><button type="button" class="btn small ghost" data-cloud-action="sign-up">Create account</button></div>');
+    rows.push('<button type="button" class="btn small ghost" style="margin-top:10px" data-cloud-action="reset-password"' + (bridge.resetPending ? ' disabled' : '') + '>' + (bridge.resetPending ? 'Sending reset link…' : 'Forgot password?') + '</button>');
+    rows.push('<p class="tiny">Admin &amp; Main Admin: enter your registered email above to reset your password.</p>');
   } else {
     rows.push('<p>Signed in: <strong>' + safe(bridge.user.email || bridge.user.uid) + '</strong></p>');
     rows.push('<p class="muted" style="font-size:13px">Status: ' + safe(bridge.status) + '</p>');
@@ -78,6 +80,7 @@ function panel() {
     rows.push('<p class="tiny">Signing out does not delete local device data. Photos/videos held in IndexedDB are device-only; metadata and inline attachments are limited by the Firestore document size.</p>');
   }
   rows.push('<div class="row" style="margin-top:10px"><button type="button" class="btn small ghost" data-cloud-action="backup">⬇ Download device JSON backup</button></div>');
+  if (bridge.resetMessage) rows.push('<div class="notice" role="status">' + safe(bridge.resetMessage) + '</div>');
   if (bridge.error) rows.push('<div class="notice" role="alert">⚠️ ' + safe(bridge.error) + '</div>');
   rows.push('</section>');
   return rows.join('');
@@ -219,6 +222,43 @@ async function signIn(mode) {
   }
 }
 
+async function resetPassword() {
+  if (bridge.resetPending) return;
+  const email = document.getElementById('d4-cloud-email')?.value?.trim() || '';
+  bridge.resetEmail = email;
+  bridge.error = '';
+  bridge.resetMessage = '';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    bridge.error = 'Enter your registered email address above to receive a password reset link.';
+    refresh(); return;
+  }
+  if (!bridge.auth || !bridge.ready) {
+    bridge.error = 'Authentication is still connecting. Please try again shortly.';
+    refresh(); return;
+  }
+  bridge.resetPending = true;
+  refresh();
+  try {
+    await sendPasswordResetEmail(bridge.auth, email);
+    bridge.resetMessage = 'If an account exists for this email, a password reset link has been sent. Check Inbox and Spam, open the link, then sign in with your new password.';
+  } catch (e) {
+    if (e?.code === 'auth/user-not-found') {
+      bridge.resetMessage = 'If an account exists for this email, a password reset link has been sent. Check Inbox and Spam, open the link, then sign in with your new password.';
+    } else {
+      bridge.error = e?.code === 'auth/too-many-requests'
+        ? 'Too many requests. Please wait a few minutes before trying again.'
+        : e?.code === 'auth/invalid-email'
+          ? 'Enter a valid registered email address.'
+          : e?.code === 'auth/network-request-failed'
+            ? 'Unable to connect. Check your internet connection and try again.'
+            : 'Could not send the password reset link. Please try again shortly.';
+    }
+  } finally {
+    bridge.resetPending = false;
+    refresh();
+  }
+}
+
 async function restoreCloud() {
   if(local()?.teamId)return;
   if (bridge.saving) return;
@@ -285,6 +325,7 @@ document.addEventListener('click', async event => {
   const action = event.target.closest('[data-cloud-action]')?.dataset.cloudAction;
   if (!action || !bridge.configured) return;
   event.preventDefault();
+  if (action === 'reset-password') await resetPassword();
   if (action === 'sign-in' || action === 'sign-up') await signIn(action);
   if (action === 'verify-email' || action === 'check-email') {
     const user = bridge.auth?.currentUser;
