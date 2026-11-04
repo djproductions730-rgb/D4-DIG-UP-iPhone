@@ -194,30 +194,23 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 @media(max-width:390px){.cc-simple-popup .cc-member-tile{padding:9px!important}.cc-simple-popup .cc-table-body{gap:7px!important;padding:7px!important}}
 
 /* v2.9 My Trips visual refresh: scenic premium cards, compact mobile screen */
-.d4-new-entry{min-height:100dvh;background:linear-gradient(180deg,#154e72 0,#0d264a 35%,#1e285b 100%);color:#fff;font-family:inherit;overflow:hidden;padding-bottom:env(safe-area-inset-bottom)}
-.d4-new-sky{height:230px;position:relative;background:radial-gradient(circle at 78% 35%,#ffca7a 0,#ff9e7e 15%,transparent 42%),linear-gradient(130deg,#0a5b91,#6c83bc 53%,#f5b188);padding:25px 22px 12px;overflow:hidden}
-.d4-new-sky:after{content:'🌴';position:absolute;right:12px;bottom:12px;font-size:78px;opacity:.38}
-.d4-new-brand{font-size:27px;font-weight:1000;text-shadow:0 2px 10px #18344a90}.d4-new-brand span{display:inline-block;font-size:12px;border-radius:20px;background:#ffdc4c;color:#173456;padding:4px 9px;transform:rotate(-5deg);vertical-align:middle}
-.d4-new-traveler{position:absolute;right:24px;top:65px;font-size:36px}
-.d4-new-heading{position:absolute;bottom:18px;left:22px;right:20px;display:flex;justify-content:space-between;align-items:center;gap:10px}
-.d4-new-heading h1{font-size:31px;margin:0;color:#fff}.d4-new-heading span{border:1px solid #d5f4ff;border-radius:30px;background:#12365a;padding:10px 14px;font-size:12px;font-weight:900}
-.d4-new-card-list{display:grid;gap:12px;padding:15px 15px 5px}
-.d4-new-trip-card{width:100%;display:flex;align-items:stretch;min-width:0;min-height:134px;text-align:left;gap:12px;border:2px solid #fff8;border-radius:23px;padding:8px;background:linear-gradient(120deg,#fff3d6,#e2f5e5);color:#0b2441;box-shadow:0 8px 20px #0004;cursor:pointer}
-.d4-new-trip-card:nth-child(2){background:linear-gradient(110deg,#d5f5ff,#b5e3ff)}.d4-new-trip-card:nth-child(3){background:linear-gradient(110deg,#ffdddf,#e4d5ff)}
-.d4-new-photo{width:95px;flex:none;border-radius:17px;background:linear-gradient(155deg,#31a7dc,#ffb767);display:grid;place-items:center;font-size:52px}
-.d4-new-trip-card:nth-child(2) .d4-new-photo{background:linear-gradient(155deg,#7ac5ed,#2c8d68)}.d4-new-trip-card:nth-child(3) .d4-new-photo{background:linear-gradient(155deg,#f9b47d,#7e6ad3)}
-.d4-new-details{display:flex;flex:1;min-width:0;flex-direction:column;justify-content:center;gap:6px}
-.d4-new-details>strong{font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.d4-new-details>small{font-size:11px;color:#38566b}
-.d4-new-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px;background:#ffffffc9;border-radius:12px;padding:6px 3px;margin-top:4px}
-.d4-new-money span{display:flex;flex-direction:column;align-items:center;gap:3px;border-right:1px solid #a9c1c7;min-width:0}.d4-new-money span:last-child{border:0}
-.d4-new-money em{font-size:10px;font-style:normal;font-weight:800;color:#078f56}.d4-new-money span:nth-child(2) em{color:#d05d24}.d4-new-money span:nth-child(3) em{color:#7042ad}
-.d4-new-money b{font-size:11px;white-space:nowrap}
-.d4-new-arrow{align-self:center;font-size:24px;color:#075e83;padding:0 3px}
-.d4-new-bottom{padding:15px 25px 7px;text-align:center}.d4-new-bottom button{width:100%;border:0;border-radius:35px;padding:15px;background:linear-gradient(100deg,#f733af,#ffad32);color:#fff;font-size:16px;font-weight:900;box-shadow:0 7px 20px #ee49a84a}.d4-new-bottom small{display:block;margin-top:8px;color:#d5e5fb;font-size:10px}
-.d4-new-disclaimer{text-align:center;color:#bac8de;font-size:9px;padding:4px 10px 12px}
-@media(max-width:760px){.d4-new-entry{height:100dvh;display:flex;flex-direction:column}.d4-new-sky{height:25dvh;min-height:145px;flex:none}.d4-new-card-list{flex:1;min-height:0;overflow:hidden;grid-template-rows:repeat(3,minmax(0,1fr));gap:8px;padding:10px 12px}.d4-new-trip-card{min-height:0;padding:6px;border-radius:16px;gap:8px}.d4-new-photo{width:25%;font-size:36px;border-radius:12px}.d4-new-details{gap:3px}.d4-new-details>strong{font-size:15px}.d4-new-details>small{font-size:10px}.d4-new-money{padding:4px 2px;margin-top:2px}.d4-new-money b{font-size:10px}.d4-new-money em{font-size:9px}.d4-new-bottom{flex:none;padding:8px 18px 3px}.d4-new-bottom button{padding:11px}.d4-new-disclaimer{flex:none;padding:3px 8px 6px}}
-.d4-new-bottom .d4-install-help{margin-top:7px;background:#ffffff19!important;color:#fff!important;border:1px solid #ffffff77!important;box-shadow:none!important;font-size:12px!important;padding:9px!important}</style>
+/* My Trips: content-sized cards remain readable at narrow widths and text zoom. */
+.d4-new-entry{min-height:100dvh;background:#eef4f6;color:#142f42;padding:0 0 calc(20px + env(safe-area-inset-bottom));font-family:inherit}
+.d4-new-sky{background:linear-gradient(120deg,#103e56,#166a70);padding:24px max(18px,calc((100% - 680px)/2));color:#fff}
+.d4-new-brand{display:flex;align-items:center;gap:9px;font-size:22px;font-weight:900}.d4-new-brand span{font-size:11px;background:#fce6b7;color:#59400c;padding:5px 9px;border-radius:20px}
+.d4-new-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:24px}.d4-new-heading h1{font-size:30px;line-height:1.2;margin:0}.d4-new-heading>span{font-size:12px;padding:8px 12px;border-radius:20px;background:#ffffff20;white-space:nowrap}.d4-new-sky p{font-size:13px;color:#d9edf0;margin:8px 0 0}
+.d4-new-card-list{display:grid;gap:12px;max-width:716px;margin:auto;padding:18px}
+.d4-new-trip-card{min-width:0;background:#fff;border:1px solid #d4e1e6;border-radius:18px;box-shadow:0 4px 14px #183f4d08;overflow:hidden}
+.d4-new-trip-open{display:grid;grid-template-columns:52px minmax(0,1fr) 24px;align-items:center;gap:12px;width:100%;padding:16px;border:0;background:transparent;color:#142f42;text-align:left;cursor:pointer}
+.d4-new-photo{width:52px;height:56px;border-radius:14px;background:#fff0cf;display:grid;place-items:center;font-size:30px}.d4-kind-ooty .d4-new-photo{background:#e2f3e7}.d4-kind-pondy .d4-new-photo{background:#eeebfc}
+.d4-new-details{display:grid;gap:5px;min-width:0}.d4-new-details strong{font-size:17px;line-height:1.3;overflow-wrap:anywhere}.d4-new-details small{font-size:12px;line-height:1.5;color:#526575;overflow-wrap:anywhere}.d4-new-arrow{font-size:23px;color:#146975}
+.d4-new-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 14px 14px;padding:12px 0;background:#f3f7f9;border-radius:12px}
+.d4-new-money>div{min-width:0;display:grid;gap:5px;padding:0 8px;border-right:1px solid #d5e1e5}.d4-new-money>div:last-child{border:0}.d4-new-money dt{font-size:11px;font-weight:700;color:#526575}.d4-new-money dd{margin:0;font-size:15px;line-height:1.4;font-weight:850;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.d4-new-money>div:first-child dd{color:#12613f}.d4-new-money>div:nth-child(2) dd{color:#a33d1c}
+.d4-trip-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0 14px 14px}.d4-trip-actions button,.d4-new-bottom button{min-height:44px;border:1px solid #b9ced5;border-radius:10px;background:#f6fafb;color:#185568;padding:10px 13px;font-size:12px;font-weight:750;cursor:pointer}
+.d4-new-bottom{max-width:716px;margin:auto;padding:0 18px;display:flex;flex-wrap:wrap;gap:8px}.d4-new-bottom .d4-create{background:#156575;color:#fff;border-color:#156575}.d4-new-disclaimer{max-width:680px;margin:16px auto 0;padding:0 18px;font-size:11px;line-height:1.6;color:#526575}
+.d4-new-entry button:focus-visible{outline:3px solid #d47712;outline-offset:-3px}
+@media(max-width:360px){.d4-new-card-list{padding:12px}.d4-new-trip-open{padding:12px;gap:9px;grid-template-columns:44px minmax(0,1fr) 20px}.d4-new-photo{width:44px;height:50px}.d4-new-money{margin:0 10px 12px;gap:0}.d4-new-money dd{font-size:13px}}
+</style>
 </head>
 <body>
   <script src="./trip-intro.js"></script>
@@ -329,10 +322,12 @@ function collectionProgress(c){return `<div class="collection-progress" aria-lab
 function collectionEntryCard(t){const c=collectionTotals(t),admin=isTripAdmin(t);return `<article class="collection-entry-card"><div class="collection-entry-header"><div class="entry-trip-icon">${t.emoji}</div><div style="flex:1"><h3>${esc(t.name)}</h3><p>👥 ${t.members.length} people · ${c.each?money(c.each)+' / person':'Target not set'}</p></div>${collectionPill(!c.each?'Not set':c.pending===0?'Paid':'Pending')}</div>${c.each?`${collectionMetrics(c)}${collectionProgress(c)}`:'<div class="notice">👑 Main Admin must set a trip amount to track collections.</div>'}<div class="collection-entry-actions"><button class="btn small mint" data-action="collection-open" data-id="${esc(t.id)}">View Paid / Pending →</button>${admin?`<button class="btn small sun" data-action="collection-quick-add" data-id="${esc(t.id)}">＋ Add Paid</button>`:''}</div></article>`}
 function entryPage(){
  const ts=visibleTrips();
- const cards=ts.map(t=>{const c=collectionTotals(t);const kind=String(t.kind||'other').toLowerCase();const photo=kind.includes('goa')?'🏝️':kind.includes('ooty')?'🏔️':kind.includes('pond')?'🌅':t.emoji;
- return '<button class="d4-new-trip-card d4-kind-'+esc(kind)+'" data-action="entry-select-trip" data-id="'+esc(t.id)+'"><span class="d4-new-photo">'+photo+'</span><span class="d4-new-details"><strong>'+esc(t.name)+'</strong><small>📅 '+shortDate(t.start)+' – '+shortDate(t.end)+'</small><small>👥 '+t.members.length+' Members · 📍 '+esc(t.destination)+'</small><span class="d4-new-money"><span><em>Paid</em><b>'+money(c.paid)+'</b></span><span><em>Pending</em><b>'+money(c.pending)+'</b></span><span><em>Total</em><b>'+money(c.target)+'</b></span></span></span><span class="d4-new-arrow">➜</span></button>';
+ const cards=ts.map(t=>{
+ const c=collectionTotals(t),kind=String(t.kind||'other').toLowerCase(),id=esc(t.id);
+ const photo=kind.includes('goa')?'🏝️':kind.includes('ooty')?'🏔️':kind.includes('pond')?'🌅':t.emoji;
+ return `<article class="d4-new-trip-card d4-kind-${esc(kind)}"><button class="d4-new-trip-open" data-action="entry-select-trip" data-id="${id}" aria-label="Open ${esc(t.name)} collections"><span class="d4-new-photo" aria-hidden="true">${photo}</span><span class="d4-new-details"><strong>${esc(t.name)}</strong><small>${shortDate(t.start)} – ${shortDate(t.end)}</small><small>${t.members.length} members · ${esc(t.destination)}</small></span><span class="d4-new-arrow" aria-hidden="true">→</span></button><dl class="d4-new-money"><div><dt>Paid</dt><dd>${money(c.paid)}</dd></div><div><dt>Pending</dt><dd>${money(c.pending)}</dd></div><div><dt>Total</dt><dd>${money(c.target)}</dd></div></dl>${isTripAdmin(t)?`<div class="d4-trip-actions"><button data-action="entry-manage-members" data-id="${id}">Manage Members</button>${isMain()?`<button data-action="entry-manage-admins" data-id="${id}">Manage Admins</button>`:''}</div>`:''}</article>`;
  }).join('');
- return '<div class="d4-new-entry"><div class="d4-new-sky"><div class="d4-new-brand">✈️ D4 Trip <span>Planner</span></div><div class="d4-new-traveler">🧳 🌴 ☀️</div><div class="d4-new-heading"><h1>My Trips</h1><span>✈️ '+ts.length+' Trips</span></div></div><div class="d4-new-card-list">'+(cards||'<p>No trips yet. Create or join one from your account.</p>')+'</div><div class="d4-new-bottom"><button data-action="enter-app">＋ '+(isMain()?'Manage / Create New Trip':'Open Main App / Join Trip')+'</button><button class="d4-install-help" data-action="install-help">📲 Install D4 Trip on Phone</button><small>Choose a trip → Collection → Trip Dashboard</small></div><div class="d4-new-disclaimer">Offline demo: sample data and local role controls only.</div></div>';
+ return `<main class="d4-new-entry"><header class="d4-new-sky"><div class="d4-new-brand">✈️ D4 Trip <span>Planner</span></div><div class="d4-new-heading"><h1>My Trips</h1><span>${ts.length} ${ts.length===1?'trip':'trips'}</span></div><p>Your plans and payments, in one place.</p></header><section class="d4-new-card-list" aria-label="Your trips">${cards||'<p>No trips yet. Create or join one below.</p>'}</section><nav class="d4-new-bottom" aria-label="Trip actions">${isMain()?'<button class="d4-create" data-action="modal" data-modal="new-trip">＋ Create New Trip</button>':'<button data-action="modal" data-modal="join-trip">Join Trip</button>'}<button data-action="enter-app">Open Dashboard</button><button data-action="install-help">Install on Phone</button></nav><p class="d4-new-disclaimer">Offline demo · Data is saved on this device. Roles use local profiles.</p></main>`;
 }
 
 let collectionFilter='all';
@@ -536,6 +531,7 @@ if(!ex.some(e=>e.receipt)&&!t.files.length)report=report.replace(/<section><h2>8
 function action(el){const id=el.dataset.action,t=current(),ctx=el.dataset.ctx;switch(id){
 case 'install-help':{const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);const msg=ios?'On iPhone: open this link in Safari, tap Share, then Add to Home Screen.':'On Android: open in Chrome, tap menu, then Install app or Add to Home screen.';alert('D4 Trip App Install\n\n'+msg+'\n\nThis version saves data on this device only.');break;}
 case 'enter-app':go('home');break;
+ case 'entry-manage-members':case 'entry-manage-admins':{const tt=trip(el.dataset.id);if(!isTripAdmin(tt))return toast('Admins only');if(id==='entry-manage-admins'&&!isMain())return toast('Main Admin only');activeTrip=tt.id;daySelected=datesInTrip(tt)[0];if(id==='entry-manage-admins')openModal('assign-admin');else{tripTab='members';go('trip')}break;}
  case 'entry-select-trip':{const tt=trip(el.dataset.id);if(!canSee(tt))return toast('Trip access denied');activeTrip=tt.id;daySelected=datesInTrip(tt)[0];go('collections');break;}
  case 'collection-members':collectionFilter='all';collectionPage=0;showCollectionMembers();break;
 case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';collectionPage=0;showCollectionMembers();break;
