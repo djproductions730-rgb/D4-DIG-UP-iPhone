@@ -12,6 +12,8 @@ const deferred = () => { let resolve; const promise = new Promise(r => { resolve
 
 async function harness(initial = {}) {
   const storage = new Map(Object.entries(initial)), timers = new Map(), writes = [], listeners = [];
+  let resetHandler = async () => {}, email = '', click;
+  const resetCalls = [];
   let authChanged, transaction, timerId = 0, restores = 0, data = dataset('local');
   const window = {
     D4_TRIP_FIREBASE_CONFIG: { apiKey: 'test', authDomain: 'test', projectId: 'test', appId: 'test' },
@@ -20,7 +22,8 @@ async function harness(initial = {}) {
   const context = vm.createContext({
     window, TextEncoder, confirm: () => true,
     localStorage: { getItem: k => storage.get(k) ?? null, setItem: (k,v) => storage.set(k,v), removeItem: k => storage.delete(k) },
-    document: { addEventListener() {} },
+    document: { addEventListener: (_event, fn) => { click = fn; }, getElementById: id => id === 'd4-cloud-email' ? {value:email} : {value:''} },
+    sendPasswordResetEmail: async (auth, address) => { resetCalls.push(address); await resetHandler(); },
     setTimeout: fn => { timers.set(++timerId, fn); return timerId; }, clearTimeout: id => timers.delete(id),
     initializeApp: () => ({}), getAuth: () => ({}), getFirestore: () => ({}),
     setPersistence: async () => {}, browserLocalPersistence: {},
@@ -31,12 +34,14 @@ async function harness(initial = {}) {
   });
   const source = fs.readFileSync(path.join(__dirname, 'firebase-sync.js'), 'utf8')
     .replace(/import\s+[\s\S]*?from\s+'[^']+';/g, '');
-  await vm.runInContext('(async () => {\n' + source + '\nwindow.testAPI = {flush, uploadFirst, restoreCloud}; })()', context);
+  await vm.runInContext('(async () => {\n' + source + '\nwindow.testAPI = {flush, uploadFirst, restoreCloud, resetPassword}; })()', context);
   const snapshot = (remote = null, metadata = {}) => listeners.at(-1).next({
     exists: () => remote !== null, data: () => remote,
     metadata: { fromCache: false, hasPendingWrites: false, ...metadata }
   });
   return {
+    resetCalls, setEmail: value => { email = value; }, setResetHandler: fn => { resetHandler = fn; },
+    clickReset: () => click({target:{closest:()=>({dataset:{cloudAction:'reset-password'}})},preventDefault(){}}),
     bridge: window.D4TripCloud, api: window.testAPI, storage, timers, writes, listeners,
     signIn: uid => authChanged(uid ? {uid} : null), snapshot,
     get restores() { return restores; },
@@ -122,4 +127,47 @@ test('stale listener callbacks cannot modify the next account', async () => {
   old.next({metadata:{}, exists:()=>false});
   assert.equal(h.bridge.serverReady, false); assert.equal(h.bridge.error, '');
   assert.equal(h.bridge.user.uid, 'B');
+});
+
+test('forgot password is available without a signed-in role or password', async () => {
+  const h = await harness(); h.signIn(null);
+  assert.match(h.bridge.panel(), /Forgot password\?/);
+  assert.match(h.bridge.panel(), /Admin &amp; Main Admin/);
+  h.setEmail('  admin@example.com  '); await h.clickReset();
+  assert.deepEqual(h.resetCalls, ['admin@example.com']);
+  assert.match(h.bridge.resetMessage, /Check Inbox and Spam/);
+  assert.equal(h.bridge.user, null); assert.equal(h.writes.length, 0);
+});
+test('reset rejects missing or invalid email without contacting Firebase', async () => {
+  const h = await harness(); h.signIn(null);
+  for (const email of ['', 'bad', 'a@b', 'a b@example.com']) {
+    h.setEmail(email); await h.api.resetPassword();
+    assert.match(h.bridge.error, /registered email/);
+  }
+  assert.equal(h.resetCalls.length, 0);
+});
+test('reset blocks duplicate requests while pending and escapes retained email', async () => {
+  const h = await harness(); h.signIn(null);
+  const pause = deferred(); h.setResetHandler(() => pause.promise);
+  h.setEmail('admin@example.com'); const pending = h.api.resetPassword();
+  await h.api.resetPassword();
+  assert.equal(h.resetCalls.length, 1); assert.match(h.bridge.panel(), /disabled/);
+  pause.resolve(); await pending; assert.equal(h.bridge.resetPending, false);
+  h.bridge.resetEmail = '<script>'; assert.match(h.bridge.panel(), /&lt;script&gt;/);
+});
+test('reset hides account existence and recovers from network and rate errors', async () => {
+  const h = await harness(); h.signIn(null); h.setEmail('admin@example.com');
+  await h.api.resetPassword(); const success = h.bridge.resetMessage;
+  for (const [code, pattern] of [
+    ['auth/user-not-found', null],
+    ['auth/network-request-failed', /internet connection/],
+    ['auth/too-many-requests', /wait a few minutes/],
+    ['auth/invalid-email', /valid registered email/],
+    ['auth/internal-error', /Could not send/]
+  ]) {
+    h.setResetHandler(async () => { throw {code}; }); await h.api.resetPassword();
+    if (pattern) { assert.match(h.bridge.error, pattern); assert.equal(h.bridge.resetMessage, ''); }
+    else { assert.equal(h.bridge.resetMessage, success); assert.equal(h.bridge.error, ''); }
+    assert.equal(h.bridge.resetPending, false); assert.equal(h.writes.length, 0);
+  }
 });
