@@ -1,0 +1,33 @@
+/* An icon rail keeps every section available without crowding the footer. */
+body{--rail-width:62px;--shell-width:750px}
+.app{max-width:var(--shell-width);padding-left:calc(var(--rail-width) + 20px);padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.app>header{gap:10px;min-height:88px}.app>header>div:first-of-type{flex:1;min-width:0}.app>header .brand{font-size:21px}.app>header .subtitle{font-size:12px;font-weight:700;letter-spacing:.02em}.app>header>.buddy{font-size:22px;padding:8px}
+.section-menu{position:fixed;left:max(10px,calc(50% - 365px));top:calc(22px + env(safe-area-inset-top));width:44px;height:44px;z-index:22;display:grid;place-items:center;border-radius:15px;background:var(--surface);color:var(--accent);border:1px solid var(--line);box-shadow:0 4px 15px #33306312}
+nav#nav.icon-rail{position:fixed;left:max(8px,calc(50% - 367px));top:calc(90px + env(safe-area-inset-top));bottom:max(12px,env(safe-area-inset-bottom));transform:none;max-width:none;width:var(--rail-width);padding:10px 7px;display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 8px 30px #24204312;z-index:21;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:none;backdrop-filter:blur(15px)}
+nav#nav .navbtn{position:relative;flex:0 0 48px;min-height:48px;min-width:44px;width:100%;padding:0;display:flex;flex-direction:row;justify-content:center;gap:12px;border-radius:15px;color:var(--section-color);background:transparent;border:1px solid transparent;transition:background .16s,transform .16s}
+nav#nav .rail-symbol{flex:0 0 36px;height:36px;display:grid;place-items:center;border-radius:12px;background:color-mix(in srgb,var(--section-color) 11%,var(--surface));box-shadow:inset 0 1px 0 #ffffff80,0 3px 7px #24204308}
+nav#nav .navbtn.active{background:color-mix(in srgb,var(--section-color) 16%,var(--surface));border-color:color-mix(in srgb,var(--section-color) 28%,var(--surface))}nav#nav .navbtn.active .rail-symbol{background:var(--section-color);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--section-color) 35%,transparent)}
+nav#nav .rail-current{position:absolute;right:-4px;width:3px;height:17px;border-radius:4px;background:var(--section-color)}nav#nav .rail-label{display:none;font-size:13px;font-weight:750;color:var(--ink)}nav#nav .navbtn:active{transform:scale(.96)}
+.menu-shade{position:fixed;inset:0;z-index:20;background:#171d3c66;backdrop-filter:blur(3px)}.menu-shade[hidden],nav#nav[hidden],.section-menu[hidden],.quick-tile[hidden]{display:none!important}
+.section-menu-open nav#nav.icon-rail{width:204px;padding:13px 10px}.section-menu-open nav#nav .navbtn{justify-content:flex-start;padding:0 8px}.section-menu-open nav#nav .rail-label{display:block}.section-menu-open nav#nav .rail-current{right:4px}
+.quick-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.quick-tile{min-height:84px;padding:10px 4px;border-radius:16px}.quick-icon{width:38px;height:38px;border-radius:12px;font-size:22px}.quick-name{font-size:11px}
+@media(max-width:400px){body{--rail-width:54px}.app{padding-left:74px;padding-right:10px}.app>header .brand{font-size:17px}.brand span{font-size:23px}.app>header>.buddy{display:none}nav#nav.icon-rail{left:7px;padding:8px 4px}.section-menu{left:12px;width:42px;height:42px}.balance{font-size:28px}.hero{padding:17px}.px-home-balances{gap:6px}.px-home-balances strong{font-size:19px}.quick-name{font-size:10px}.quick-icon{width:33px;height:33px}.smallstat{padding:10px}.smallstat .value{font-size:16px}}
+@media(max-height:640px){nav#nav.icon-rail{gap:4px;top:calc(78px + env(safe-area-inset-top))}nav#nav .navbtn{flex-basis:44px;min-height:44px}}
+@media(prefers-reduced-motion:reduce){nav#nav .navbtn{transition:none}}
+
+.pluxee-brand-symbol{display:inline-grid;place-items:center;vertical-align:middle;width:29px;height:29px;margin-right:7px;border-radius:9px;background:#fff1;box-shadow:inset 0 0 0 1px #ffffff30;color:inherit}.pluxee-brand-symbol svg{width:22px;height:22px}.pxhero h2{display:flex;align-items:center;gap:6px}
+
+
+/* Official Pluxee assets, shown on the brand's dark background for contrast. */
+.pluxee-original-symbol{display:block;object-fit:contain;width:25px;height:25px;padding:4px;border-radius:6px;background:#15194b;box-sizing:border-box}
+nav#nav [data-tab="pluxee"] .rail-symbol{background:#15194b}nav#nav [data-tab="pluxee"].active .rail-symbol{background:#15194b;box-shadow:0 0 0 2px #8beaab}
+.pluxee-brand-symbol{background:#15194b}.pluxee-original-wordmark{display:block;width:85px;height:30px;overflow:hidden}.pluxee-original-wordmark img{display:block;width:158px;max-width:none;height:30px;object-fit:contain}
+.quick-tile[data-quick^="pluxee-"] .quick-icon{position:relative;background:#15194b}.quick-tile[data-quick^="pluxee-"] .pluxee-original-symbol{width:30px;height:30px;padding:5px}.pluxee-action-direction{position:absolute;bottom:-3px;right:-3px;display:grid;place-items:center;width:17px;height:17px;border-radius:6px;background:#16734b;color:#fff;font-size:13px;font-weight:900;border:1px solid #fff}.quick-tile[data-quick="pluxee-spend"] .pluxee-action-direction{background:#a12462}
+
+/* Right-side compact navigation, including the menu toggle and expanded drawer. */
+.app{padding-left:16px;padding-right:calc(var(--rail-width) + 20px)}
+.section-menu{left:auto;right:max(10px,calc(50% - 365px))}
+nav#nav.icon-rail{left:auto;right:max(8px,calc(50% - 367px))}
+nav#nav .rail-current{right:auto;left:-4px}
+.section-menu-open nav#nav .rail-current{right:auto;left:4px}
+@media(max-width:400px){.app{padding-left:10px;padding-right:74px}nav#nav.icon-rail{left:auto;right:7px}.section-menu{left:auto;right:12px}}

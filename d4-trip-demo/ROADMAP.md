@@ -1,59 +1,12 @@
-# D4 Trip — Verified milestone status (4 November 2026)
+# D4 Trip release status — 4 November 2026
 
-## M01 — Offline app foundation: built
-- My Trips, trip chooser, collection tracking, day plans, expenses and split, notes, memories, reports.
-- Device-only local data and backup/export supported.
+Current deployed beta: https://d4-trip.web.app
 
-## M02 — People and payment UI: development branch built
-- Add/Remove Member actions with Save/Confirm flow.
-- Advance/Balance/Full payment labels, paise-safe paid/remaining totals and Paid/Partial/Unpaid counts.
-- Financial history prevents accidental destructive member removal.
-- These role and payment controls are **offline/demo UI only** until shared backend is connected.
+- M01: offline app foundation and backup/export implemented.
+- M02: people and payment controls implemented; advances, balance, paid/pending totals and protected financial history covered by regression tests.
+- M03: previous browser QA passed; release preparation now runs 31 deterministic regression tests through check.cjs and browser CI. Physical phone acceptance pending.
+- M04: private Firebase sync and revision conflict handling implemented; live two-device acceptance pending.
+- M05: verified-email shared trip grants, owner-assigned Trip Admins, read-only members and revocation implemented in team-sync.js; rules and Hosting deployed as beta. The separate server-draft/shared-runtime preview remains disabled and undeployed.
+- M06: final release pending two real accounts/devices, offline/reconnect, install acceptance and whole-trip schema/media review. Chat remains Upcoming; media stays device-only; scheduled push is not available.
 
-## M03 — Mobile and desktop QA: automated checks passed
-- Chromium desktop and phone-size smoke tests for advance payment, member Save/Remove and persistence after reload.
-- Mobile Save-button overlay regression fixed.
-- Cinematic travel intro with original D4 globe/metallic logo, Skip, Replay and reduced-motion handling; tested in Chromium.
-- Physical iPhone/Android testing remains a release gate.
-
-## M04 — Private Firebase sync: emulator tests passed, real-device testing pending
-- Real Firebase Web configuration and UID-private snapshot rules exist in `firebase-config.js` and `firestore.rules`.
-- Same-account listener/transaction logic, backup-before-restore option and conflict handling.
-- Firestore emulator cross-client sync, anonymous access-denial and cross-UID isolation tests passed.
-- Production two-device account testing and merge/deployment **not completed**.
-
-## M05 — Secure shared membership: trusted backend + rules draft tested, NOT DEPLOYED
-- Undeployed `firestore.shared.draft.rules`: active Firebase UID membership, owner/admin/member roles, private two-person rooms, owner/admin-only chat, immutable payment receipts and audit data.
-- Undeployed `server-draft/`: verified owner trip creation; one-use hashed invite issuance and redemption; admin promotion/demotion; revocation; transaction-safe advance/balance payments; private chat provisioning; audit events.
-- Draft security rules: **9/9 emulator tests passed**.
-- Trusted backend: **8/8 Firestore Emulator tests passed**, plus **1/1 callable identity-spoofing check**.
-- Expired or consumed invites are invalid; unredeemed invites also stop working after issuer revocation.
-- Existing production `firebase.json` still points to private-only `firestore.rules`. No shared client feature is enabled.
-- A client cannot alter trip roles/payments by locally selecting a display name.
-
-### M05 client integration (4 Nov update)
-- `shared-beta.js` mounts an independently scoped Secure Groups preview in Settings; cross-account actions are disabled by default.
-- `shared-runtime.js` prepares callable `createTrip`/`redeemInvite` and authenticated Firestore `getTrip` for a later approved rollout.
-- `firebase-config.js` explicitly sets `D4_TRIP_SHARED_ROLLOUT = false`; without a configured App Check site key the runtime also fails closed.
-- Secure account identity and UID-scoped trip references are kept separate from locally editable demo profiles and local trip/payment data.
-- Client-side tests cover invalid invites, verification, async account switching, stored trip reference isolation and HTML escaping.
-- Browser smoke tests inspect the disabled security preview on both desktop and mobile, with screenshots as GitHub Actions artifacts.
-- **No live two-account integration yet**: production callable endpoints, App Check, deployable membership rules, UID migration and real-device QA remain gated.
-
-### Required before M05 release
-1. Configure trusted Functions environment `D4_TRIP_MAIN_OWNER_UID`; review Main Admin UID and verified sign-in.
-2. Enable/configure App Check for callable endpoints.
-3. Deploy callable server endpoints separately after review.
-4. Map existing user accounts to trusted Firebase UIDs; migrate with explicit backup/export consent.
-5. Wire the app's UI to callable endpoints and authenticated per-trip Firestore listeners.
-6. Test two different real Firebase accounts on physical devices, permission revocation and concurrent payment requests.
-7. Review and deploy `firestore.shared.draft.rules` only after all integration/security checks pass.
-8. Keep the original public GitHub Pages demo unaffected until safe deployment is approved.
-
-## M06 — Notifications and release: pending
-- Authenticated invite onboarding, real-time private/admin chat and cross-account trip sync.
-- Receipts/media storage with restrictive Storage rules.
-- Push notifications and scheduled reminders.
-- Android/iPhone PWA QA; privacy policy, account deletion and backups.
-
-**Important:** No work runs automatically between conversations. Continue from this branch and read CI results before merging.
+Logo and intro remain unchanged. See TEAM_RELEASE.md for deployment evidence, acceptance steps and limitations. No background work runs between turns.

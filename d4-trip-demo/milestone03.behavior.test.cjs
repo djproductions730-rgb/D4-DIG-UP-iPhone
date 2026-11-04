@@ -22,7 +22,7 @@ function harness() {
   let allowed = true, owner = false, persisted = true, calls = 0, serial = 0;
   const notices = [];
   const context = vm.createContext({
-    profile: 'Admin', chatRoom: 'group',
+    window: {}, profile: 'Admin', chatRoom: 'group',
     isTripAdmin: () => allowed,
     isMain: () => owner,
     persist: () => {calls++; return persisted;},
@@ -111,25 +111,16 @@ test('members view includes save-path entry and guarded removal button', () => {
   assert.doesNotMatch(readOnly,/data-action="remove-member"/);
 });
 
-test('owner can select chat recipient but direct composer remains disabled', () => {
-  const h = harness();
-  h.owner(true);
-  h.context.chatRoom='direct:A';
-  const direct=h.fn.chatsPage(h.trip);
-  assert.match(direct,/id="directChatMember"/);
-  assert.match(direct,/Direct messaging is not available yet/);
-  assert.doesNotMatch(direct,/id="chatForm"/);
-  h.owner(false);
-  const member=h.fn.chatsPage(h.trip);
-  assert.doesNotMatch(member,/id="directChatMember"/);
-  assert.match(member,/id="chatForm"/);
-});
-
-test('group chat remains usable and escapes user-supplied message text', () => {
+test('chat remains upcoming for owners and members without a misleading composer', () => {
   const h = harness();
   h.trip.chats.group=[{from:'A',text:'<img src=x onerror=alert(1)>',time:'10:00'}];
-  const html=h.fn.chatsPage(h.trip);
-  assert.match(html,/id="chatForm"/);
-  assert.match(html,/&lt;img src=x onerror=alert\(1\)&gt;/);
-  assert.doesNotMatch(html,/<img src=x onerror/);
+  for (const owner of [true,false]) {
+    h.owner(owner);
+    for (const room of ['group','direct:A','admins']) {
+      h.context.chatRoom=room;
+      const rendered=h.fn.chatsPage(h.trip);
+      assert.match(rendered,/Upcoming/);
+      assert.doesNotMatch(rendered,/id="chatForm"|id="directChatMember"|<img/);
+    }
+  }
 });
