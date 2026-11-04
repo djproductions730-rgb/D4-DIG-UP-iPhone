@@ -36,8 +36,43 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Everything else, including shared trip and admin mutations, stays
-    // disabled until trusted server-side memberships and rules are deployed.
+    // A grant binds an Auth-verified email to one trip. Only D can assign admins.
+    match /teamTrips/{tripId} {
+      function verified() {
+        return request.auth != null && request.auth.token.email_verified == true;
+      }
+      function mainAdmin() {
+        return verified() && request.auth.uid == '2FYUUnPp1JX8wvv9HSvL6QoyaCq2';
+      }
+      function access() {
+        return get(/databases/$(database)/documents/teamTrips/$(tripId)/access/$(request.auth.token.email.lower())).data;
+      }
+      function editor() { return mainAdmin() || (verified() && access().role == 'admin'); }
+      function validTrip() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['trip','revision','updatedBy','updatedAt']) &&
+          d.trip is map && d.trip.id == tripId && d.trip.name is string &&
+          d.trip.name.size() > 0 && d.trip.name.size() <= 75 &&
+          d.trip.members is list && d.trip.members.size() <= 100 &&
+          d.trip.expenses is list && d.trip.expenses.size() <= 1000 &&
+          d.revision is int && d.updatedBy == request.auth.uid && d.updatedAt == request.time;
+      }
+      allow get: if mainAdmin() || (verified() && access().role in ['member','admin']);
+      allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
+      allow update: if editor() && validTrip() && request.resource.data.revision == resource.data.revision + 1;
+      match /access/{email} {
+        function validGrant() {
+          let d = request.resource.data;
+          return exists(/databases/$(database)/documents/teamTrips/$(tripId)) &&
+            email.size() <= 254 && d.keys().hasOnly(['role']) && d.role in ['member','admin'];
+        }
+        allow get: if mainAdmin() || (verified() && request.auth.token.email.lower() == email);
+        allow list: if mainAdmin();
+        allow create: if verified() && validGrant() && (mainAdmin() || (editor() && request.resource.data.role == 'member'));
+        allow update: if mainAdmin() && validGrant();
+        allow delete: if mainAdmin() || (verified() && editor() && resource.data.role == 'member');
+      }
+    }
     match /{document=**} {
       allow read, write: if false;
     }

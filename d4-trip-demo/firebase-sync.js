@@ -60,10 +60,10 @@ function panel() {
   } else {
     rows.push('<p>Signed in: <strong>' + safe(bridge.user.email || bridge.user.uid) + '</strong></p>');
     rows.push('<p class="muted" style="font-size:13px">Status: ' + safe(bridge.status) + '</p>');
-    if (bridge.user.uid === designatedOwner && !bridge.user.emailVerified) {
-      rows.push('<div class="notice">Verify your email to unlock D’s private trip controls.</div><button class="btn small mint" data-cloud-action="verify-email">Send verification email</button> <button class="btn small ghost" data-cloud-action="check-email">I verified my email</button>');
+    if (!bridge.user.emailVerified) {
+      rows.push('<div class="notice">Verify your email to open invited trips.</div><button class="btn small mint" data-cloud-action="verify-email">Send verification email</button> <button class="btn small ghost" data-cloud-action="check-email">I verified my email</button>');
     }
-    if (bridge.linked) {
+    if (local()?.teamId) { rows.push('<p>Team trip access uses your verified email.</p>'); } else if (bridge.linked) {
       rows.push('<p class="tiny">Firestore real-time listener is active. Local changes are uploaded only to this account. Conflicting revisions are stopped, not overwritten.</p>');
     } else if (!bridge.serverReady) {
       rows.push('<p class="muted">Waiting for a confirmed cloud backup check. Upload and restore are unavailable until the server responds.</p>');
@@ -220,6 +220,7 @@ async function signIn(mode) {
 }
 
 async function restoreCloud() {
+  if(local()?.teamId)return;
   if (bridge.saving) return;
   if (!bridge.user || !bridge.serverReady || !bridge.remote || !validData(bridge.remote.data)) {
     bridge.error = 'Valid cloud backup is not available.'; refresh(); return;
@@ -240,6 +241,7 @@ async function restoreCloud() {
 }
 
 async function uploadFirst() {
+  if(local()?.teamId)return;
   if (!bridge.user || !bridge.serverReady || bridge.remote || bridge.saving) return;
   if (!confirm('Upload ALL current on-device D4 Trip data (including demo sample trips) to this account? Your local data stays here.')) return;
   const data = local()?.getData?.();
@@ -286,10 +288,10 @@ document.addEventListener('click', async event => {
   if (action === 'sign-in' || action === 'sign-up') await signIn(action);
   if (action === 'verify-email' || action === 'check-email') {
     const user = bridge.auth?.currentUser;
-    if (!user || user.uid !== designatedOwner) return;
+    if (!user) return;
     try {
       if (action === 'verify-email') { await sendEmailVerification(user); notify('Verification email sent. Open the link in your inbox.'); }
-      else { await reload(user); await user.getIdToken(true); if (bridge.auth.currentUser === user) { bridge.user=user; notify(user.emailVerified?'Email verified. D can now add a trip.':'Email verification is still pending.'); } }
+      else { await reload(user); await user.getIdToken(true); if (bridge.auth.currentUser === user) { bridge.user=user; window.dispatchEvent?.(new Event('d4-auth')); notify(user.emailVerified?'Email verified. D can now add a trip.':'Email verification is still pending.'); } }
     } catch (e) { bridge.error=formatError(e); }
     refresh();
   }
@@ -326,7 +328,8 @@ if (configured) {
       bridge.error = '';
       bridge.status = user ? 'Checking cloud backup' : 'Signed out';
       bridge.ready = true;
-      if (user) watchSnapshot(user);
+      if (user && !local()?.teamId) watchSnapshot(user);
+      window.dispatchEvent?.(new Event('d4-auth'));
       local()?.render?.();
     }, err => { bridge.error = formatError(err); bridge.ready = true; refresh(); });
   } catch (e) { bridge.error = formatError(e); bridge.ready = true; refresh(); }
