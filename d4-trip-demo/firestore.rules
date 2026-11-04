@@ -1,8 +1,65 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
-    }
+ match /databases/{database}/documents {
+  function signedIn() { return request.auth != null; }
+  function isOwner(d) { return signedIn() && d.ownerUid == request.auth.uid; }
+  function isAdmin(d) { return signedIn() && (isOwner(d) || request.auth.uid in d.adminUids); }
+  function isMember(d) { return signedIn() && (isAdmin(d) || request.auth.uid in d.memberUids); }
+  function trip(t) { return get(/databases/$(database)/documents/d4Trips/$(t)).data; }
+  function canRead(t) { return exists(/databases/$(database)/documents/d4Trips/$(t)) && isMember(trip(t)); }
+  function canEdit(t) { return exists(/databases/$(database)/documents/d4Trips/$(t)) && isAdmin(trip(t)); }
+  function validRoles(d) {
+    return d.keys().hasAll(['ownerUid','memberUids','adminUids']) &&
+      d.ownerUid is string && d.memberUids is list && d.adminUids is list &&
+      d.ownerUid in d.memberUids && d.memberUids.hasAll(d.adminUids);
   }
+  match /d4Trips/{id} {
+    allow read: if isMember(resource.data);
+    allow create: if signedIn() && request.resource.data.ownerUid == request.auth.uid &&
+      validRoles(request.resource.data) && request.resource.data.adminUids.size() == 0;
+    allow update: if validRoles(request.resource.data) &&
+      request.resource.data.ownerUid == resource.data.ownerUid &&
+      (
+        isOwner(resource.data) ||
+        (isAdmin(resource.data) &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberUids']) &&
+         request.resource.data.adminUids == resource.data.adminUids)
+      );
+    allow delete: if isOwner(resource.data);
+    match /expenses/{expenseId} {
+      allow read: if canRead(id);
+      allow create, update: if canEdit(id) &&
+        request.resource.data.keys().hasAll(['amount','note','date','category']) &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0 &&
+        request.resource.data.note is string;
+      allow delete: if canEdit(id);
+    }
+    match /payments/{paymentId} {
+      allow read: if canRead(id);
+      allow write: if canEdit(id);
+    }
+    match /plans/{planId} {
+      allow read: if canRead(id);
+      allow write: if canEdit(id);
+    }
+    match /notes/{noteId} {
+      allow read: if canRead(id);
+      allow write: if canEdit(id);
+    }
+    match /reminders/{reminderId} {
+      allow read: if canRead(id);
+      allow write: if canEdit(id);
+    }
+    match /chats/{room}/messages/{messageId} {
+      allow read: if canRead(id) && (room == 'group' || (room == 'admins' && canEdit(id)));
+      allow create: if canRead(id) && (room == 'group' || (room == 'admins' && canEdit(id))) &&
+        request.resource.data.senderUid == request.auth.uid &&
+        request.resource.data.keys().hasAll(['senderUid','text','createdAt']);
+      allow update, delete: if false;
+    }
+    match /{other=**} { allow read, write: if false; }
+  }
+  match /{other=**} { allow read, write: if false; }
+ }
 }
