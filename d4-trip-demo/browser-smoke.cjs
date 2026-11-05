@@ -55,13 +55,15 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].collection.payments[1].amount,5000);
   assert.match(await page.locator('.d4-payment-counts').innerText(),/Paid 1/);
   assert.match(await page.locator('.d4-payment-counts').innerText(),/Unpaid 1/);
+  await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-scoreboard.png'),animations:'disabled'});
   await page.locator('[data-action="collection-members"]').click();
   assert.match(await page.locator('.cc-popup-total').innerText(),/Paid 1/);
   await page.locator('[data-action="close-modal"]').last().click();
   await page.locator('[data-action="enter-selected-trip"]').first().click();
+  await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-dashboard.png'),animations:'disabled'});
-  await page.locator('[data-action="trip-tab"][data-tab="members"]').click();
+  await page.locator('[data-action="open-tab"][data-ctx="members"]').first().click();
   await page.locator('[data-action="modal-add-member"]').click();
   assert.match(await page.locator('#activeForm button[type="submit"]').innerText(),/Save Member/);
   await page.locator('#f_member').fill('New Person');
