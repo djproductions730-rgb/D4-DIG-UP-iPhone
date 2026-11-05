@@ -60,7 +60,25 @@ async function smoke(browser,label,viewport,mobile) {
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-scoreboard.png'),animations:'disabled'});
   await page.locator('[data-action="collection-members"]').click();
   assert.match(await page.locator('.cc-popup-total').innerText(),/Paid 1/);
-  await page.locator('[data-action="close-modal"]').last().click();
+  assert.ok(await page.locator('.cc-popup-back').isVisible(),label+' popup header Back visible');
+  assert.ok(await page.locator('.cc-popup-return').isVisible(),label+' popup footer Back visible');
+  const paymentTiles=await page.locator('.cc-member-tile').evaluateAll(tiles=>tiles.map(tile=>{
+    const card=tile.getBoundingClientRect();
+    const detail=tile.querySelector('.cc-tile-money')?.getBoundingClientRect();
+    const amounts=[...tile.querySelectorAll('.cc-tile-amount b')].map(el=>el.getBoundingClientRect());
+    return {card:{left:card.left,right:card.right},detail:detail&&{left:detail.left,right:detail.right},
+      amounts:amounts.map(a=>({left:a.left,right:a.right}))};
+  }));
+  assert.ok(paymentTiles.length>0,label+' payment cards visible');
+  for(const tile of paymentTiles){
+    for(const rect of [tile.detail,...tile.amounts]){
+      assert.ok(rect&&rect.left>=tile.card.left-2&&rect.right<=tile.card.right+2,
+        label+' clipped payment text: '+JSON.stringify({tile,rect}));
+    }
+  }
+  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-payment-popup.png'),animations:'disabled'});
+  await page.locator('.cc-popup-return').click();
+  assert.equal(await page.locator('.cc-popup').count(),0,label+' popup Back closes it');
   await page.locator('[data-action="enter-selected-trip"]').first().click();
   const navGrid=page.locator('.d4p-nav-grid');
   await navGrid.waitFor();
@@ -87,11 +105,12 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(await page.locator('[data-action="open-tab"][data-ctx="settle"]').count(),0);
   await navGrid.locator('[data-ctx="reminders"]').click();
   assert.match(await page.locator('main.main').innerText(),/Reminders & group alerts/);
-  await page.locator('.d4p-breadcrumb [data-action="open-tab"][data-ctx="overview"]').click();
+  await page.locator('.d4p-breadcrumb [data-action="d4-back"]').click();
   await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-dashboard.png'),animations:'disabled'});
   await page.locator('[data-action="open-tab"][data-ctx="members"]').first().click();
   await page.locator('[data-action="modal-add-member"]').click();
+  assert.ok(await page.locator('.modal-header .modal-back').isVisible(),label+' form Back visible');
   assert.match(await page.locator('#activeForm button[type="submit"]').innerText(),/Save Member/);
   await page.locator('#f_member').fill('New Person');
   await page.locator('#activeForm button[type="submit"]').click();
