@@ -193,8 +193,22 @@ async function joinCodeFeedback(browser) {
   const data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].members.includes('Visitor'),true);
   assert.deepEqual(errors,[],'Join modal must not cause runtime exceptions');
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.evaluate(()=>{
+    // Safe mock: test the secure callable result without contacting a real Firebase project.
+    window.D4TripInvite={available:true,redeem:async code=>{
+      if(code!=='D4-MOCKSECURETOKEN00000')throw Error('Unexpected test invite');
+      return {tripId:'m3-browser-smoke',role:'member'};
+    }};
+  });
+  await page.locator('[data-action="modal"][data-modal="join-trip"]').first().click();
+  await page.locator('#f_code').fill('D4-MOCKSECURETOKEN00000');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.waitForURL(/\\?team=m3-browser-smoke/);
+  assert.equal(new URL(page.url()).searchParams.get('team'),'m3-browser-smoke');
+  assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'existing device backup is retained');
   await context.close();
-  console.log('PASS Join Trip feedback and on-device code redemption');
+  console.log('PASS Join Trip error display, local code and mocked secure cross-device redirect');
 }
 async function firstVisitIntro(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
