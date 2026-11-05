@@ -667,7 +667,24 @@ case 'join-trip':{
 }
 case 'new-code':{if(!isMain())throw Error('Main Admin only');const target=trip(String(fd.get('target')));if(!target)throw Error('Choose a trip');target.code=generateCode(target.name);persist();closeModal();render();toast('New trip code: '+target.code);return}
 case 'edit-member':{changeTripMember(t,modalContext.member,fd.get('member'));closeModal();render();toast('Member updated');return}
-case 'add-member':{if(!isTripAdmin(t))throw Error('Admins only');const n=String(fd.get('member')||'').trim();if(!n)throw Error('Enter member name');if(t.members.some(x=>x.toLowerCase()===n.toLowerCase()))throw Error('Member already in this trip');const archived=(t.archivedMembers||[]).find(r=>r.name.toLowerCase()===n.toLowerCase());if(archived){restoreTripMember(t,archived.name);closeModal();render();toast(archived.name+' restored with history');return;}t.members.push(n);if(!persist()){t.members.pop();throw Error('Could not save member')}closeModal();render();toast(n+' added');return}
+case 'add-member':{
+ if(!isTripAdmin(t))throw Error('Only Main Admin and Trip Admin can add a member');
+ const n=String(fd.get('member')||'').trim(),email=String(fd.get('email')||'').trim();
+ if(!n||n.length>50)throw Error('Enter member name (1–50 characters)');
+ if(t.members.some(x=>x.toLowerCase()===n.toLowerCase()))throw Error('Member already in this trip');
+ if((t.archivedMembers||[]).some(r=>r.name.toLowerCase()===n.toLowerCase()))
+   throw Error('This name belongs to a removed member. Ask Main Admin to restore it.');
+ if(email&&(!teamId||!window.D4Team?.inviteMember))throw Error('Shared email invitation is unavailable');
+ const previous=structuredClone(t);
+ t.members.push(n);
+ if(!persist()){for(const key of Object.keys(t))delete t[key];Object.assign(t,previous);throw Error('Could not save member');}
+ closeModal();render();
+ if(email){
+   try{await window.D4Team.inviteMember(email);toast(n+' added and Firebase email invited. Share the trip link.');}
+   catch(err){toast('Name saved, but email invitation failed: '+err.message);}
+ }else toast(n+' added to roster'+(teamId?'. User still needs a Trip Code or email invitation.':''));
+ return;
+}
 case 'assign-admin':{if(!isMain())throw Error('Main Admin only');const target=trip(String(fd.get('target'))),member=String(fd.get('member')),mode=String(fd.get('mode'));if(!target||!target.members.includes(member)||member==='D')throw Error('Select an eligible trip member');if(mode==='add'&&!target.admins.includes(member))target.admins.push(member);if(mode==='remove')target.admins=target.admins.filter(x=>x!==member);persist();closeModal();render();toast('Trip Admin access updated');return}
 case 'expense':case 'expense-edit':{
  if(!isTripAdmin(t))throw Error('Admins only');
