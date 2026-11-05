@@ -52,10 +52,22 @@ function save(t){
 function controls(t){
  if(!id)return cloud()?.isVerifiedOwner()?'<section class="card"><h3>Team access</h3><button class="btn mint" data-team="publish">Open shared copy</button></section>':'';
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
- return '<section class="card"><h3>Team access</h3><p>Invite a verified email. Removing access stops that account from opening the shared trip.</p><div class="row"><button class="btn mint" data-team="invite">Invite member</button>'+(role==='owner'?'<button class="btn" data-team="admin">Assign trip admin</button>':'')+'<button class="btn" data-team="revoke">Remove access</button><button class="btn" data-team="copy">Copy trip link</button></div></section>';
+ return '<section class="card"><h3>Team access</h3><p>Invite a verified email or issue a one-time code. Members only view; Admins can edit. Main Admin alone can assign Admins.</p><div class="row"><button class="btn mint" data-team="invite">Invite member</button>'+(role==='owner'?'<button class="btn" data-team="admin">Assign trip admin</button>':'')+'<button class="btn" data-team="revoke">Remove access</button><button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+'</section>';
 }
 function library(){
  return '<section class="card"><h3>Team trips</h3><button class="btn mint" data-team="open">Open invited trip link</button></section>';
+}
+function displayCode(result){
+ const host=document.querySelector('[data-team="member-code"]')?.closest('section');
+ if(!host)return;
+ document.getElementById('teamInviteResult')?.remove();
+ const box=document.createElement('section');box.id='teamInviteResult';box.className='card';box.style.marginTop='12px';box.setAttribute('role','status');
+ const heading=document.createElement('h3');heading.textContent=(result.role==='admin'?'Admin':'Member')+' invitation — one use';
+ const note=document.createElement('p');note.textContent='Expires in 7 days. Share privately with one verified Firebase account. Create a new code for each person.';
+ const input=document.createElement('input');input.className='input';input.readOnly=true;input.value=result.code;input.setAttribute('aria-label','Secure invitation code');
+ const button=document.createElement('button');button.className='btn mint';button.type='button';button.textContent='Copy Code';
+ button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(input.value);say('Invitation code copied');}catch{input.focus();input.select();say('Select and copy the highlighted code');}});
+ box.append(heading,note,input,button);host.insertAdjacentElement('afterend',box);
 }
 document.addEventListener('click',async event=>{
  const action=event.target.closest('[data-team]')?.dataset.team;if(!action)return;
@@ -77,6 +89,12 @@ document.addEventListener('click',async event=>{
   location.assign(link(trip.id));return;
  }
  if(!id||!canEdit())return;
+ if(action==='member-code'||action==='admin-code'){
+  const invite=window.D4TripInvite;
+  if(!invite?.available)throw Error('Code joining is not enabled on this app yet');
+  const result=await invite.issue(id,action==='admin-code'?'admin':'member');
+  displayCode(result);say('One-time invitation created');return;
+ }
  if(action==='copy'){await navigator.clipboard.writeText(link(id));say('Trip link copied');return}
  const input=prompt('Team member’s verified Firebase email');if(!input)return;
  const email=input.trim().toLowerCase();
