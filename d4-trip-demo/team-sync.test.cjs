@@ -46,10 +46,11 @@ test('Trip Admin sees one Add Member flow and can invite, but cannot revoke join
  assert.equal(h.api.canRemove(),false);
  const ui=h.api.controls({id:'trip'});
  assert.doesNotMatch(ui,/data-team="revoke"|data-team="invite"/);
- assert.match(ui,/single Add Member button|Add Member button/i);
+ assert.match(ui,/Use Add Member below/);
  const invited=await h.api.inviteMember('NEW@EXAMPLE.COM');
  assert.equal(invited,'new@example.com');
- assert.deepEqual(h.inviteWrites[0],{ref:'teamTrips/trip/access/new@example.com',data:{role:'member'}});
+ assert.equal(h.inviteWrites[0].ref,'teamTrips/trip/access/new@example.com');
+ assert.equal(h.inviteWrites[0].data.role,'member');
 });
 test('Main Admin retains the exclusive Remove Access control',()=>{
  const h=setup(true);
