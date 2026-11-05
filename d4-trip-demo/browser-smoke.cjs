@@ -31,6 +31,8 @@ async function smoke(browser,label,viewport,mobile) {
     sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
   },seed);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  fs.mkdirSync(path.join(__dirname,'preview'),{recursive:true});
+  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-explore.png'),animations:'disabled'});
   await page.locator('[data-action="entry-select-trip"][data-id="m3-browser-smoke"]').click();
   await page.locator('.compact-collection').waitFor();
   async function payment(amount,stage){
@@ -53,10 +55,12 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].collection.payments[1].amount,5000);
   assert.match(await page.locator('.d4-payment-counts').innerText(),/Paid 1/);
   assert.match(await page.locator('.d4-payment-counts').innerText(),/Unpaid 1/);
+  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-scoreboard.png'),animations:'disabled'});
   await page.locator('[data-action="collection-members"]').click();
   assert.match(await page.locator('.cc-popup-total').innerText(),/Paid 1/);
   await page.locator('[data-action="close-modal"]').last().click();
-  await page.locator('[data-action="enter-selected-trip"]').click();
+  await page.locator('[data-action="enter-selected-trip"]').first().click();
+  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-dashboard.png'),animations:'disabled'});
   await page.locator('[data-action="trip-tab"][data-tab="members"]').click();
   await page.locator('[data-action="modal-add-member"]').click();
   assert.match(await page.locator('#activeForm button[type="submit"]').innerText(),/Save Member/);
