@@ -224,7 +224,7 @@ async function signIn(mode) {
 
 async function resetPassword() {
   if (bridge.resetPending) return;
-  const email = document.getElementById('d4-cloud-email')?.value?.trim() || '';
+  const email = document.getElementById('d4-cloud-email')?.value?.trim() || bridge.user?.email || '';
   bridge.resetEmail = email;
   bridge.error = '';
   bridge.resetMessage = '';
