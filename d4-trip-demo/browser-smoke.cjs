@@ -200,7 +200,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.reload({waitUntil:'domcontentloaded'});
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
-  assert.equal(data.trips[0].members.includes('New Person'),false);
+  assert.equal(data.trips[0].members.includes('New Person'),true,label+' added member remains saved after reload');
   // The secure Groups UI must be visible as a clearly disabled preview,
   // not as an enabled cross-account network feature.
   await page.locator('[data-action="entry-select-trip"]').first().click();
