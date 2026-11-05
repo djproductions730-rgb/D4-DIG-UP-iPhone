@@ -2,7 +2,7 @@
   "functions": [
     {
       "source": "team-invites",
-      "codebase": "teamInvites",
+      "codebase": "team-invites",
       "ignore": [
         "node_modules",
         ".git",
