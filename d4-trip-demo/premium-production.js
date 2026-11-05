@@ -39,14 +39,11 @@
       button('👥', 'Manage Members', 'open-tab', 'data-ctx="members"')
     ];
     if (teamId) {
-      buttons.push(teamButton('✉️', 'Invite Member', 'invite'));
       buttons.push(teamButton('🔗', 'Share Trip Link', 'copy'));
       if (isMain()) {
         buttons.push(teamButton('🛡️', 'Promote Admin', 'admin'));
         buttons.push(teamButton('↘️', 'Demote Admin', 'invite'));
         buttons.push(teamButton('⛔', 'Remove Access', 'revoke'));
-      } else {
-        buttons.push(teamButton('⛔', 'Remove Member Access', 'revoke'));
       }
     } else if (isMain()) {
       buttons.push(button('🛡️', 'Assign Trip Admin', 'modal', 'data-modal="assign-admin"'));
