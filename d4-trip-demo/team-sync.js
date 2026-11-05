@@ -1,4 +1,4 @@
-import {doc,getDoc,setDoc,deleteDoc,onSnapshot,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
+import {doc,getDoc,getDocFromServer,getDocsFromServer,collection,setDoc,deleteDoc,onSnapshot,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 const local=window.D4TripLocal;
 const id=local.teamId;
 let generation=0,role='',revision=0,latest=null,queued=null,writing=false,stops=[];
@@ -54,6 +54,26 @@ function controls(t){
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
  return '<section class="card"><h3>Team access</h3><p>Invite a verified email or issue a one-time code. Members only view; Admins can edit. Main Admin alone can assign Admins.</p><div class="row"><button class="btn mint" data-team="invite">Invite member</button>'+(role==='owner'?'<button class="btn" data-team="admin">Assign trip admin</button>':'')+'<button class="btn" data-team="revoke">Remove access</button><button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+'</section>';
 }
+async function deleteTrip(tripId,expectedName){
+ if(!id||tripId!==id||!user()?.emailVerified||!cloud()?.isVerifiedOwner?.())throw Error('Only verified Main Admin can delete a shared trip.');
+ if(!latest||!Number.isInteger(latest.revision))throw Error('Wait for the shared trip to finish loading.');
+ const expectedRevision=latest.revision,originalUid=user().uid,token=generation;
+ const r=ref(id);
+ const current=await getDocFromServer(r);
+ if(!current.exists()||current.data().trip?.id!==id||current.data().trip?.name!==expectedName)throw Error('Trip changed; reopen it before deleting.');
+ if(current.data().revision!==expectedRevision)throw Error('A trip update was detected. Refresh and confirm again.');
+ const grants=await getDocsFromServer(collection(r,'access'));
+ if(grants.size>450)throw Error('Too many access grants to delete safely. Contact support.');
+ await runTransaction(cloud().cloudDb,async tx=>{
+   if(token!==generation||user()?.uid!==originalUid||!cloud()?.isVerifiedOwner?.())throw Error('Owner account changed; deletion cancelled.');
+   const snapshot=await tx.get(r);
+   if(!snapshot.exists()||snapshot.data().revision!==expectedRevision||snapshot.data().trip?.name!==expectedName)throw Error('Trip was edited after confirmation. Reload before deleting.');
+   for(const access of grants.docs)tx.delete(access.ref);
+   tx.delete(r);
+ });
+ if(token===generation){clear();location.assign(new URL('./',location.href).href);}
+ return true;
+}
 function library(){
  return '<section class="card"><h3>Team trips</h3><button class="btn mint" data-team="open">Open invited trip link</button></section>';
 }
@@ -105,6 +125,6 @@ document.addEventListener('click',async event=>{
  await setDoc(r,{role:action==='admin'?'admin':'member'});say('Access saved. Copy the trip link to share it.');
  }catch(e){say('Team access: '+e.message)}
 });
-window.D4Team={save,controls,canEdit,library};
+window.D4Team={save,controls,canEdit,library,deleteTrip};
 window.addEventListener('d4-auth',connect);
 if(cloud()?.ready)connect();
