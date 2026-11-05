@@ -54,7 +54,7 @@
     }
     return '<h3 class="d4p-title">' + (isMain() ? 'Main Admin Quick Actions' : 'Admin Quick Actions') +
       '</h3><p class="d4p-caption">Only permitted actions are shown. Firebase rules remain the authority for shared trips.</p>' +
-      '<div class="d4p-grid">' + buttons.join('') + '</div>';
+      '<div class="d4p-grid d4p-admin-grid">' + buttons.join('') + '</div>';
   }
   topBar = function () {
     const header = original.topBar();
@@ -112,12 +112,17 @@
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
       days + '</strong></div><div class="d4p-stat"><small>Remaining</small><strong>' +
       money(c.pending) + '</strong></div></div>' +
-      '<h3 class="d4p-title">Your Trip</h3><div class="d4p-grid">' +
-      button('💳','Payment Scoreboard','nav','data-view="collections"') +
-      button('👥','Members','open-tab','data-ctx="members"') +
-      button('📅','Trip Days','open-tab','data-ctx="plan"') +
+      '<h3 class="d4p-title">Trip Sections</h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">' +
+      button('🏠','Overview','open-tab','data-ctx="overview" aria-current="page"') +
+      button('📅','Day Plan','open-tab','data-ctx="plan"') +
       button('🧾','Expenses','open-tab','data-ctx="expenses"') +
-      '</div>' + tileRow(t) + '</section>';
+      button('💳','Paid / Pending','nav','data-view="collections"') +
+      button('👥','Members','open-tab','data-ctx="members"') +
+      button('🔔','Alerts','open-tab','data-ctx="reminders"') +
+      button('📸','Memories','open-tab','data-ctx="memories"') +
+      button('📑','Reports','open-tab','data-ctx="report"') +
+      button('⚙️','Settings','nav','data-view="profile"') +
+      '</nav>' + tileRow(t) + '</section>';
   };
   tripPage = function () {
     const t = current();
@@ -126,7 +131,12 @@
     if (tripTab === 'plan') return '<section class="d4p-section">' + tripPlan(t) + '</section>';
     if (tripTab === 'expenses') return '<section class="d4p-section">' + tripExpenses(t) + '</section>';
     if (tripTab === 'members') return '<section class="d4p-section">' + tripMembers(t) + '</section>';
+    if (tripTab === 'reminders') return '<section class="d4p-section">' + tripReminders(t) + '</section>';
+    if (tripTab === 'memories') return '<section class="d4p-section">' + tripMemories(t) + '</section>';
+    if (tripTab === 'report') return '<section class="d4p-section">' + tripReport(t) + '</section>';
     if (tripTab === 'collections') return collectionsPage();
+    // An old saved Split tab selection is never re-exposed. Financial history stays stored.
+    if (tripTab === 'settle') { tripTab = 'overview'; return tripOverview(t); }
     return original.tripPage();
   };
   chatsPage = function () {
