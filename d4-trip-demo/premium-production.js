@@ -6,7 +6,7 @@
   'use strict';
   const original = {
     entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
-    tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
+    tripPage: tripPage, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
   };
   const MODE_KEY = 'd4_trip_premium_mode_v1';
   const modes = ['midnight', 'light', 'sunset'];
@@ -59,6 +59,7 @@
   entryPage = function () {
     const html = original.entryPage();
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
+      .replace('<button data-action="enter-app">Open dashboard</button>', '')
       .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
       .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
       .replace('Choose a trip → Collection → Trip Dashboard', 'Choose a destination to see payment progress');
@@ -110,6 +111,16 @@
       button('📅','Trip Days','open-tab','data-ctx="plan"') +
       button('🧾','Expenses','open-tab','data-ctx="expenses"') +
       '</div>' + tileRow(t) + '</section>';
+  };
+  tripPage = function () {
+    const t = current();
+    if (!t) return original.tripPage();
+    if (tripTab === 'overview') return tripOverview(t);
+    if (tripTab === 'plan') return '<section class="d4p-section">' + tripPlan(t) + '</section>';
+    if (tripTab === 'expenses') return '<section class="d4p-section">' + tripExpenses(t) + '</section>';
+    if (tripTab === 'members') return '<section class="d4p-section">' + tripMembers(t) + '</section>';
+    if (tripTab === 'collections') return collectionsPage();
+    return original.tripPage();
   };
   chatsPage = function () {
     return '<section class="d4p-section"><div class="d4p-coming">' +
