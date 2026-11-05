@@ -74,6 +74,19 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('[data-action="remove-member"][data-member="New Person"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].members.includes('New Person'),false);
+  // Paid members can now be removed without deleting a single historical receipt.
+  page.once('dialog',d=>d.accept());
+  await page.locator('[data-action="remove-member"][data-member="A"]').click();
+  data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].members.includes('A'),false);
+  assert.equal(data.trips[0].archivedMembers.some(r=>r.name==='A'),true);
+  assert.equal(data.trips[0].collection.payments.length,2);
+  assert.equal(data.trips[0].collection.payments.reduce((sum,p)=>sum+p.amount,0),8000);
+  assert.match(await page.locator('main.main').innerText(),/Removed members/);
+  await page.locator('[data-action="restore-member"][data-member="A"]').click();
+  data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].members.includes('A'),true);
+  assert.equal(data.trips[0].collection.payments.length,2);
   // M6 expense entry: note-only and no split controls.
   await page.locator('.d4p-bottom [data-action="nav"][data-view="expenses"]').click();
   assert.match(await page.locator('main.main').innerText(),/Day-wise records/);
