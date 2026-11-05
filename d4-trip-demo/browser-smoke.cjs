@@ -167,6 +167,35 @@ async function smoke(browser,label,viewport,mobile) {
   await context.close();
   console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
 }
+async function joinCodeFeedback(browser) {
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await context.route(/https:\\/\\/(?:firestore|identitytoolkit|securetoken)\\.googleapis\\.com\\//,route=>route.abort());
+  const page=await context.newPage();
+  const errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  await page.addInitScript(dataset=>{
+    localStorage.setItem('d4_trip_offline_v2',JSON.stringify(dataset));
+    localStorage.setItem('d4_trip_offline_profile_v2','Visitor');
+    sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
+  },seed);
+  await page.goto(BASE,{waitUntil:'domcontentloaded'});
+  await page.locator('[data-action="modal"][data-modal="join-trip"]').first().click();
+  await page.locator('#f_code').fill('D4NOTHERE');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.locator('#joinFeedback').waitFor({state:'visible'});
+  assert.match(await page.locator('#joinFeedback').innerText(),/not available on this device/);
+  const toastZ=await page.locator('#toast').evaluate(el=>Number(getComputedStyle(el).zIndex));
+  const modalZ=await page.locator('.modal-backdrop').evaluate(el=>Number(getComputedStyle(el).zIndex));
+  assert.ok(toastZ>modalZ,'Join error toast must appear above modal');
+  await page.locator('#f_code').fill('D4TEST2026');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.locator('.modal-backdrop').waitFor({state:'detached'});
+  const data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].members.includes('Visitor'),true);
+  assert.deepEqual(errors,[],'Join modal must not cause runtime exceptions');
+  await context.close();
+  console.log('PASS Join Trip feedback and on-device code redemption');
+}
 async function firstVisitIntro(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const page=await context.newPage();
@@ -199,5 +228,6 @@ async function firstVisitIntro(browser) {
     await smoke(browser,engine+'-mobile',{width:390,height:844},true);
     await smoke(browser,engine+'-small-phone',{width:360,height:780},true);
     await firstVisitIntro(browser);
+    await joinCodeFeedback(browser);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
