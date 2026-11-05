@@ -64,6 +64,19 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('[data-action="enter-selected-trip"]').first().click();
   const navGrid=page.locator('.d4p-nav-grid');
   await navGrid.waitFor();
+  const layout=await page.evaluate(()=>{
+    const shell=document.querySelector('.app-shell')?.getBoundingClientRect();
+    const main=document.querySelector('.app-shell>.main')?.getBoundingClientRect();
+    const bottom=document.querySelector('.d4p-bottom')?.getBoundingClientRect();
+    return {viewport:innerWidth,shellX:shell?.x,shellW:shell?.width,
+      mainW:main?.width,bottomX:bottom?.x,bottomW:bottom?.width,
+      scrollWidth:document.documentElement.scrollWidth};
+  });
+  assert.ok(Math.abs(layout.shellX)<=1,label+' shell must start at screen edge');
+  assert.ok(Math.abs(layout.shellW-layout.viewport)<=2,label+' full-width app shell');
+  assert.ok(Math.abs(layout.mainW-layout.viewport)<=2,label+' edge-to-edge main panel');
+  assert.ok(Math.abs(layout.bottomX)<=1 && Math.abs(layout.bottomW-layout.viewport)<=2,label+' full-screen bottom bar');
+  assert.ok(layout.scrollWidth<=layout.viewport+2,label+' no sideways page scroll');
   assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
   assert.equal(await navGrid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,
     label+' navigation renders three equal columns');
