@@ -88,6 +88,9 @@ async function smoke(browser,label,viewport,mobile) {
   await page.waitForTimeout(500);
   await page.screenshot({path:groupPreview,animations:'disabled'});
   await page.reload({waitUntil:'domcontentloaded'});
+  // Replay is intentionally in Settings now to keep Explore Trips spacious.
+  await page.locator('[data-action="enter-app"]').click();
+  await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
   await page.locator('[data-action="replay-intro"]').click();
   await page.locator('#d4Intro').waitFor({state:'visible'});
   assert.equal(await page.locator('[data-d4-intro-skip]').count(),1);
