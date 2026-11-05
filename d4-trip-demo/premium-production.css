@@ -177,3 +177,24 @@ body.d4-premium .d4p-bottom{left:0!important;right:0!important;transform:none!im
   body.d4-premium .app-shell>.main{width:100%!important;max-width:none!important}
   body.d4-premium .d4p-bottom{width:100%!important;max-width:none!important}
 }
+
+/* Day Planner: keep cards within the phone viewport (iOS and Android). */
+body.d4-premium .d4p-section{grid-template-columns:minmax(0,1fr)}
+body.d4-premium .d4p-section>.plan-ui{width:100%;max-width:100%;min-width:0;overflow-x:clip}
+body.d4-premium .plan-ui>:is(.plan-hero,.plan-category-strip,.day-tabs,.plan-toolbar,.plan-timeline,.plan-view-note){min-width:0;max-width:100%}
+body.d4-premium .plan-hero>div{flex:1 1 auto;min-width:0}
+body.d4-premium .plan-hero :is(h2,p){overflow-wrap:anywhere}
+body.d4-premium :is(.plan-category-strip,.plan-ui .day-tabs){width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+body.d4-premium .plan-timeline{grid-template-columns:minmax(0,1fr)}
+body.d4-premium .plan-timeline>:is(.empty,.plan-activity){width:100%;min-width:0;max-width:100%}
+body.d4-premium .plan-timeline .empty{overflow-wrap:anywhere}
+body.d4-premium .plan-timeline .empty :is(h3,p){max-width:100%;white-space:normal;overflow-wrap:anywhere}
+body.d4-premium .plan-timeline .empty .btn{max-width:100%;min-height:44px;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:760px){
+  body.d4-premium .plan-toolbar{flex-wrap:wrap;align-items:stretch}
+  body.d4-premium .plan-toolbar>div:first-child{flex:1 1 100%;min-width:0}
+  body.d4-premium .plan-toolbar-actions{max-width:none;width:100%;justify-content:flex-start}
+  body.d4-premium .plan-toolbar-actions .btn{flex:1 1 120px;min-height:44px;white-space:normal}
+  body.d4-premium .plan-activity{grid-template-columns:52px minmax(0,1fr);align-items:start}
+  body.d4-premium .plan-activity .activity-controls{grid-column:2;display:flex;flex-wrap:wrap;justify-content:flex-start;gap:8px}
+}
