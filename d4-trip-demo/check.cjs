@@ -37,7 +37,7 @@ const premiumTest = spawnSync(process.execPath, [path.join(dir,'premium-producti
 });
 if (premiumTest.status !== 0) process.exit(premiumTest.status || 1);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
-const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','expense-plan.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
+const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','delete-trip.test.cjs','expense-plan.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
   stdio: 'inherit'
 });
 if (tests.status !== 0) process.exit(tests.status || 1);
