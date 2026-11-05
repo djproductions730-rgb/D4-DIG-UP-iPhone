@@ -14,6 +14,7 @@ function extract(begin, end) {
 const source = [
   extract('function collectionTotals(t){', 'function collectionPill('),
   extract('function collectionSave(t,member,', 'function calculations(t)'),
+  extract('function archivedMembersPanel(t){', 'function tripMembers(t){'),
   extract('function tripMembers(t){', 'function chatsPage(t)'),
   extract('function chatsPage(t){', 'function tripReminders(t)')
 ].join('\n') + '\nthis.behavior={collectionTotals,collectionSave,tripMembers,chatsPage};';
