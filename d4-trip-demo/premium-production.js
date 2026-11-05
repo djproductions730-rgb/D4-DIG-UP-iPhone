@@ -76,7 +76,7 @@
     return html.replace('<div class="d4-payment-counts">', ring + '<div class="d4-payment-counts">')
       .replace('✈️ Enter Trip →', 'Continue →')
       .replace('<button class="cc-open-members"',
-        '<button class="cc-open-members"');
+        '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
   };
   bottomNav = function () {
     const t = current();
