@@ -214,6 +214,7 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 @supports(background-clip:text){.d4-new-brand .d4-metal-word{background:linear-gradient(175deg,#fff 5%,#c2cdd5 35%,#f8f4e8 48%,#c3ab78 60%,#fff0c9 90%);background-clip:text;-webkit-background-clip:text;color:transparent}}
 .d4-empty{text-align:center;padding:40px 16px;background:#fff;border:1px solid #d4e1e6;border-radius:20px}.d4-empty>span{font-size:40px;color:#9c7938}.d4-empty h2{font-size:20px;margin:12px 0 8px}.d4-empty p{font-size:14px;color:#526575;margin:0}
 </style>
+<link rel="stylesheet" href="./premium-flow.css">
 </head>
 <body>
   <script src="./trip-intro.js"></script>
@@ -295,7 +296,7 @@ const current=()=>{const t=trip(activeTrip);return canSee(t)?t:(visibleTrips()[0
 const isMain=()=>profile==='Karthik'; // Demo only. Real security must use authenticated user IDs + backend rules.
 const isTripAdmin=t=>!!t&&(isMain()||t.admins.includes(profile));
 const canSee=t=>!!t&&(isMain()||t.members.includes(profile));
-const visibleTrips=()=>db.trips.filter(canSee);
+const visibleTrips=()=>db.trips.filter(t=>!['goa','ooty','pondy'].includes(t.id)&&canSee(t));
 function persist(){try{localStorage.setItem(STORE,JSON.stringify(db));return true}catch(err){toast('Storage full! Download backup and try smaller attachments.');return false}}
 const toast=(message)=>{const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toast.tid);toast.tid=setTimeout(()=>el.classList.remove('show'),3300)};
 function datesInTrip(t){if(!t)return[];let out=[],d=new Date(t.start+'T12:00:00'),end=new Date(t.end+'T12:00:00');for(let n=0;d<=end&&n<90;n++,d.setDate(d.getDate()+1))out.push([d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'));return out}
@@ -608,5 +609,6 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.se
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>
+<script src="./premium-flow.js"></script>
 </body>
 </html>
