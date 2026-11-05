@@ -79,7 +79,8 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].members.includes('New Person'),false);
   // The secure Groups UI must be visible as a clearly disabled preview,
   // not as an enabled cross-account network feature.
-  await page.locator('[data-action="enter-app"]').click();
+  await page.locator('[data-action="entry-select-trip"]').first().click();
+  await page.locator('[data-action="enter-selected-trip"]').first().click();
   await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
   await page.locator('#d4-shared-panel').waitFor();
   assert.match(await page.locator('#d4-shared-panel').innerText(),/Real multi-account sharing is OFF/);
@@ -91,7 +92,8 @@ async function smoke(browser,label,viewport,mobile) {
   await page.screenshot({path:groupPreview,animations:'disabled'});
   await page.reload({waitUntil:'domcontentloaded'});
   // Replay is intentionally in Settings now to keep Explore Trips spacious.
-  await page.locator('[data-action="enter-app"]').click();
+  await page.locator('[data-action="entry-select-trip"]').first().click();
+  await page.locator('[data-action="enter-selected-trip"]').first().click();
   await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
   await page.locator('[data-action="replay-intro"]').click();
   await page.locator('#d4Intro').waitFor({state:'visible'});
