@@ -369,7 +369,9 @@ function collectionTotals(t){
  });
  const totalTarget=each*t.members.length/100;
  const paid=rows.reduce((a,r)=>a+r.paid,0),pending=rows.reduce((a,r)=>a+r.pending,0);
- return {each:each/100,target:totalTarget,paid,pending,extra:rows.reduce((a,r)=>a+r.extra,0),
+ // Keep historical contributions by removed travellers in the receipts ledger, not the active scoreboard.
+ const archivedPaid=items.filter(p=>!t.members.includes(p.member)).reduce((sum,p)=>sum+Math.round(Number(p.amount||0)*100),0)/100;
+ return {each:each/100,target:totalTarget,paid,pending,archivedPaid,totalRecorded:paid+archivedPaid,extra:rows.reduce((a,r)=>a+r.extra,0),
    progress:totalTarget?Math.min(100,Math.round(paid/totalTarget*100)):0,
    full:rows.filter(r=>r.status==='Paid').length,partial:rows.filter(r=>r.status==='Partial').length,
    unpaid:rows.filter(r=>r.status==='Pending').length,rows};
@@ -396,7 +398,7 @@ return `<section class="compact-collection">
 <div class="cc-banner"><div><small>YOUR TRIP COLLECTION</small><h2>💳 Paid & Pending</h2><p>${t.members.length} travellers · ${money(c.each)} per member</p></div><div class="cc-sun">🌴</div></div>
 <div class="cc-plain-summary"><div><small>🎯 Target</small><b>${money(c.target)}</b></div><div><small>✓ Paid</small><b>${money(c.paid)}</b></div><div><small>⏳ Remaining</small><b>${money(c.pending)}</b></div></div><div class="d4-payment-counts"><b>🟢 Paid ${c.full}</b><b>🟠 Advance / Partial ${c.partial}</b><b>🔴 Unpaid ${c.unpaid}</b></div><div class="cc-actions"><button class="cc-primary" data-action="enter-selected-trip">✈️ Enter Trip →</button>${admin?'<button class="cc-add" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':''}</div>
 <button class="cc-open-members" data-action="collection-members">👥 View All ${t.members.length} Members <span>Paid ${c.full} · Partial ${c.partial} · Unpaid ${c.unpaid}</span> <b>↗</b></button>
-<div class="cc-footnote">Payments are manually recorded. They are not bank-verified. Members can view; Main Admin and assigned Trip Admin can edit.</div>
+${c.archivedPaid?`<p class="notice">Historical payments from removed members: ${money(c.archivedPaid)} (kept in payment records; excluded from active-member progress).</p>`:''}<div class="cc-footnote">Payments are manually recorded. They are not bank-verified. Members can view; Main Admin and assigned Trip Admin can edit.</div>
 </section>`;
 }
 
@@ -483,9 +485,14 @@ function changeTripMember(t,oldName,newName,remove=false){
  const next=String(newName||'').trim();
  if(!remove&&(!next||next.length>50||['d','karthik'].includes(next.toLowerCase())))throw Error('Enter a valid member name (1–50 characters)');
  if(!remove&&t.members.some(n=>n!==oldName&&n.toLowerCase()===next.toLowerCase()))throw Error('Member already exists');
- if(remove&&((t.settlementsPaid||[]).some(e=>e.from===oldName||e.to===oldName)||t.expenses.some(e=>e.paidBy===oldName||e.participants.includes(oldName)||Object.hasOwn(e.shares||{},oldName))||(t.collection?.payments||[]).some(p=>p.member===oldName)))throw Error('Member has payment or expense history. Keep the member to preserve balances.');
+ if(!remove&&(t.archivedMembers||[]).some(r=>r.name.toLowerCase()===next.toLowerCase()))throw Error('This name belongs to a removed member. Restore that member instead.');
  const backup=JSON.parse(JSON.stringify(t));
- if(remove){t.members=t.members.filter(n=>n!==oldName);t.admins=t.admins.filter(n=>n!==oldName);}
+ if(remove){
+  // Soft-remove from the active roster, never delete payment, expense or split history.
+  t.archivedMembers=t.archivedMembers||[];
+  if(!t.archivedMembers.some(r=>r.name===oldName))t.archivedMembers.push({name:oldName,removedAt:new Date().toISOString(),removedBy:profile});
+  t.members=t.members.filter(n=>n!==oldName);t.admins=t.admins.filter(n=>n!==oldName);
+ }
  else{
   t.members=t.members.map(n=>n===oldName?next:n);t.admins=t.admins.map(n=>n===oldName?next:n);
   for(const e of t.expenses){if(e.paidBy===oldName)e.paidBy=next;e.participants=e.participants.map(n=>n===oldName?next:n);if(Object.hasOwn(e.shares||{},oldName)){e.shares[next]=e.shares[oldName];delete e.shares[oldName];}}
@@ -496,7 +503,27 @@ function changeTripMember(t,oldName,newName,remove=false){
  if(!persist()){for(const key of Object.keys(t))delete t[key];Object.assign(t,backup);throw Error('Could not save changes. Free storage and try again.');}
 }
 
-function tripMembers(t){return `${window.D4Team?.controls(t)||''}${sec('Group members',isTripAdmin(t)?'modal-add-member':'',isTripAdmin(t)?'＋ Add member':'')}<div class="member-grid">${t.members.map(n=>`<div class="member"><div class="circle">${esc(n.charAt(0))}</div><div style="min-width:0"><b class="line-clamp">${esc(n)}</b><small>${n==='D'&&isMain()?'👑 Main Admin':t.admins.includes(n)?'🛡️ Trip Admin':'👤 Member'}</small></div>${isTripAdmin(t)&&!['D','Karthik'].includes(n)&&(!t.admins.includes(n)||isMain())?`<button class="btn small ghost" style="min-height:44px" data-action="edit-member" data-member="${esc(n)}" aria-label="Edit ${esc(n)}">Edit</button><button class="btn small ghost" style="min-height:44px" data-action="remove-member" data-member="${esc(n)}" aria-label="Remove ${esc(n)}">Remove</button>`:''}</div>`).join('')}</div>${sec('Trip Admins')}<div class="card"><div class="space-between"><div><h3>${t.admins.map(esc).join(', ')||'No Trip Admin assigned'}</h3><p>Admins can manage members, plan, expenses and reminders. Chat is upcoming.</p></div>${isMain()?`<button class="btn small" data-action="modal" data-modal="assign-admin">Manage</button>`:''}</div></div><div class="notice" style="margin-top:15px">🔐 Only Main Admin can assign or remove Trip Admins. Shared trips require a verified email invitation. Local trip codes do not grant cloud access.</div>`}
+function restoreTripMember(t,name){
+ if(!isTripAdmin(t))throw Error('Admins only');
+ const archived=(t.archivedMembers||[]).find(r=>r.name===name);
+ if(!archived)throw Error('Removed member not found');
+ if(t.members.some(n=>n.toLowerCase()===name.toLowerCase()))throw Error('Member already exists');
+ const backup=structuredClone(t);
+ t.members.push(name);
+ t.archivedMembers=t.archivedMembers.filter(r=>r.name!==name);
+ if(!persist()){for(const key of Object.keys(t))delete t[key];Object.assign(t,backup);throw Error('Could not restore member. Try again.');}
+}
+function archivedMembersPanel(t){
+ const archived=t.archivedMembers||[];
+ if(!archived.length)return '';
+ return `${sec('Removed members')}<div class="item-list">${archived.map(r=>{
+  const count=(t.collection?.payments||[]).filter(p=>p.member===r.name).length;
+  const expenseCount=t.expenses.filter(e=>e.paidBy===r.name||(e.participants||[]).includes(r.name)).length;
+  return `<div class="list-row"><div class="leading"><span class="category-icon">🗃️</span><div><strong>${esc(r.name)}</strong><small>Removed from active trip · ${count} payment(s), ${expenseCount} expense(s) preserved</small></div></div>${isTripAdmin(t)?`<button class="btn small ghost" data-action="restore-member" data-member="${esc(r.name)}" aria-label="Restore ${esc(r.name)}">Restore</button>`:''}</div>`;
+ }).join('')}</div><p class="tiny">Historical receipts and balances are kept. For shared trips, remove the person's verified email separately using Team access → Remove access.</p>`;
+}
+
+function tripMembers(t){return `${window.D4Team?.controls(t)||''}${sec('Group members',isTripAdmin(t)?'modal-add-member':'',isTripAdmin(t)?'＋ Add member':'')}<div class="member-grid">${t.members.map(n=>`<div class="member"><div class="circle">${esc(n.charAt(0))}</div><div style="min-width:0"><b class="line-clamp">${esc(n)}</b><small>${n==='D'&&isMain()?'👑 Main Admin':t.admins.includes(n)?'🛡️ Trip Admin':'👤 Member'}</small></div>${isTripAdmin(t)&&!['D','Karthik'].includes(n)&&(!t.admins.includes(n)||isMain())?`<button class="btn small ghost" style="min-height:44px" data-action="edit-member" data-member="${esc(n)}" aria-label="Edit ${esc(n)}">Edit</button><button class="btn small ghost" style="min-height:44px" data-action="remove-member" data-member="${esc(n)}" aria-label="Remove ${esc(n)}">Remove</button>`:''}</div>`).join('')}</div>${sec('Trip Admins')}<div class="card"><div class="space-between"><div><h3>${t.admins.map(esc).join(', ')||'No Trip Admin assigned'}</h3><p>Admins can manage members, plan, expenses and reminders. Chat is upcoming.</p></div>${isMain()?`<button class="btn small" data-action="modal" data-modal="assign-admin">Manage</button>`:''}</div></div><div class="notice" style="margin-top:15px">🔐 Only Main Admin can assign or remove Trip Admins. Shared trips require a verified email invitation. Local trip codes do not grant cloud access.</div>${archivedMembersPanel(t)}`}
 function chatsPage(t){return '<section class="card"><span class="pill">Upcoming</span><h2>Trip chat is coming soon</h2><p>Group and admin conversations will be available in a future update.</p></section>'}
 
 function tripReminders(t){return `${sec('Reminders & group alerts',isTripAdmin(t)?'quick-reminder':'',isTripAdmin(t)?'＋ New Alert':'')}<div class="item-list">${t.reminders.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(r=>`<div class="list-row"><div class="leading"><span class="category-icon">⏰</span><div><strong>${esc(r.title)}</strong><small>${fmtDate(r.date)} · ${esc(r.time)} · By ${esc(r.by)}</small></div></div><span class="pill mint">Sent to feed</span></div>`).join('')||'<div class="empty">⏰ No alerts yet.</div>'}</div><div class="notice" style="margin-top:14px">This demo posts reminders to the trip feed on this device. Actual scheduled alerts and push notifications to every member require a server + push service.</div>`}
@@ -556,7 +583,7 @@ case 'expense':case 'expense-edit':{
  body='<p class="muted">Expense note and amount tracking only. No expense splitting.</p>'+
   selectField('category','Category',catOptions)+
   field('amount','Amount (₹)',e?.amount??'','number','required min="0.01" max="100000000" step="0.01"')+
-  selectField('paidBy','Recorded by',selectOptions(t.members,e?.paidBy||profile))+
+  selectField('paidBy','Recorded by',selectOptions(editing&&e?.paidBy&&!t.members.includes(e.paidBy)?[...t.members,e.paidBy]:t.members,e?.paidBy||profile))+
   selectField('date','Trip date',dateOptions(t,e?.date||daySelected))+
   selectField('method','Payment method',methodOptions)+
   field('note','Expense note',e?.note||'','text','required maxlength="150"')+
@@ -603,7 +630,7 @@ case 'join-trip':{
 }
 case 'new-code':{if(!isMain())throw Error('Main Admin only');const target=trip(String(fd.get('target')));if(!target)throw Error('Choose a trip');target.code=generateCode(target.name);persist();closeModal();render();toast('New trip code: '+target.code);return}
 case 'edit-member':{changeTripMember(t,modalContext.member,fd.get('member'));closeModal();render();toast('Member updated');return}
-case 'add-member':{if(!isTripAdmin(t))throw Error('Admins only');const n=String(fd.get('member')||'').trim();if(!n)throw Error('Enter member name');if(t.members.some(x=>x.toLowerCase()===n.toLowerCase()))throw Error('Member already in this trip');t.members.push(n);if(!persist()){t.members.pop();throw Error('Could not save member')}closeModal();render();toast(n+' added');return}
+case 'add-member':{if(!isTripAdmin(t))throw Error('Admins only');const n=String(fd.get('member')||'').trim();if(!n)throw Error('Enter member name');if(t.members.some(x=>x.toLowerCase()===n.toLowerCase()))throw Error('Member already in this trip');const archived=(t.archivedMembers||[]).find(r=>r.name.toLowerCase()===n.toLowerCase());if(archived){restoreTripMember(t,archived.name);closeModal();render();toast(archived.name+' restored with history');return;}t.members.push(n);if(!persist()){t.members.pop();throw Error('Could not save member')}closeModal();render();toast(n+' added');return}
 case 'assign-admin':{if(!isMain())throw Error('Main Admin only');const target=trip(String(fd.get('target'))),member=String(fd.get('member')),mode=String(fd.get('mode'));if(!target||!target.members.includes(member)||member==='D')throw Error('Select an eligible trip member');if(mode==='add'&&!target.admins.includes(member))target.admins.push(member);if(mode==='remove')target.admins=target.admins.filter(x=>x!==member);persist();closeModal();render();toast('Trip Admin access updated');return}
 case 'expense':case 'expense-edit':{
  if(!isTripAdmin(t))throw Error('Admins only');
@@ -612,8 +639,8 @@ case 'expense':case 'expense-edit':{
  if(!datesInTrip(t).includes(date))throw Error('Choose a trip date');
  if(!note||note.length>150)throw Error('Enter an expense note');
  const paidBy=String(fd.get('paidBy')||'');
- if(!t.members.includes(paidBy))throw Error('Choose a valid member');
  const old=name==='expense-edit'?t.expenses.find(x=>x.id===modalContext.expenseId):null;
+ if(!t.members.includes(paidBy)&&!(old&&old.paidBy===paidBy))throw Error('Choose a valid member');
  if(name==='expense-edit'&&!old)throw Error('Expense no longer exists');
  if(old && old.mode!=='note' && Math.round(amount*100)!==Math.round(Number(old.amount)*100))
    throw Error('Legacy split expense amount is locked to preserve historic allocations. Edit notes or add a separate adjustment.');
@@ -711,7 +738,8 @@ case 'quick-file':openModal('file');break;
 case 'quick-memory':openModal('memory');break;
 case 'modal-add-member':openModal('add-member');break;
 case 'edit-member':openModal('edit-member',{member:el.dataset.member});break;
-case 'remove-member':{if(confirm('Remove '+el.dataset.member+' from this trip?')){try{changeTripMember(current(),el.dataset.member,'',true);render();toast('Member removed');}catch(err){toast(err.message)}}break;}
+case 'remove-member':{if(confirm('Remove '+el.dataset.member+' from active members? Payment and expense history will be preserved. Shared Firebase email access must be revoked separately in Team access.')){try{changeTripMember(current(),el.dataset.member,'',true);render();toast('Member removed from active roster; history kept.');}catch(err){toast(err.message)}}break;}
+case 'restore-member':{try{restoreTripMember(current(),el.dataset.member);render();toast('Member restored');}catch(err){toast(err.message)}break;}
 case 'chat-person':{if(!ensurePermission(isMain()))return;const n=el.dataset.member;if(!t||!t.members.includes(n))return;chatRoom='direct:'+n;go('chat');break;}
 case 'modal':openModal(el.dataset.modal);break;
 case 'close-modal':closeModal();break;
