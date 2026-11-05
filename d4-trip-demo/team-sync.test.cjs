@@ -8,7 +8,7 @@ function setup(owner=true){
  const listeners=[],writes=[],inviteWrites=[],shown=[],messages=[];let authEvent,transaction;
  const account={uid:owner?'owner':'member',email:'test@example.com',emailVerified:true};
  const window={D4TripLocal:{teamId:'trip',showTeam:t=>shown.push(t),render(){},toast:m=>messages.push(m)},D4TripCloud:{ready:true,auth:{currentUser:account},cloudDb:{},isVerifiedOwner:()=>owner},addEventListener:(_e,f)=>authEvent=f};
- const context=vm.createContext({window,structuredClone,URL,location:{href:'https://example.com/?team=trip'},document:{addEventListener(){}},doc:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),setDoc:async(ref,data)=>{inviteWrites.push({ref,data})},onSnapshot:(ref,options,next,error)=>{listeners.push({ref,next,error});return()=>{}},serverTimestamp:()=>0,runTransaction:(_db,f)=>transaction(f)});
+ const context=vm.createContext({window,structuredClone,URL,location:{href:'https://example.com/?team=trip'},document:{addEventListener(){}},doc:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),collection:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),setDoc:async(ref,data)=>{inviteWrites.push({ref,data})},onSnapshot:(ref,options,next,error)=>{listeners.push({ref,next,error});return()=>{}},serverTimestamp:()=>0,runTransaction:(_db,f)=>transaction(f)});
  vm.runInContext(fs.readFileSync(path.join(__dirname,'team-sync.js'),'utf8').replace(/^import .*;\r?\n/,''),context);
  const snap=(entry,data,metadata={})=>entry.next({exists:()=>!!data,data:()=>data,metadata:{fromCache:false,hasPendingWrites:false,...metadata}});
  transaction=fn=>fn({get:async()=>({data:()=>({revision:1})}),set:(ref,value)=>writes.push({ref,value})});
@@ -57,6 +57,13 @@ test('Main Admin retains the exclusive Remove Access control',()=>{
  h.snap(h.listeners[0],{trip:{id:'trip'},revision:1});
  assert.equal(h.api.canRemove(),true);
  assert.match(h.api.controls({id:'trip'}),/data-team="revoke"/);
+ const grantsListener=h.listeners.find(l=>l.ref==='teamTrips/trip/access');
+ assert.ok(grantsListener,'Owner must subscribe to verified-email grants');
+ grantsListener.next({metadata:{fromCache:false},docs:[{id:'joined@example.com',data:()=>({role:'member'})}]});
+ const controls=h.api.controls({id:'trip'});
+ assert.match(controls,/joined@example.com/);
+ assert.match(controls,/data-team="revoke-email"/);
+ assert.doesNotMatch(controls,/onerror=/);
 });
 test('Member cannot add or remove any user',async()=>{
  const h=setup(false);
