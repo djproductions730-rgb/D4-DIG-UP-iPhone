@@ -100,16 +100,20 @@ test('failed storage write rolls back a new payment', () => {
   assert.equal(h.trip.collection.payments.length,0);
 });
 
-test('members view includes save-path entry and guarded removal button', () => {
+test('a single Add Member button belongs to Main Admin and Trip Admin, removal is Main Admin-only', () => {
   const h = harness();
   h.owner(true);
-  const html = h.fn.tripMembers(h.trip);
-  assert.match(html,/data-action="remove-member"/);
-  assert.match(html,/data-action="modal-add-member"/);
-  assert.doesNotMatch(html,/data-member="D"/);
+  const ownerHtml = h.fn.tripMembers(h.trip);
+  assert.match(ownerHtml,/data-action="remove-member"/);
+  assert.equal((ownerHtml.match(/data-action="modal-add-member"/g)||[]).length,1);
+  assert.doesNotMatch(ownerHtml,/data-member="D"/);
+  h.owner(false);
+  const adminHtml = h.fn.tripMembers(h.trip);
+  assert.equal((adminHtml.match(/data-action="modal-add-member"/g)||[]).length,1);
+  assert.doesNotMatch(adminHtml,/data-action="remove-member"|data-action="edit-member"|data-action="restore-member"/);
   h.allow(false);
-  const readOnly = h.fn.tripMembers(h.trip);
-  assert.doesNotMatch(readOnly,/data-action="remove-member"/);
+  const memberHtml = h.fn.tripMembers(h.trip);
+  assert.doesNotMatch(memberHtml,/data-action="modal-add-member"|data-action="remove-member"/);
 });
 
 test('chat remains upcoming for owners and members without a misleading composer', () => {
