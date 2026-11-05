@@ -74,7 +74,7 @@ async function smoke(browser,label,viewport,mobile) {
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].members.includes('New Person'),false);
   // M6 expense entry: note-only and no split controls.
-  await page.locator('[data-action="open-tab"][data-ctx="expenses"]').first().click();
+  await page.locator('.d4p-bottom [data-action="nav"][data-view="expenses"]').click();
   await page.locator('[data-action="quick-expense"]').first().click();
   assert.equal(await page.locator('[name="splitMode"]').count(),0);
   assert.equal(await page.locator('[name="participant"]').count(),0);
