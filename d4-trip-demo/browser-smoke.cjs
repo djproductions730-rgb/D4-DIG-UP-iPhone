@@ -136,6 +136,23 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].expenses[0].amount,375);
   // Exercise actual itinerary add/edit/save and completion, then member view-only UI.
   await page.locator('.d4p-bottom [data-ctx="plan"]').click();
+  // Regression: Day Planner cards, text and CTA must be reachable on iPhone-sized screens.
+  async function assertPlannerFits(selectors) {
+    const boxes=await page.evaluate(items=>items.map(selector=>{
+      const element=document.querySelector(selector);
+      if(!element)return {selector,missing:true};
+      const {left,right,width}=element.getBoundingClientRect();
+      return {selector,left,right,width};
+    }),selectors);
+    for(const box of boxes){
+      assert.ok(!box.missing,label+' missing planner element '+box.selector);
+      assert.ok(box.width>0&&box.left>=-2&&box.right<=viewport.width+2,
+        label+' planner crop: '+JSON.stringify(box));
+    }
+  }
+  await assertPlannerFits(['.plan-ui','.plan-hero','.plan-toolbar','.plan-timeline',
+    '.plan-timeline>.empty','.plan-timeline>.empty .btn','.plan-view-note']);
+  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-day-planner.png'),animations:'disabled'});
   await page.locator('[data-action="quick-plan"]').first().click();
   await page.locator('#f_title').fill('Beach walk');
   await page.locator('#f_date').selectOption('2026-11-11');
@@ -144,6 +161,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('#f_time').fill('09:30');
   await page.locator('#activeForm button[type="submit"]').click();
   await page.locator('[data-action="plan-toggle"]').first().click();
+  await assertPlannerFits(['.plan-ui','.plan-timeline','.plan-timeline>.plan-activity']);
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].plans[0].date,'2026-11-11');
   assert.equal(data.trips[0].plans[0].time,'09:30');
