@@ -28,6 +28,10 @@ for (const required of [
   'allow list: if false',
   'allow read, write: if false'
 ]) if (!rules.includes(required)) throw new Error('Missing restrictive Firestore rule: '+required);
+const inviteSyntax = spawnSync(process.execPath,['--input-type=module','--check'],{input:fs.readFileSync(path.join(dir,'team-invite-runtime.js'),'utf8'),encoding:'utf8'});
+if(inviteSyntax.status!==0)throw Error(inviteSyntax.stderr);
+const inviteTests=spawnSync(process.execPath,['--test',path.join(dir,'team-invites/service.test.cjs')],{stdio:'inherit'});
+if(inviteTests.status!==0)process.exit(inviteTests.status||1);
 const premiumTest = spawnSync(process.execPath, [path.join(dir,'premium-production.test.cjs')], {
   stdio: 'inherit'
 });
