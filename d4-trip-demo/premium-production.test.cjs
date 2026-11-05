@@ -22,14 +22,14 @@ const t = {
   id:'REAL_DOC_REFERENCE', name:'Existing trip name', destination:'Existing destination',
   start:'2026-11-06', end:'2026-11-09', members:['Member A','Member B']
 };
-let owner = true,editor = true,role = 'owner',view = 'trip',tab = 'overview';
+let owner = true,editor = true,role = 'owner',view = 'trip',tab = 'overview',hasTrip=true;
 const events = {};
 const cloud = {user:{email:'owner@example.test'}};
 const context = {
   topBar:()=>'original-header',
   entryPage: () => '<h1>My Trips</h1><button class="d4-install-help" data-action="install-help">Install D4 Trip on Phone</button>' +
     '<button class="d4-install-help" data-action="replay-intro">Replay Logo Intro</button>' +
-    'Choose a trip → Collection → Trip Dashboard',
+    '<button data-action="enter-app">Open dashboard</button>Choose a trip → Collection → Trip Dashboard',
   bottomNav: () => 'legacy-nav',
   collectionsPage: () => '<div class="d4-payment-counts">Totals</div>' +
     '<button class="cc-open-members">View Members</button>' +
@@ -45,7 +45,7 @@ const context = {
     addEventListener:(name,callback)=>{events[name]=callback}
   },
   window: {D4TripCloud:cloud,D4Team:{}},
-  current:()=>t, isMain:()=>owner, isTripAdmin:()=>editor,
+  current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
   get tripTab(){return tab},set tripTab(v){tab=v},
@@ -64,6 +64,7 @@ assert.equal(nav.includes('Memories'),false);
 assert.equal(nav.includes('Home'),false);
 const entry = context.entryPage();
 assert.match(entry, /Explore Trips/);
+assert.match(entry, /data-view="profile"[^>]*>🔐 Sign in \/ Create account/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
 const board=context.collectionsPage();
 assert.match(board, /d4p-ring/);
@@ -99,5 +100,9 @@ assert.doesNotMatch(context.tripOverview(t),/Promote Admin/);
 owner=false;editor=false;
 assert.doesNotMatch(context.tripOverview(t),/Admin Quick Actions|Promote Admin/);
 assert.match(context.profilePage(),/view-only mode/);
+assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
+hasTrip=false;
+assert.match(context.profilePage(),/data-modal="join-trip"/,'new user can enter an invite from profile');
+assert.match(context.profilePage(),/data-action="entry-back"/,'new user can return to Trips');
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 console.log('PASS: Premium D4 Trip script parses, 4 tabs, scoreboard, role-scoped actions, themes and original account panel.');
