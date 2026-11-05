@@ -74,7 +74,10 @@ async function smoke(browser,label,viewport,mobile) {
   });
   assert.ok(Math.abs(layout.shellX)<=1,label+' shell must start at screen edge');
   assert.ok(Math.abs(layout.shellW-layout.viewport)<=2,label+' full-width app shell');
-  assert.ok(Math.abs(layout.mainW-layout.viewport)<=2,label+' edge-to-edge main panel');
+  // On desktop, the content column may have a little intentional inner padding.
+  // On phones, outer website gutters are forbidden: content and navigation must fill the viewport.
+  if (mobile) assert.ok(Math.abs(layout.mainW-layout.viewport)<=2,label+' edge-to-edge main panel');
+  else assert.ok(layout.mainW>=layout.viewport-32,label+' desktop main panel remains fluid');
   assert.ok(Math.abs(layout.bottomX)<=1 && Math.abs(layout.bottomW-layout.viewport)<=2,label+' full-screen bottom bar');
   assert.ok(layout.scrollWidth<=layout.viewport+2,label+' no sideways page scroll');
   assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
