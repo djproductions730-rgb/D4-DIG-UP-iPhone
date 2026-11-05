@@ -7,7 +7,7 @@ const TRIP=/^[A-Za-z0-9_-]{1,100}$/;
 const hash=code=>createHash('sha256').update(code).digest('hex');
 const verified=auth=>{
   const uid=auth?.uid,email=String(auth?.token?.email||'').trim().toLowerCase();
-  if(!uid||auth?.token?.email_verified!==true||!^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(email))
+  if(!uid||auth?.token?.email_verified!==true||!/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(email))
     throw Error('Sign in with a verified Firebase email to join');
   return {uid,email};
 };
