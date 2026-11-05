@@ -131,3 +131,49 @@ body.d4-premium .compact-collection .cc-footnote{margin-bottom:22px!important}
   body.d4-premium .app-shell>.main{width:100%!important;max-width:100%!important;padding:0!important;margin:0!important}
   body.d4-premium .d4p-bottom{max-width:840px!important}
 }
+
+/* Full-bleed mobile app shell: never letterbox the website inside a phone viewport. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+body.d4-premium #app,body.d4-premium .app-shell,body.d4-premium .main{min-width:0}
+body.d4-premium .d4p-bottom{left:0!important;right:0!important;transform:none!important;width:100%!important;max-width:none!important;box-sizing:border-box}
+@media(max-width:760px){
+  body.d4-premium .app-shell{
+    display:block!important;width:100%!important;max-width:none!important;
+    height:100dvh!important;min-height:0!important;margin:0!important;
+    padding:0!important;border:0!important;overflow:hidden!important;
+  }
+  body.d4-premium .app-shell>.side,body.d4-premium .app-shell>.right{display:none!important}
+  body.d4-premium .app-shell>.main{
+    width:100%!important;max-width:none!important;
+    height:calc(100dvh - 72px - env(safe-area-inset-bottom))!important;
+    margin:0!important;padding:max(8px,env(safe-area-inset-top)) 0 18px!important;
+    overflow-y:auto!important;overflow-x:hidden!important;
+    overscroll-behavior:contain;scrollbar-width:none;
+  }
+  body.d4-premium .app-shell>.main::-webkit-scrollbar{display:none}
+  body.d4-premium .app-shell>.main>.row,
+  body.d4-premium .app-shell>.main>.d4p-breadcrumb,
+  body.d4-premium .app-shell>.main>.d4p-section,
+  body.d4-premium .app-shell>.main>.compact-collection,
+  body.d4-premium .app-shell>.main>.card,
+  body.d4-premium .app-shell>.main>.empty{width:100%;max-width:none;min-width:0}
+  body.d4-premium .topbar{margin:6px 9px 12px!important;width:calc(100% - 18px);box-sizing:border-box}
+  body.d4-premium .d4p-breadcrumb{padding:0 9px}
+  body.d4-premium .d4p-section{padding:0 9px 16px!important;box-sizing:border-box}
+  body.d4-premium .compact-collection{width:calc(100% - 18px)!important;max-width:none!important;margin:0 9px!important}
+  body.d4-premium .d4-new-entry{width:100%!important;max-width:none!important;margin:0!important;border:0}
+  body.d4-premium .d4-new-card-list{padding-left:9px!important;padding-right:9px!important}
+  body.d4-premium .d4p-bottom{border-radius:0!important;min-height:72px}
+  body.d4-premium .member-grid{grid-template-columns:minmax(0,1fr)!important}
+  body.d4-premium .member{min-width:0;flex-wrap:wrap;gap:8px;padding:12px 10px!important}
+  body.d4-premium .member>div:nth-child(2){flex:1 1 100px;min-width:0!important}
+  body.d4-premium .member .btn{padding:8px 10px!important}
+  body.d4-premium .d4p-nav-grid{width:100%;max-width:none}
+  body.d4-premium .d4p-nav-grid .d4p-tile{min-width:0}
+}
+@media(min-width:761px){
+  /* Keep the same single-column app layout at wider browser widths, without website gutters. */
+  body.d4-premium .app-shell{width:100%!important;max-width:none!important;padding:10px 14px calc(110px + env(safe-area-inset-bottom))!important;margin:0!important}
+  body.d4-premium .app-shell>.main{width:100%!important;max-width:none!important}
+  body.d4-premium .d4p-bottom{width:100%!important;max-width:none!important}
+}
