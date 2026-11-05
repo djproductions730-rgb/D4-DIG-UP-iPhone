@@ -1,5 +1,5 @@
-const CACHE='d4-trip-app-v9-premium-notes';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js','./team-sync.js','./premium-production.css','./premium-production.js','./shared-beta.js','./shared-runtime.js','./intro.css','./trip-intro.js','./intro-logo.svg'];
+const CACHE='d4-trip-app-v10-secure-code-prep';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js','./team-sync.js','./team-invite-runtime.js','./premium-production.css','./premium-production.js','./shared-beta.js','./shared-runtime.js','./intro.css','./trip-intro.js','./intro-logo.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
   self.skipWaiting();
