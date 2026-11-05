@@ -224,6 +224,7 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 </style>
 <link rel="stylesheet" href="./night.css" media="screen">
 <link rel="stylesheet" href="./intro.css" media="screen">
+<link rel="stylesheet" href="./premium-production.css" media="screen">
 <script defer src="./intro.js"></script>
 </head>
 <body>
@@ -687,6 +688,7 @@ window.D4TripLocal={teamId,showTeam(t){db={version:1,trips:t?[t]:[]};activeTrip=
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>
+<script src="./premium-production.js"></script>
 <script type="module" src="./firebase-sync.js"></script>
 <script type="module" src="./team-sync.js"></script>
 <script type="module" src="./shared-runtime.js"></script>
