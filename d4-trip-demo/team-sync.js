@@ -8,6 +8,7 @@ const ref=tripId=>doc(cloud().cloudDb,'teamTrips',tripId);
 const grant=(tripId,email)=>doc(ref(tripId),'access',email);
 const say=message=>local.toast(message);
 const canEdit=()=>!!user()?.emailVerified && (role==='owner'||role==='admin');
+const canRemove=()=>!!user()?.emailVerified && role==='owner' && cloud()?.isVerifiedOwner?.()===true;
 const link=tripId=>{const url=new URL(location.href);url.search='';url.searchParams.set('team',tripId);url.hash='';return url.href};
 function clear(){
  generation++;for(const stop of stops)stop();stops=[];role='';revision=0;latest=null;queued=null;writing=false;
@@ -49,10 +50,17 @@ function save(t){
  if(!t||t.id!==id||!canEdit()){if(latest)local.showTeam(structuredClone(latest.trip));say('Only trip admins can save changes.');return false}
  queued=structuredClone(t);cloud().status='Saving shared trip';void drain();return true;
 }
+async function inviteMember(email){
+ if(!id||!canEdit())throw Error('Only Main Admin and Trip Admin can add a member');
+ const normalized=String(email||'').trim().toLowerCase();
+ if(!/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(normalized))throw Error('Enter a valid Firebase account email');
+ await setDoc(grant(id,normalized),{role:'member'});
+ return normalized;
+}
 function controls(t){
  if(!id)return cloud()?.isVerifiedOwner()?'<section class="card"><h3>Team access</h3><button class="btn mint" data-team="publish">Open shared copy</button></section>':'';
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
- return '<section class="card"><h3>Team access</h3><p>Invite a verified email or issue a one-time code. Members only view; Admins can edit. Main Admin alone can assign Admins.</p><div class="row"><button class="btn mint" data-team="invite">Invite member</button>'+(role==='owner'?'<button class="btn" data-team="admin">Assign trip admin</button>':'')+'<button class="btn" data-team="revoke">Remove access</button><button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+'</section>';
+ return '<section class="card"><h3>Team access</h3><p>Use Add Member below for a name and optional verified email. Trip Admins can invite, but only Main Admin can remove joined users.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+'</section>';
 }
 async function deleteTrip(tripId,expectedName){
  if(!id||tripId!==id||!user()?.emailVerified||!cloud()?.isVerifiedOwner?.())throw Error('Only verified Main Admin can delete a shared trip.');
@@ -120,11 +128,17 @@ document.addEventListener('click',async event=>{
  const email=input.trim().toLowerCase();
  if(!/^[^\s/@]+@[^\s/@]+\.[^\s/@]+$/.test(email))throw Error('Enter a valid email');
  const r=grant(id,email);
- if(action==='revoke'){if(confirm('Remove trip access for '+email+'?')){await deleteDoc(r);say('Access removed')}return}
+ if(action==='revoke'){
+  if(!canRemove())throw Error('Only Main Admin can remove a joined user');
+  if(confirm('Remove trip access for '+email+'? Historical payments and expenses will remain saved.')){
+    await deleteDoc(r);say('Access removed by Main Admin');
+  }
+  return;
+ }
  if(action==='admin'&&role!=='owner')return;
  await setDoc(r,{role:action==='admin'?'admin':'member'});say('Access saved. Copy the trip link to share it.');
  }catch(e){say('Team access: '+e.message)}
 });
-window.D4Team={save,controls,canEdit,library,deleteTrip};
+window.D4Team={save,controls,canEdit,canRemove,inviteMember,library,deleteTrip};
 window.addEventListener('d4-auth',connect);
 if(cloud()?.ready)connect();
