@@ -16,4 +16,6 @@ window.D4_TRIP_FIREBASE_CONFIG = {
 
 // M05: secure shared groups remain OFF until verified server/App Check/rules release.
 window.D4_TRIP_SHARED_ROLLOUT = false;
+// Enable only after the separate secured team-invites Functions are deployed and tested.
+window.D4_TRIP_TEAM_CODES_ENABLED = false;
 window.D4_TRIP_APP_CHECK_SITE_KEY = '';
