@@ -66,7 +66,7 @@
   entryPage = function () {
     const html = original.entryPage();
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
-      .replace('<button data-action="enter-app">Open dashboard</button>', '')
+      .replace('<button data-action="enter-app">Open dashboard</button>', '<button type="button" data-action="nav" data-view="profile">🔐 Sign in / Create account</button>')
       .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
       .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
       .replace('Choose a trip → Collection → Trip Dashboard', 'Choose a destination to see payment progress');
@@ -164,6 +164,11 @@
         '<p class="d4p-caption">Only Main Admin can delete trips. A backup and exact-name confirmation are required. Shared and private copies are separate.</p>' +
         '<button type="button" class="btn negative" data-action="delete-trip" data-id="' + safe(t.id) + '">🗑️ Delete ' + safe(t.name) + '</button></div>'
       : '';
+    const joining = !t
+      ? '<section class="card"><h3>🔑 Join a trip</h3><p>Sign in and verify your Firebase email below, then enter the one-time code shared by your admin.</p>' +
+        '<div class="row"><button type="button" class="btn mint" data-action="modal" data-modal="join-trip">🔑 Join with Code</button>' +
+        '<button type="button" class="btn ghost" data-action="entry-back">← My Trips</button></div></section>'
+      : '';
     return '<section class="d4p-section"><div class="d4p-hero"><small>⚙️ PROFILE & SETTINGS</small>' +
       '<h2>' + safe(label) + '</h2><p>' + email + '</p></div>' +
       (tileRow(t) || '<p class="d4p-caption">Your trip spending and trip days are available in view-only mode.</p>') +
@@ -173,7 +178,7 @@
       cloudPassword +
       '<button type="button" class="btn small ghost" data-action="request-notify">🔔 Notifications</button>' +
       '</div><p class="d4p-caption">Password changes use Firebase email verification. Logout, sign-in, and Forgot Password remain in the secure Firebase account panel below.</p></div>' +
-      danger + '<h3 class="d4p-title">Firebase Account & Backup</h3>' + original.profilePage() + '</section>';
+      danger + joining + '<h3 class="d4p-title">Firebase Account & Backup</h3>' + original.profilePage() + '</section>';
   };
   document.addEventListener('click', function (event) {
     const control = event.target.closest('[data-d4-theme]');
