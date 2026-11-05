@@ -21,11 +21,17 @@ test('team roles, invitation isolation, revocation and revision checks',async()=
  await assertFails(getDoc(doc(db('member','member@test.example',false),path)));
  await assertFails(setDoc(doc(member,path),payload(2,'member')));
  await assertSucceeds(setDoc(doc(admin,path),payload(2,'admin')));
+ // Owner-only removal is enforced in Firestore rules, not just the interface.
+ await assertFails(setDoc(doc(admin,path),{...payload(3,'admin'),trip:{id:'test-trip',name:'Test Trip',members:[],expenses:[]}}));
+ await assertFails(setDoc(doc(admin,path),{...payload(3,'admin'),trip:{id:'test-trip',name:'Test Trip',members:['D'],expenses:[],archivedMembers:[{name:'D'}]}}));
  await assertFails(setDoc(doc(admin,path),payload(2,'admin')));
  await assertFails(setDoc(doc(admin,path+'/access/outsider@test.example'),{role:'admin'}));
  await assertFails(setDoc(doc(member,path+'/access/member@test.example'),{role:'admin'}));
  await assertFails(getDoc(doc(member,path+'/access/admin@test.example')));
- await assertSucceeds(deleteDoc(doc(admin,path+'/access/member@test.example')));
+ // Trip Admin cannot revoke a user, even if that user joined as a Member.
+ await assertFails(deleteDoc(doc(admin,path+'/access/member@test.example')));
+ await assertSucceeds(getDoc(doc(member,path)));
+ await assertSucceeds(deleteDoc(doc(owner,path+'/access/member@test.example')));
  await assertFails(getDoc(doc(member,path)));
  await assertFails(setDoc(doc(admin,path+'/access/other@test.example'),{role:'member',extra:true}));
  await assertFails(setDoc(doc(owner,'teamTrips/missing/access/x@test.example'),{role:'member'}));
@@ -51,6 +57,9 @@ test('team roles, invitation isolation, revocation and revision checks',async()=
  await assertFails(setDoc(doc(admin,path),payload(4,'member')));
  await assertFails(setDoc(doc(admin,path),{...payload(4,'admin'),extra:true}));
  await assertFails(setDoc(doc(admin,path),{...payload(4,'admin'),trip:{id:'different-id',name:'Test',members:[],expenses:[]}}));
+ // Admin may add a member but cannot subsequently remove that same person.
+ await assertSucceeds(setDoc(doc(admin,path),{...payload(4,'admin'),trip:{id:'test-trip',name:'Test Trip',members:['D','New Person'],expenses:[]}}));
+ await assertFails(setDoc(doc(admin,path),{...payload(5,'admin'),trip:{id:'test-trip',name:'Test Trip',members:['D'],expenses:[]}}));
  await assertSucceeds(deleteDoc(doc(owner,path+'/access/admin@test.example')));
  await assertFails(getDoc(doc(admin,path)));
  await assertFails(setDoc(doc(admin,path),payload(4,'admin')));
