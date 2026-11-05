@@ -55,8 +55,17 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(src,context,{filename:'premium-production.js'});
-assert.match(context.topBar(),/Trip Dashboard/);
+assert.match(context.topBar(),/data-action="d4-back"/);
+assert.match(context.topBar(),/Back to Payments/,'overview back leads to payments');
 assert.match(context.topBar(),/My Trips/);
+context.tripTab='plan';
+assert.match(context.topBar(),/Back to Trip Dashboard/,'trip-day back leads to dashboard');
+context.tripTab='overview';
+context.view='collections';
+assert.match(context.topBar(),/Back to My Trips/,'collections back leads to trip selection');
+context.view='profile';
+assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
+context.view='trip';
 const nav = context.bottomNav();
 assert.equal((nav.match(/<button /g)||[]).length, 4,'Exactly four bottom navigation buttons');
 for(const label of ['Expenses','Trip Days','Settings','Chats'])assert.ok(nav.includes(label));
