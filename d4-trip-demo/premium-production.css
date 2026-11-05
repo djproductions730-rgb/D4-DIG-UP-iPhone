@@ -87,3 +87,22 @@ body.d4-premium.d4-sunset{--d4-purple:#F58C42;--d4-pink:#CF3D9F}
 body.d4-premium.d4-sunset .d4p-hero,body.d4-premium.d4-sunset .d4p-chat-icon,body.d4-premium.d4-sunset :is(.btn,.cc-primary,.cc-add,.d4-new-bottom button:first-child){background:linear-gradient(115deg,#AC3D9C,#F58C42)!important;color:#fff!important}
 body.d4-premium .cc-skip:focus-visible{outline:3px solid #FFD26B!important;outline-offset:2px}
 @media(max-width:760px){body.d4-premium :is(input,textarea,select){scroll-margin-bottom:calc(120px + env(safe-area-inset-bottom))}body.d4-premium .d4p-bottom{padding-bottom:max(9px,env(safe-area-inset-bottom));}}
+
+
+/* Visual QA: reduce oversized legacy mastheads and destination rows. */
+body.d4-premium .topbar{padding:10px 14px!important;min-height:62px!important;margin:10px 0 15px!important;box-shadow:none!important}
+body.d4-premium .topbar :is(.greet,h1){display:none!important}
+body.d4-premium .topbar .mini-brand{margin:0!important}
+body.d4-premium .d4-new-card-list{align-content:start!important;grid-auto-rows:min-content!important;gap:13px!important}
+body.d4-premium .d4-new-trip-card{display:grid!important;grid-template-columns:104px minmax(0,1fr) 20px!important;align-items:center!important;gap:10px!important;min-height:150px!important;height:auto!important;max-height:204px!important;padding:9px!important}
+body.d4-premium .d4-new-trip-card .d4-new-photo{width:104px!important;min-width:0!important;height:128px!important;min-height:128px!important;max-height:128px!important;border-radius:14px!important;align-self:center!important}
+body.d4-premium .d4-new-trip-card .d4-new-details{min-height:0!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:4px!important;overflow:hidden!important}
+body.d4-premium .d4-new-trip-card .d4-new-details strong{font-size:15px!important;line-height:1.25!important;margin:0!important}
+body.d4-premium .d4-new-trip-card .d4-new-details small{font-size:11px!important;line-height:1.35!important}
+body.d4-premium .d4-new-trip-card .d4-new-money{display:none!important}
+body.d4-premium .d4-new-trip-card .d4-new-arrow{font-size:21px!important;align-self:center!important;justify-self:center!important}
+body.d4-premium .d4p-section>.d4p-hero{min-height:unset}
+body.d4-premium .d4p-section>.d4p-stats{margin:0!important}
+body.d4-premium .compact-collection .cc-top{margin-top:0}
+body.d4-premium .compact-collection .cc-footnote{margin-bottom:22px!important}
+@media(max-width:390px){body.d4-premium .d4-new-trip-card{grid-template-columns:88px minmax(0,1fr) 18px!important}body.d4-premium .d4-new-trip-card .d4-new-photo{width:88px!important;height:118px!important;min-height:118px!important;max-height:118px!important}}
