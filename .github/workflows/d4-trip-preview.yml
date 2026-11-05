@@ -1,0 +1,33 @@
+name: D4 Trip isolated staging preparation
+on:
+  pull_request:
+    paths: ['d4-trip-demo/**', '.github/workflows/d4-trip-preview.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node d4-trip-demo/check.cjs
+      - run: node d4-trip-demo/prepare-staging.cjs
+      - name: Verify staging cannot load live Firebase
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'),assert=require('assert/strict');
+          const html=fs.readFileSync('d4-trip-demo/.staging/index.html','utf8');
+          assert.doesNotMatch(html,/src="\.\/(?:firebase-config|firebase-sync|team-sync|shared-runtime)\.js"/);
+          assert.equal(JSON.parse(fs.readFileSync('d4-trip-demo/firebase.preview.json')).hosting.headers[0].headers.find(h=>h.key==='Content-Security-Policy').value.includes("connect-src 'none'"),true);
+          NODE
+      - uses: actions/upload-artifact@v4
+        with:
+          name: d4-trip-pr-2-isolated-staging
+          path: |
+            d4-trip-demo/.staging/
+            d4-trip-demo/firebase.preview.json
+          include-hidden-files: true
+          retention-days: 14

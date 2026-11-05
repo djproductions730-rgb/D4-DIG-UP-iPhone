@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   const original = {
-    entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
+    topBar: topBar, entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
     tripPage: tripPage, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
   };
   const MODE_KEY = 'd4_trip_premium_mode_v1';
@@ -56,6 +56,13 @@
       '</h3><p class="d4p-caption">Only permitted actions are shown. Firebase rules remain the authority for shared trips.</p>' +
       '<div class="d4p-grid">' + buttons.join('') + '</div>';
   }
+  topBar = function () {
+    const header = original.topBar();
+    if (!current() || view === 'collections') return header;
+    const back = '<button type="button" class="btn small ghost" data-action="open-tab" data-ctx="overview">← Trip Dashboard</button>';
+    const library = teamId ? '<a class="btn small ghost" href="./">My Trips</a>' : '<button type="button" class="btn small ghost" data-action="entry-back">My Trips</button>';
+    return header + '<div class="row d4p-breadcrumb" aria-label="Trip navigation">' + back + library + '</div>';
+  };
   entryPage = function () {
     const html = original.entryPage();
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')

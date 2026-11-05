@@ -1,0 +1,6 @@
+node_modules/
+**/.staging/
+**/preview/
+**/*debug.log
+d4-trip-demo/firebase.preview.json
+.openai/

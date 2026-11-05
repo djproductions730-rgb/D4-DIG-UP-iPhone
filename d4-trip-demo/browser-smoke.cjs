@@ -1,7 +1,7 @@
 'use strict';
 // Real Chromium smoke tests, exercising rendered screens in desktop and phone-sized viewports.
 // Runs against local static server and never contacts a live Firebase database.
-const { chromium } = require('playwright');
+const { chromium, webkit } = require('playwright');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -20,6 +20,7 @@ const seed = {
 };
 async function smoke(browser,label,viewport,mobile) {
   const context=await browser.newContext({viewport,isMobile:mobile,hasTouch:mobile});
+  await context.route(/https:\/\/(?:firestore|identitytoolkit|securetoken)\.googleapis\.com\//,route=>route.abort());
   const page=await context.newPage();
   const pageErrors=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
@@ -75,6 +76,8 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].members.includes('New Person'),false);
   // M6 expense entry: note-only and no split controls.
   await page.locator('.d4p-bottom [data-action="nav"][data-view="expenses"]').click();
+  assert.match(await page.locator('main.main').innerText(),/Day-wise records/);
+  assert.doesNotMatch(await page.locator('main.main').innerText(),/Who owes whom|Smart Split/);
   await page.locator('[data-action="quick-expense"]').first().click();
   assert.equal(await page.locator('[name="splitMode"]').count(),0);
   assert.equal(await page.locator('[name="participant"]').count(),0);
@@ -92,6 +95,41 @@ async function smoke(browser,label,viewport,mobile) {
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].expenses.length,1);
   assert.equal(data.trips[0].expenses[0].amount,375);
+  // Exercise actual itinerary add/edit/save and completion, then member view-only UI.
+  await page.locator('.d4p-bottom [data-ctx="plan"]').click();
+  await page.locator('[data-action="quick-plan"]').first().click();
+  await page.locator('#f_title').fill('Beach walk');
+  await page.locator('#f_date').selectOption('2026-11-11');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.locator('[data-action="plan-edit"]').first().click();
+  await page.locator('#f_time').fill('09:30');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.locator('[data-action="plan-toggle"]').first().click();
+  data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].plans[0].date,'2026-11-11');
+  assert.equal(data.trips[0].plans[0].time,'09:30');
+  assert.equal(data.trips[0].plans[0].done,true);
+  await page.locator('.d4p-bottom [data-view="profile"]').click();
+  await page.locator('#profileSelect').selectOption('A');
+  await page.locator('[data-action="open-tab"][data-ctx="overview"]').click();
+  assert.equal(await page.locator('[data-action="collection-quick-add"]').count(),0);
+  await page.locator('[data-action="open-tab"][data-ctx="members"]').click();
+  assert.equal(await page.locator('[data-action="modal-add-member"]').count(),0);
+  assert.equal(await page.locator('[data-action="remove-member"]').count(),0);
+  await page.locator('.d4p-bottom [data-view="expenses"]').click();
+  assert.match(await page.locator('main.main').innerText(),/Breakfast note/);
+  assert.equal(await page.locator('[data-action="edit-expense"]').count(),0);
+  assert.equal(await page.locator('[data-action="delete-expense"]').count(),0);
+  await page.locator('.d4p-bottom [data-ctx="plan"]').click();
+  assert.equal(await page.locator('[data-action="plan-edit"]').count(),0);
+  await page.locator('.d4p-bottom [data-view="chat"]').click();
+  assert.match(await page.locator('main.main').innerText(),/Coming Soon/);
+  await page.locator('.d4p-bottom [data-view="profile"]').click();
+  for(const mode of ['light','sunset','midnight']){
+    await page.locator('[data-d4-theme="'+mode+'"]').click();
+    assert.equal(await page.locator('[data-d4-theme="'+mode+'"]').getAttribute('aria-pressed'),'true');
+  }
+  await page.locator('#profileSelect').selectOption('Admin');
   await page.reload({waitUntil:'domcontentloaded'});
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
@@ -154,10 +192,12 @@ async function firstVisitIntro(browser) {
 }
 
 (async()=>{
-  const browser=await chromium.launch({headless:true});
+  const engine=process.env.D4_BROWSER||'chromium';
+  const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
   try{
-    await smoke(browser,'desktop',{width:1280,height:800},false);
-    await smoke(browser,'mobile',{width:390,height:844},true);
+    await smoke(browser,engine+'-desktop',{width:1280,height:800},false);
+    await smoke(browser,engine+'-mobile',{width:390,height:844},true);
+    await smoke(browser,engine+'-small-phone',{width:360,height:780},true);
     await firstVisitIntro(browser);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

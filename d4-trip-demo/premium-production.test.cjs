@@ -26,6 +26,7 @@ let owner = true,editor = true,role = 'owner',view = 'trip',tab = 'overview';
 const events = {};
 const cloud = {user:{email:'owner@example.test'}};
 const context = {
+  topBar:()=>'original-header',
   entryPage: () => '<h1>My Trips</h1><button class="d4-install-help" data-action="install-help">Install D4 Trip on Phone</button>' +
     '<button class="d4-install-help" data-action="replay-intro">Replay Logo Intro</button>' +
     'Choose a trip → Collection → Trip Dashboard',
@@ -54,6 +55,8 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(src,context,{filename:'premium-production.js'});
+assert.match(context.topBar(),/Trip Dashboard/);
+assert.match(context.topBar(),/My Trips/);
 const nav = context.bottomNav();
 assert.equal((nav.match(/<button /g)||[]).length, 4,'Exactly four bottom navigation buttons');
 for(const label of ['Expenses','Trip Days','Settings','Chats'])assert.ok(nav.includes(label));
