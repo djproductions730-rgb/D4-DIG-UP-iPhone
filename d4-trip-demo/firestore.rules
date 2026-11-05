@@ -59,7 +59,18 @@ service cloud.firestore {
       }
       allow get: if mainAdmin() || (verified() && access().role in ['member','admin']);
       allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
-      allow update: if editor() && validTrip() && request.resource.data.revision == resource.data.revision + 1;
+      // Trip Admins can add names, but only Main Admin can remove, rename,
+      // archive or restore people and change role-bearing roster entries.
+      function adminRosterAppendOnly() {
+        let before = resource.data.trip;
+        let after = request.resource.data.trip;
+        return after.members.hasAll(before.members) &&
+          after.get('archivedMembers', []) == before.get('archivedMembers', []) &&
+          after.get('admins', []) == before.get('admins', []);
+      }
+      allow update: if editor() && validTrip() &&
+        (mainAdmin() || adminRosterAppendOnly()) &&
+        request.resource.data.revision == resource.data.revision + 1;
       // Deleting an entire shared trip is a separate Main Admin-only destructive action.
       // The client deletes all verified-email access grants in the same transaction.
       allow delete: if mainAdmin();
@@ -73,7 +84,8 @@ service cloud.firestore {
         allow list: if mainAdmin();
         allow create: if verified() && validGrant() && (mainAdmin() || (editor() && request.resource.data.role == 'member'));
         allow update: if mainAdmin() && validGrant();
-        allow delete: if mainAdmin() || (verified() && editor() && resource.data.role == 'member');
+        // Code-joined and email-invited users can only be removed by Main Admin.
+        allow delete: if mainAdmin();
       }
     }
     match /{document=**} {
