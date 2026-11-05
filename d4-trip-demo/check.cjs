@@ -28,6 +28,10 @@ for (const required of [
   'allow list: if false',
   'allow read, write: if false'
 ]) if (!rules.includes(required)) throw new Error('Missing restrictive Firestore rule: '+required);
+const premiumTest = spawnSync(process.execPath, [path.join(dir,'premium-production.test.cjs')], {
+  stdio: 'inherit'
+});
+if (premiumTest.status !== 0) process.exit(premiumTest.status || 1);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
 const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
   stdio: 'inherit'
