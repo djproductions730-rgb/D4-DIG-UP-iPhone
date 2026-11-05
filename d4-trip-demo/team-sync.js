@@ -1,17 +1,18 @@
 import {doc,getDoc,getDocFromServer,getDocsFromServer,collection,setDoc,deleteDoc,onSnapshot,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 const local=window.D4TripLocal;
 const id=local.teamId;
-let generation=0,role='',revision=0,latest=null,queued=null,writing=false,stops=[];
+let generation=0,role='',revision=0,latest=null,queued=null,writing=false,stops=[],invited=[];
 const cloud=()=>window.D4TripCloud;
 const user=()=>cloud()?.auth?.currentUser;
 const ref=tripId=>doc(cloud().cloudDb,'teamTrips',tripId);
 const grant=(tripId,email)=>doc(ref(tripId),'access',email);
 const say=message=>local.toast(message);
+const htmlSafe=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const canEdit=()=>!!user()?.emailVerified && (role==='owner'||role==='admin');
 const canRemove=()=>!!user()?.emailVerified && role==='owner' && cloud()?.isVerifiedOwner?.()===true;
 const link=tripId=>{const url=new URL(location.href);url.search='';url.searchParams.set('team',tripId);url.hash='';return url.href};
 function clear(){
- generation++;for(const stop of stops)stop();stops=[];role='';revision=0;latest=null;queued=null;writing=false;
+ generation++;for(const stop of stops)stop();stops=[];role='';revision=0;latest=null;queued=null;writing=false;invited=[];
  if(id)local.showTeam(null);
 }
 function connect(){
@@ -24,7 +25,16 @@ function connect(){
    if(!s.exists()){failed(Error('Trip does not exist'));return}
    latest=s.data();if(!writing&&!queued){revision=latest.revision;local.showTeam(structuredClone(latest.trip))}
  },failed))};
- if(cloud().isVerifiedOwner()){role='owner';subscribe();return}
+ if(cloud().isVerifiedOwner()){
+  role='owner';subscribe();
+  // Only Main Admin can list all verified-email grants, including code-joined accounts.
+  stops.push(onSnapshot(collection(ref(id),'access'),{includeMetadataChanges:true},snap=>{
+    if(token!==generation||snap.metadata.fromCache)return;
+    invited=snap.docs.map(d=>({email:d.id,role:d.data().role})).sort((a,b)=>a.email.localeCompare(b.email));
+    local.render();
+  },failed));
+  return;
+ }
  stops.push(onSnapshot(grant(id,user().email.toLowerCase()),{includeMetadataChanges:true},s=>{
    if(token!==generation||s.metadata.fromCache)return;
    if(!s.exists()){failed(Error('Ask your trip admin to invite this email.'));return}
@@ -58,9 +68,11 @@ async function inviteMember(email){
  return normalized;
 }
 function controls(t){
+ const accounts=canRemove()?'<div class="card" style="margin-top:12px"><h4>Joined Firebase accounts</h4><p class="tiny">Only Main Admin can remove access. Payment and expense history remains saved.</p>'+
+  (invited.length?invited.map(g=>'<div class="list-row" style="gap:10px;display:flex;justify-content:space-between;align-items:center"><span style="overflow-wrap:anywhere"><b>'+htmlSafe(g.email)+'</b><small>'+htmlSafe(g.role)+'</small></span><button type="button" class="btn small negative" data-team="revoke-email" data-email="'+htmlSafe(g.email)+'">Remove</button></div>').join(''):'<p class="tiny">No invited accounts yet.</p>')+'</div>':'';
  if(!id)return cloud()?.isVerifiedOwner()?'<section class="card"><h3>Team access</h3><button class="btn mint" data-team="publish">Open shared copy</button></section>':'';
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
- return '<section class="card"><h3>Team access</h3><p>Use Add Member below for a name and optional verified email. Trip Admins can invite, but only Main Admin can remove joined users.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+'</section>';
+ return '<section class="card"><h3>Team access</h3><p>Use Add Member below for a name and optional verified email. Trip Admins can invite, but only Main Admin can remove joined users.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+accounts+'</section>';
 }
 async function deleteTrip(tripId,expectedName){
  if(!id||tripId!==id||!user()?.emailVerified||!cloud()?.isVerifiedOwner?.())throw Error('Only verified Main Admin can delete a shared trip.');
@@ -117,6 +129,15 @@ document.addEventListener('click',async event=>{
   location.assign(link(trip.id));return;
  }
  if(!id||!canEdit())return;
+ if(action==='revoke-email'){
+  if(!canRemove())throw Error('Only Main Admin can remove a joined user');
+  const email=event.target.closest('[data-team]')?.dataset.email;
+  if(!invited.some(g=>g.email===email))throw Error('User already removed or list is out of date');
+  if(confirm('Remove '+email+' from this shared trip? Existing payments and expenses will be preserved.')){
+    await deleteDoc(grant(id,email));say('Access removed by Main Admin');
+  }
+  return;
+ }
  if(action==='member-code'||action==='admin-code'){
   const invite=window.D4TripInvite;
   if(!invite?.available)throw Error('Code joining is not enabled on this app yet');
