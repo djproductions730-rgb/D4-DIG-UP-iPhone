@@ -595,6 +595,8 @@ case 'expense':case 'expense-edit':{
  if(!t.members.includes(paidBy))throw Error('Choose a valid member');
  const old=name==='expense-edit'?t.expenses.find(x=>x.id===modalContext.expenseId):null;
  if(name==='expense-edit'&&!old)throw Error('Expense no longer exists');
+ if(old && old.mode!=='note' && Math.round(amount*100)!==Math.round(Number(old.amount)*100))
+   throw Error('Legacy split expense amount is locked to preserve historic allocations. Edit notes or add a separate adjustment.');
  const attachment=await readAttachment(fd.get('receipt'));
  const updated={category:String(fd.get('category')),date,amount:Math.round(amount*100)/100,
   paidBy,method:String(fd.get('method')||'Other'),note,receipt:attachment??old?.receipt??null};
