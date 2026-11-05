@@ -106,3 +106,12 @@ body.d4-premium .d4p-section>.d4p-stats{margin:0!important}
 body.d4-premium .compact-collection .cc-top{margin-top:0}
 body.d4-premium .compact-collection .cc-footnote{margin-bottom:22px!important}
 @media(max-width:390px){body.d4-premium .d4-new-trip-card{grid-template-columns:88px minmax(0,1fr) 18px!important}body.d4-premium .d4-new-trip-card .d4-new-photo{width:88px!important;height:118px!important;min-height:118px!important;max-height:118px!important}}
+
+
+/* Desktop also presents the same uncluttered four-tab app shell: legacy sidebars are retained in source but hidden. */
+@media(min-width:761px){
+  body.d4-premium .app-shell{display:block!important;grid-template-columns:none!important;width:min(100%,840px)!important;max-width:840px!important;padding:18px 22px calc(110px + env(safe-area-inset-bottom))!important;margin:0 auto!important}
+  body.d4-premium .app-shell>.side,body.d4-premium .app-shell>.right{display:none!important}
+  body.d4-premium .app-shell>.main{width:100%!important;max-width:100%!important;padding:0!important;margin:0!important}
+  body.d4-premium .d4p-bottom{max-width:840px!important}
+}
