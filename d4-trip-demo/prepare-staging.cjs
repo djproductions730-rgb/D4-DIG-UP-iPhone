@@ -5,7 +5,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const root=__dirname,out=path.join(root,'.staging');
 fs.mkdirSync(out,{recursive:true});
-const assets=['night.css','premium-production.css','premium-production.js','shared-beta.js','trip-intro.js','intro.css','intro-logo.svg','icon.svg','manifest.webmanifest','fjord.webp','summit.webp','dunes.webp'];
+const assets=['night.css','premium-production.css','premium-production.js','team-invite-runtime.js','shared-beta.js','trip-intro.js','intro.css','intro-logo.svg','icon.svg','manifest.webmanifest','fjord.webp','summit.webp','dunes.webp'];
 for(const file of assets)fs.copyFileSync(path.join(root,file),path.join(out,file));
 let html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 html=html.replace('./firebase-config.js','./staging-bootstrap.js')
@@ -16,7 +16,7 @@ fs.writeFileSync(path.join(out,'index.html'),html);
 const fixture={version:1,trips:[{id:'staging-goa',name:'Goa · Staging Sample',destination:'Goa',start:'2026-11-10',end:'2026-11-12',kind:'goa',emoji:'🏝️',code:'SAMPLE-ONLY',members:['D','Admin','Member'],admins:['Admin'],collection:{targetPerPerson:8000,payments:[{id:'sample-pay',member:'Member',amount:3000,method:'UPI',note:'ADVANCE · Sample',date:'2026-11-10'}]},plans:[{id:'sample-plan',date:'2026-11-10',time:'08:00',title:'Breakfast together',place:'Hotel cafe',category:'Food',done:false}],expenses:[{id:'sample-expense',amount:325,date:'2026-11-10',paidBy:'Admin',category:'Food & Dining',method:'UPI',note:'Breakfast · Sample expense',mode:'note',participants:[],shares:null,receipt:null}],settlementsPaid:[],reminders:[],notes:[],files:[],memories:[],chats:{admins:[],group:[]}}]};
 fs.writeFileSync(path.join(out,'staging-bootstrap.js'),`'use strict';
 window.D4_TRIP_FIREBASE_CONFIG=null;
-window.D4_TRIP_SHARED_ROLLOUT=false;
+window.D4_TRIP_SHARED_ROLLOUT=false;\nwindow.D4_TRIP_TEAM_CODES_ENABLED=false;
 (function(){
  const role=localStorage.getItem('d4_stage_role')||'owner';
  const name=role==='owner'?'D':role==='admin'?'Admin':'Member';
