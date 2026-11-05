@@ -183,7 +183,7 @@ async function joinCodeFeedback(browser) {
   await page.locator('#f_code').fill('D4NOTHERE');
   await page.locator('#activeForm button[type="submit"]').click();
   await page.locator('#joinFeedback').waitFor({state:'visible'});
-  assert.match(await page.locator('#joinFeedback').innerText(),/not available on this device/);
+  assert.match(await page.locator('#joinFeedback').innerText(),/Cloud code joining is not active yet/);
   const toastZ=await page.locator('#toast').evaluate(el=>Number(getComputedStyle(el).zIndex));
   const modalZ=await page.locator('.modal-backdrop').evaluate(el=>Number(getComputedStyle(el).zIndex));
   assert.ok(toastZ>modalZ,'Join error toast must appear above modal');
