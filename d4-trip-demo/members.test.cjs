@@ -10,7 +10,7 @@ const setup=(admin=true,owner=true,save=true)=>setupContext(admin,owner,save).ch
 const trip=()=>({members:['D','Arun','Mani'],admins:['Arun'],expenses:[{paidBy:'Mani',participants:['Mani','Arun'],shares:{Mani:100}}],collection:{payments:[{member:'Mani',amount:100}]},settlementsPaid:[{from:'Mani',to:'Arun'}],chats:{group:[{from:'Mani'}],admins:[]}});
 test('rename updates payments, shares, expenses, settlements and message authors',()=>{const t=trip();setup()(t,'Mani','Mani K');assert.equal(t.expenses[0].paidBy,'Mani K');assert.equal(t.expenses[0].shares['Mani K'],100);assert.equal(t.expenses[0].shares.Mani,undefined);assert.equal(t.collection.payments[0].member,'Mani K');assert.equal(t.settlementsPaid[0].from,'Mani K');assert.equal(t.chats.group[0].from,'Mani K');});
 test('only Main Admin may remove, rename or restore members',()=>{
- assert.throws(()=>setup(false)(trip(),'Mani','M'),/Only Main Admin/);
+ assert.throws(()=>setup(false,false)(trip(),'Mani','M'),/Only Main Admin/);
  assert.throws(()=>setup(true,false)(trip(),'Mani','M'),/Only Main Admin/);
  assert.throws(()=>setup(true,false)(trip(),'Mani','',true),/Only Main Admin/);
  assert.throws(()=>setup(true,false)(trip(),'Arun','A'),/Only Main Admin/);
