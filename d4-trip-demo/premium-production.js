@@ -53,12 +53,21 @@
       '</h3><p class="d4p-caption">Only permitted actions are shown. Firebase rules remain the authority for shared trips.</p>' +
       '<div class="d4p-grid d4p-admin-grid">' + buttons.join('') + '</div>';
   }
+  // A clear, reachable Back action on every inner screen (never a dead-end tab).
   topBar = function () {
     const header = original.topBar();
-    if (!current() || view === 'collections') return header;
-    const back = '<button type="button" class="btn small ghost" data-action="open-tab" data-ctx="overview">← Trip Dashboard</button>';
-    const library = teamId ? '<a class="btn small ghost" href="./">My Trips</a>' : '<button type="button" class="btn small ghost" data-action="entry-back">My Trips</button>';
-    return header + '<div class="row d4p-breadcrumb" aria-label="Trip navigation">' + back + library + '</div>';
+    const t = current();
+    const isTripDetail = view === 'trip' && tripTab !== 'overview';
+    const destination = isTripDetail ? 'Trip Dashboard' :
+      view === 'trip' ? 'Payments' :
+      view === 'collections' || view === 'home' || view === 'trips' ? 'My Trips' :
+      t ? 'Trip Dashboard' : 'My Trips';
+    const back = '<button type="button" class="d4p-nav-back" data-action="d4-back" aria-label="Back to ' +
+      destination + '">← Back <span>' + destination + '</span></button>';
+    const library = view === 'entry' ? '' : teamId
+      ? '<a class="d4p-nav-library" href="./">My Trips</a>'
+      : '<button type="button" class="d4p-nav-library" data-action="entry-back">My Trips</button>';
+    return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header;
   };
   entryPage = function () {
     const html = original.entryPage();
