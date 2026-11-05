@@ -73,6 +73,25 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('[data-action="remove-member"][data-member="New Person"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].members.includes('New Person'),false);
+  // M6 expense entry: note-only and no split controls.
+  await page.locator('[data-action="open-tab"][data-ctx="expenses"]').first().click();
+  await page.locator('[data-action="quick-expense"]').first().click();
+  assert.equal(await page.locator('[name="splitMode"]').count(),0);
+  assert.equal(await page.locator('[name="participant"]').count(),0);
+  await page.locator('#f_amount').fill('325');
+  await page.locator('#f_note').fill('Breakfast note');
+  await page.locator('#activeForm button[type="submit"]').click();
+  data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].expenses.length,1);
+  assert.equal(data.trips[0].expenses[0].amount,325);
+  assert.equal(data.trips[0].expenses[0].mode,'note');
+  assert.deepEqual(data.trips[0].expenses[0].participants,[]);
+  await page.locator('[data-action="edit-expense"]').first().click();
+  await page.locator('#f_amount').fill('375');
+  await page.locator('#activeForm button[type="submit"]').click();
+  data=await page.evaluate(()=>window.D4TripLocal.getData());
+  assert.equal(data.trips[0].expenses.length,1);
+  assert.equal(data.trips[0].expenses[0].amount,375);
   await page.reload({waitUntil:'domcontentloaded'});
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
