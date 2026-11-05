@@ -60,6 +60,9 @@ service cloud.firestore {
       allow get: if mainAdmin() || (verified() && access().role in ['member','admin']);
       allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
       allow update: if editor() && validTrip() && request.resource.data.revision == resource.data.revision + 1;
+      // Deleting an entire shared trip is a separate Main Admin-only destructive action.
+      // The client deletes all verified-email access grants in the same transaction.
+      allow delete: if mainAdmin();
       match /access/{email} {
         function validGrant() {
           let d = request.resource.data;
