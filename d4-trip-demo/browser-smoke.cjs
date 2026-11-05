@@ -100,7 +100,8 @@ async function smoke(browser,label,viewport,mobile) {
   await page.screenshot({path:output,animations:'allow'});
   await page.locator('[data-d4-intro-skip]').click();
   await page.locator('#d4Intro').waitFor({state:'hidden'});
-  assert.equal(await page.locator('[data-action="entry-select-trip"]').first().isVisible(),true);
+  // Replay was launched from Settings, so it should return to the same screen.
+  assert.equal(await page.locator('#d4-cloud-panel').isVisible(),true);
   assert.deepEqual(pageErrors,[],label+' runtime exceptions');
   await context.close();
   console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
