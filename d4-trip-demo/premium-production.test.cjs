@@ -34,6 +34,7 @@ const context = {
     '<button class="cc-open-members">View Members</button>' +
     '<button>✈️ Enter Trip →</button>',
   tripOverview: () => 'legacy-overview',
+  tripPage: () => 'legacy-page',tripPlan:()=> 'original-plan',tripExpenses:()=> 'original-expenses',tripMembers:()=> 'original-members',
   profilePage: () => '<section id="real-account-panel">Existing Firebase account UI</section>',
   chatsPage: () => 'legacy-live-chat',
   localStorage: {getItem:()=>null,setItem:()=>{}},
@@ -73,6 +74,8 @@ assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock na
 assert.match(dashboard,/Payment Scoreboard/);
 assert.match(dashboard,/Members/);
 assert.match(dashboard,/Main Admin Quick Actions/);
+assert.match(context.tripPage(),/Existing destination/);
+context.tripTab='plan';assert.match(context.tripPage(),/original-plan/);context.tripTab='overview';
 assert.match(dashboard,/Promote Admin/);
 assert.match(dashboard,/Demote Admin/);
 assert.match(dashboard,/Add Expense/);
