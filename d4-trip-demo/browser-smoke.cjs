@@ -169,7 +169,7 @@ async function smoke(browser,label,viewport,mobile) {
 }
 async function joinCodeFeedback(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-  await context.route(/https:\\/\\/(?:firestore|identitytoolkit|securetoken)\\.googleapis\\.com\\//,route=>route.abort());
+  await context.route('**/*googleapis.com/*',route=>route.abort());
   const page=await context.newPage();
   const errors=[];
   page.on('pageerror',error=>errors.push(error.message));
