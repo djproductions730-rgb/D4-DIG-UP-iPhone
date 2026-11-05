@@ -62,6 +62,16 @@ async function smoke(browser,label,viewport,mobile) {
   assert.match(await page.locator('.cc-popup-total').innerText(),/Paid 1/);
   await page.locator('[data-action="close-modal"]').last().click();
   await page.locator('[data-action="enter-selected-trip"]').first().click();
+  const navGrid=page.locator('.d4p-nav-grid');
+  await navGrid.waitFor();
+  assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
+  assert.equal(await navGrid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,
+    label+' navigation renders three equal columns');
+  assert.ok(await navGrid.locator('button').first().evaluate(el=>el.getBoundingClientRect().height)>=110);
+  assert.equal(await page.locator('[data-action="open-tab"][data-ctx="settle"]').count(),0);
+  await navGrid.locator('[data-ctx="reminders"]').click();
+  assert.match(await page.locator('main.main').innerText(),/Reminders & group alerts/);
+  await page.locator('.d4p-breadcrumb [data-action="open-tab"][data-ctx="overview"]').click();
   await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-dashboard.png'),animations:'disabled'});
   await page.locator('[data-action="open-tab"][data-ctx="members"]').first().click();
