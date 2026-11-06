@@ -48,6 +48,11 @@ service cloud.firestore {
         return get(/databases/$(database)/documents/teamTrips/$(tripId)/access/$(request.auth.token.email.lower())).data;
       }
       function editor() { return mainAdmin() || (verified() && access().role == 'admin'); }
+      function guestMember() {
+        return signedIn() &&
+          exists(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)).data.role == 'member';
+      }
       function validTrip() {
         let d = request.resource.data;
         return d.keys().hasOnly(['trip','revision','updatedBy','updatedAt']) &&
@@ -57,7 +62,7 @@ service cloud.firestore {
           d.trip.expenses is list && d.trip.expenses.size() <= 1000 &&
           d.revision is int && d.updatedBy == request.auth.uid && d.updatedAt == request.time;
       }
-      allow get: if mainAdmin() || (verified() && access().role in ['member','admin']);
+      allow get: if mainAdmin() || (verified() && access().role in ['member','admin']) || guestMember();
       allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
       // Trip Admins can add names, but only Main Admin can remove, rename,
       // archive or restore people and change role-bearing roster entries.
@@ -74,6 +79,72 @@ service cloud.firestore {
       // Deleting an entire shared trip is a separate Main Admin-only destructive action.
       // The client deletes all verified-email access grants in the same transaction.
       allow delete: if mainAdmin();
+      // Approval-based link joining, independent from old verified-email grants.
+      // A guest can only see their own request; trip details remain private until
+      // a trusted admin transaction approves AND grants this exact Firebase UID.
+      match /joinRequests/{guestUid} {
+        function ownRequest() {
+          return signedIn() && request.auth.uid == guestUid;
+        }
+        function validNewRequest() {
+          let d = request.resource.data;
+          return ownRequest() &&
+            exists(/databases/$(database)/documents/teamTrips/$(tripId)) &&
+            d.keys().hasAll(['uid','name','status','createdAt']) &&
+            d.keys().hasOnly(['uid','name','status','createdAt']) &&
+            d.uid == guestUid &&
+            d.name is string && d.name.size() >= 2 && d.name.size() <= 50 &&
+            d.status == 'pending' &&
+            d.createdAt == request.time;
+        }
+        function validDecision() {
+          let d = request.resource.data;
+          let grantPath = /databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(guestUid);
+          let tripPath = /databases/$(database)/documents/teamTrips/$(tripId);
+          return editor() && resource.data.status == 'pending' &&
+            d.keys().hasAll(['uid','name','status','createdAt','joinedName','decidedAt','decidedByUid','decidedByEmail']) &&
+            d.keys().hasOnly(['uid','name','status','createdAt','joinedName','decidedAt','decidedByUid','decidedByEmail']) &&
+            d.uid == guestUid && d.name == resource.data.name &&
+            d.createdAt == resource.data.createdAt &&
+            d.joinedName is string && d.joinedName.size() <= 70 &&
+            d.decidedAt == request.time &&
+            d.decidedByUid == request.auth.uid &&
+            d.decidedByEmail == request.auth.token.email &&
+            ( (d.status == 'rejected' && d.joinedName == '') ||
+              (d.status == 'approved' && d.joinedName.size() >= 2 &&
+                getAfter(grantPath).data.role == 'member' &&
+                getAfter(grantPath).data.name == d.joinedName &&
+                getAfter(tripPath).data.trip.members.hasAny([d.joinedName])) );
+        }
+        allow get: if ownRequest() || editor();
+        allow list: if editor();
+        allow create: if validNewRequest();
+        allow update: if validDecision();
+        allow delete: if mainAdmin();
+      }
+      match /accessUid/{guestUid} {
+        function ownGrant() { return signedIn() && request.auth.uid == guestUid; }
+        function validApprovedGrant() {
+          let d = request.resource.data;
+          let joinPath = /databases/$(database)/documents/teamTrips/$(tripId)/joinRequests/$(guestUid);
+          return editor() &&
+            d.keys().hasAll(['role','name','grantedAt','grantedByUid']) &&
+            d.keys().hasOnly(['role','name','grantedAt','grantedByUid']) &&
+            d.role == 'member' && d.name is string &&
+            d.name.size() >= 2 && d.name.size() <= 70 &&
+            d.grantedAt == request.time && d.grantedByUid == request.auth.uid &&
+            get(joinPath).data.status == 'pending' &&
+            getAfter(joinPath).data.status == 'approved' &&
+            getAfter(joinPath).data.joinedName == d.name &&
+            getAfter(joinPath).data.decidedByUid == request.auth.uid;
+        }
+        allow get: if ownGrant() || editor();
+        allow list: if mainAdmin();
+        allow create: if validApprovedGrant();
+        allow update: if false;
+        // Even Trip Admins cannot reinstate a member after Main Admin removes access.
+        allow delete: if mainAdmin();
+      }
       match /access/{email} {
         function validGrant() {
           let d = request.resource.data;
