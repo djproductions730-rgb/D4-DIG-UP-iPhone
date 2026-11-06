@@ -82,12 +82,25 @@
     const t = current();
     if (!t) return html;
     const c = collectionTotals(t);
+    // Breakdown Option 3: totals use the original ledger calculations unchanged.
+    // Partial/advance is a SUBSET of received, never counted a second time.
+    const advance = c.rows.filter(r=>r.status==='Partial').reduce((sum,r)=>sum+r.paid,0);
+    const fullReceived = c.paid-advance;
+    const breakdown = '<section class="d4-blue-breakdown" aria-label="Detailed payment breakdown">'+
+      '<div class="d4-blue-breakdown-head"><span>💳 DETAILED PAYMENT BREAKDOWN</span><strong>'+c.progress+'% received</strong></div>'+
+      '<div class="d4-blue-breakdown-row"><span>🎯 Total Trip Amount</span><strong>'+money(c.target)+'</strong></div>'+
+      '<div class="d4-blue-breakdown-row"><span>✅ Paid in Full</span><strong>'+money(fullReceived)+'</strong></div>'+
+      '<div class="d4-blue-breakdown-row"><span>💠 Advance / Partial Paid</span><strong>'+money(advance)+'</strong></div>'+
+      '<div class="d4-blue-breakdown-row d4-blue-total"><span>💰 Total Received</span><strong>'+money(c.paid)+'</strong></div>'+
+      '<div class="d4-blue-breakdown-row d4-blue-outstanding"><span>⏳ Remaining Amount</span><strong>'+money(c.pending)+'</strong></div>'+
+      '<p class="d4p-caption">Advance is included in Total Received. Remaining amounts are calculated from member balances; archived payments stay in history.</p>'+
+      '<div class="d4-blue-status"><span>✅ '+c.full+' Paid</span><span>🟠 '+c.partial+' Partial</span><span>🔴 '+c.unpaid+' Unpaid</span></div></section>';
     const ring = '<section class="d4p-progress" aria-label="Payment progress ' + c.progress +
       ' percent"><div class="d4p-ring" style="--progress:' + c.progress +
-      '%"><span>' + c.progress + '%</span></div><div><strong>Payment progress</strong><p>' +
+      '%"><span>' + c.progress + '%</span></div><div><strong>Collected so far</strong><p>' +
       c.full + ' paid · ' + c.partial + ' partial · ' + c.unpaid + ' unpaid</p>' +
       '<p>' + money(c.paid) + ' received of ' + money(c.target) + '</p></div></section>';
-    return html.replace('<div class="d4-payment-counts">', ring + '<div class="d4-payment-counts">')
+    return html.replace('<div class="d4-payment-counts">', breakdown + ring + '<div class="d4-payment-counts">')
       .replace('✈️ Enter Trip →', 'Continue →')
       .replace('<button class="cc-open-members"',
         '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
@@ -158,6 +171,13 @@
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
       days + '</strong></div><div class="d4p-stat"><small>Remaining</small><strong>' +
       money(c.pending) + '</strong></div></div>' +
+      '<h3 class="d4p-title">Plan & Explore</h3>'+
+      '<div class="d4-blue-category-row" aria-label="Trip activity categories">'+
+      button('✈️','Travel','open-tab','data-ctx="plan"')+
+      button('🍽️','Food & Drinks','open-tab','data-ctx="plan"')+
+      button('🌍','Explore','open-tab','data-ctx="plan"')+
+      button('🏨','Hotel & Stay','open-tab','data-ctx="plan"')+
+      '</div>'+
       '<h3 class="d4p-title">Trip Sections</h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">' +
       button('🏠','Overview','open-tab','data-ctx="overview" aria-current="page"') +
       button('📅','Day Plan','open-tab','data-ctx="plan"') +
@@ -199,7 +219,7 @@
     const label = isMain() ? 'Main Admin' : (t && isTripAdmin(t) ? 'Trip Admin' : 'Member');
     const email = account?.email ? safe(account.email) : 'Sign in to manage your cloud account';
     const modeButtons = modes.map(function (name) {
-      const title = name === 'midnight' ? '🌙 Midnight' : name === 'light' ? '☀️ Light' : '🌅 Sunset';
+      const title = name === 'midnight' ? '🌊 Ocean Blue' : name === 'light' ? '☀️ Light' : '🌅 Sunset';
       return '<button type="button" data-d4-theme="' + name + '" aria-pressed="' +
         (name === mode ? 'true' : 'false') + '">' + title + '</button>';
     }).join('');
