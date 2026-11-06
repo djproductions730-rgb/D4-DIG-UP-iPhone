@@ -47,7 +47,6 @@
       }
     } else if (isMain()) {
       buttons.push(button('🛡️', 'Assign Trip Admin', 'modal', 'data-modal="assign-admin"'));
-      buttons.push(button('🔑', 'Manage Trip Code', 'modal', 'data-modal="new-code"'));
     }
     return '<h3 class="d4p-title">' + (isMain() ? 'Main Admin Quick Actions' : 'Admin Quick Actions') +
       '</h3><p class="d4p-caption">Only permitted actions are shown. Firebase rules remain the authority for shared trips.</p>' +
@@ -69,13 +68,47 @@
       : '<button type="button" class="d4p-nav-library" data-action="entry-back">My Trips</button>';
     return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
   };
+  function inviteLinkCard() {
+    return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join by name">'+
+      '<h2>🔗 Join a Trip by Name</h2>'+
+      '<p>Ask Main Admin or Trip Admin to share their trip link. Open it to enter your name and request approval. No email, password or trip code required.</p>'+
+      '<form id="d4-open-trip-link" style="display:grid;gap:10px">'+
+      '<label for="d4-trip-link-input">Paste your trip invitation link</label>'+
+      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" placeholder="https://d4-trip.web.app/?team=..." required>'+
+      '<button type="submit" class="btn mint block">Continue to Name &amp; Approval</button></form>'+
+      '</section>';
+  }
+  document.addEventListener('submit', function(event){
+    if(event.target?.id!=='d4-open-trip-link')return;
+    event.preventDefault();
+    const value=String(new FormData(event.target).get('tripLink')||'').trim();
+    try {
+      const url=new URL(value);
+      const trip=url.searchParams.get('team');
+      if(!trip || !/^[A-Za-z0-9_-]{1,100}$/.test(trip))throw Error('Use a valid Trip Share Link from your admin.');
+      if(url.origin!==location.origin || url.pathname!==location.pathname)
+        throw Error('This link must be for the same D4 Trip app.');
+      location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
+    } catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link');}
+  });
+  document.addEventListener('click',function(event){
+    const button=event.target.closest('[data-action="d4-open-invite"]');
+    if(!button)return;
+    event.preventDefault();
+    event.stopPropagation();
+    view='entry';
+    render();
+    document.querySelector('#d4-invite-link-card')?.scrollIntoView({block:'center',behavior:'smooth'});
+    document.querySelector('#d4-trip-link-input')?.focus({preventScroll:true});
+  },true);
   entryPage = function () {
     const html = original.entryPage();
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
       .replace('<button data-action="enter-app">Open dashboard</button>', '<button type="button" data-action="nav" data-view="profile">🔐 Sign in / Create account</button>')
       .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
       .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
-      .replace('Choose a trip → Collection → Trip Dashboard', 'Choose a destination to see payment progress');
+      .replace('Choose a trip → Collection → Trip Dashboard', 'Open your invitation link, enter your name, and wait for admin approval')
+      .replace('<div class="d4-new-disclaimer">', inviteLinkCard()+'<div class="d4-new-disclaimer">');
   };
   collectionsPage = function () {
     const html = original.collectionsPage();
@@ -232,8 +265,9 @@
         '<button type="button" class="btn negative" data-action="delete-trip" data-id="' + safe(t.id) + '">🗑️ Delete ' + safe(t.name) + '</button></div>'
       : '';
     const joining = !t
-      ? '<section class="card"><h3>🔑 Join a trip</h3><p>Sign in and verify your Firebase email below, then enter the one-time code shared by your admin.</p>' +
-        '<div class="row"><button type="button" class="btn mint" data-action="modal" data-modal="join-trip">🔑 Join with Code</button>' +
+      ? '<section class="card"><h3>🔗 Join a Trip by Name</h3>'+
+        '<p>Open the trip invitation link from Main Admin or Trip Admin. Enter only your name and request approval.</p>'+
+        '<div class="row"><button type="button" class="btn mint" data-action="d4-open-invite">Open Trip Link</button>'+
         '<button type="button" class="btn ghost" data-action="entry-back">← My Trips</button></div></section>'
       : '';
     return '<section class="d4p-section"><div class="d4p-hero"><small>⚙️ PROFILE & SETTINGS</small>' +
