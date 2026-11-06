@@ -190,6 +190,42 @@ service cloud.firestore {
         // Code-joined and email-invited users can only be removed by Main Admin.
         allow delete: if mainAdmin();
       }
+      // Real-time text chat is independent of the trip revision/snapshot.
+      // Firestore authorization is checked again on every read or write.
+      match /chats/{roomId}/messages/{messageId} {
+        function memberOfTrip() {
+          return exists(/databases/$(database)/documents/teamTrips/$(tripId)) &&
+            (mainAdmin() ||
+              (hasEmailGrant() && access().role in ['member','admin']) ||
+              guestMember());
+        }
+        function roomAllowed() {
+          return roomId == 'group' && memberOfTrip() ||
+            roomId == 'admins' && memberOfTrip() && editor();
+        }
+        function authorName() {
+          return mainAdmin() ? 'Main Admin' :
+            (hasUidGrant() && uidAccess().role in ['member','admin'])
+              ? uidAccess().name : request.auth.token.get('email','').lower();
+        }
+        function validMessage() {
+          let m = request.resource.data;
+          return m.keys().hasAll(['senderUid','senderName','text','createdAt']) &&
+            m.keys().hasOnly(['senderUid','senderName','text','createdAt','replyTo']) &&
+            m.senderUid == request.auth.uid &&
+            m.senderName is string && m.senderName.size() >= 2 &&
+            m.senderName.size() <= 254 && m.senderName == authorName() &&
+            m.text is string && m.text.size() >= 1 && m.text.size() <= 2000 &&
+            m.createdAt == request.time &&
+            m.get('replyTo','') is string && m.get('replyTo','').size() <= 100;
+        }
+        allow get: if roomAllowed();
+        allow list: if roomAllowed() && request.query.limit <= 100;
+        allow create: if roomAllowed() && validMessage();
+        allow update: if false;
+        allow delete: if roomAllowed() &&
+          (resource.data.senderUid == request.auth.uid || mainAdmin());
+      }
     }
     match /{document=**} {
       allow read, write: if false;
