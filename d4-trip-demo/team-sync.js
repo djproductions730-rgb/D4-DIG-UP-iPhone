@@ -17,29 +17,53 @@ function clear(){
 }
 function connect(){
  clear();
- if(!id||!user()?.emailVerified)return;
+ if(!id||!user())return;
  const token=generation;
- const failed=e=>{if(token===generation){clear();say('Trip access unavailable: '+e.message)}};
- const subscribe=()=>{stops.push(onSnapshot(ref(id),{includeMetadataChanges:true},s=>{
-   if(token!==generation||s.metadata.hasPendingWrites||s.metadata.fromCache)return;
-   if(!s.exists()){failed(Error('Trip does not exist'));return}
-   latest=s.data();if(!writing&&!queued){revision=latest.revision;local.showTeam(structuredClone(latest.trip))}
- },failed))};
+ const failed=e=>{if(token===generation){say('Trip access unavailable: '+e.message);clear()}};
+ let subscribed=false,emailRole='',uidRole='';
+ const subscribe=()=>{
+   if(subscribed)return;
+   subscribed=true;
+   stops.push(onSnapshot(ref(id),{includeMetadataChanges:true},s=>{
+     if(token!==generation||s.metadata.hasPendingWrites||s.metadata.fromCache)return;
+     if(!s.exists()){failed(Error('Trip does not exist'));return}
+     latest=s.data();
+     if(!writing&&!queued){revision=latest.revision;local.showTeam(structuredClone(latest.trip))}
+   },failed));
+ };
+ const setRole=()=>{
+   if(token!==generation)return;
+   const next=emailRole==='admin'?'admin':emailRole==='member'?'member':uidRole==='member'?'member':'';
+   if(role===next)return;
+   const wasAuthorized=!!role;
+   role=next;
+   if(next)subscribe();
+   if(wasAuthorized&&!next){connect();return}
+   local.render();
+   window.D4TripJoin?.accessChanged?.();
+ };
  if(cloud().isVerifiedOwner()){
-  role='owner';subscribe();
-  // Only Main Admin can list all verified-email grants, including code-joined accounts.
-  stops.push(onSnapshot(collection(ref(id),'access'),{includeMetadataChanges:true},snap=>{
-    if(token!==generation||snap.metadata.fromCache)return;
-    invited=snap.docs.map(d=>({email:d.id,role:d.data().role})).sort((a,b)=>a.email.localeCompare(b.email));
-    local.render();
-  },failed));
-  return;
+   role='owner';subscribe();
+   stops.push(onSnapshot(collection(ref(id),'access'),{includeMetadataChanges:true},snap=>{
+     if(token!==generation||snap.metadata.fromCache)return;
+     invited=snap.docs.map(d=>({email:d.id,role:d.data().role})).sort((a,b)=>a.email.localeCompare(b.email));
+     local.render();
+   },failed));
+   window.D4TripJoin?.accessChanged?.();
+   return;
  }
- stops.push(onSnapshot(grant(id,user().email.toLowerCase()),{includeMetadataChanges:true},s=>{
+ stops.push(onSnapshot(doc(ref(id),'accessUid',user().uid),{includeMetadataChanges:true},s=>{
    if(token!==generation||s.metadata.fromCache)return;
-   if(!s.exists()){failed(Error('Ask your trip admin to invite this email.'));return}
-   const initial=!role;role=s.data().role;if(initial)subscribe();else local.render();
+   uidRole=s.exists()?s.data().role:'';
+   setRole();
  },failed));
+ if(user().emailVerified&&user().email){
+   stops.push(onSnapshot(grant(id,user().email.toLowerCase()),{includeMetadataChanges:true},s=>{
+     if(token!==generation||s.metadata.fromCache)return;
+     emailRole=s.exists()?s.data().role:'';
+     setRole();
+   },failed));
+ }
 }
 async function drain(){
  if(writing||!queued)return;
@@ -72,7 +96,7 @@ function controls(t){
   (invited.length?invited.map(g=>'<div class="list-row" style="gap:10px;display:flex;justify-content:space-between;align-items:center"><span style="overflow-wrap:anywhere"><b>'+htmlSafe(g.email)+'</b><small>'+htmlSafe(g.role)+'</small></span><button type="button" class="btn small negative" data-team="revoke-email" data-email="'+htmlSafe(g.email)+'">Remove</button></div>').join(''):'<p class="tiny">No invited accounts yet.</p>')+'</div>':'';
  if(!id)return cloud()?.isVerifiedOwner()?'<section class="card"><h3>Team access</h3><button class="btn mint" data-team="publish">Open shared copy</button></section>':'';
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
- return '<section class="card"><h3>Team access</h3><p>Use Add Member below for a name and optional verified email. Trip Admins can invite, but only Main Admin can remove joined users.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+accounts+'</section>';
+ return (window.D4TripJoin?.adminPanel?.()||'')+'<section class="card"><h3>Team access</h3><p>Share the trip link so friends can request access using just their name. Main Admin and Trip Admin can approve or reject requests. Main Admin alone can remove members.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+accounts+'</section>';
 }
 async function deleteTrip(tripId,expectedName){
  if(!id||tripId!==id||!user()?.emailVerified||!cloud()?.isVerifiedOwner?.())throw Error('Only verified Main Admin can delete a shared trip.');
@@ -83,18 +107,21 @@ async function deleteTrip(tripId,expectedName){
  if(!current.exists()||current.data().trip?.id!==id||current.data().trip?.name!==expectedName)throw Error('Trip changed; reopen it before deleting.');
  if(current.data().revision!==expectedRevision)throw Error('A trip update was detected. Refresh and confirm again.');
  const grants=await getDocsFromServer(collection(r,'access'));
- if(grants.size>450)throw Error('Too many access grants to delete safely. Contact support.');
+ const uidGrants=await getDocsFromServer(collection(r,'accessUid'));
+ const joinRequests=await getDocsFromServer(collection(r,'joinRequests'));
+ if(grants.size+uidGrants.size+joinRequests.size>450)throw Error('Too many grants or requests to delete safely. Contact support.');
  await runTransaction(cloud().cloudDb,async tx=>{
    if(token!==generation||user()?.uid!==originalUid||!cloud()?.isVerifiedOwner?.())throw Error('Owner account changed; deletion cancelled.');
    const snapshot=await tx.get(r);
    if(!snapshot.exists()||snapshot.data().revision!==expectedRevision||snapshot.data().trip?.name!==expectedName)throw Error('Trip was edited after confirmation. Reload before deleting.');
-   for(const access of grants.docs)tx.delete(access.ref);
+   for(const access of [...grants.docs,...uidGrants.docs,...joinRequests.docs])tx.delete(access.ref);
    tx.delete(r);
  });
  if(token===generation){clear();location.assign(new URL('./',location.href).href);}
  return true;
 }
 function library(){
+ if(id)return window.D4TripJoin?.guestPanel?.()||'<section class="card">Loading join request…</section>';
  return '<section class="card"><h3>Team trips</h3><button class="btn mint" data-team="open">Open invited trip link</button></section>';
 }
 function displayCode(result){
@@ -160,6 +187,6 @@ document.addEventListener('click',async event=>{
  await setDoc(r,{role:action==='admin'?'admin':'member'});say('Access saved. Copy the trip link to share it.');
  }catch(e){say('Team access: '+e.message)}
 });
-window.D4Team={save,controls,canEdit,canRemove,inviteMember,library,deleteTrip};
+window.D4Team={save,controls,canEdit,canRemove,hasAccess:()=>!!role,inviteMember,library,deleteTrip};
 window.addEventListener('d4-auth',connect);
 if(cloud()?.ready)connect();
