@@ -275,7 +275,11 @@
       : '';
     return '<section class="d4p-section"><div class="d4p-hero"><small>⚙️ PROFILE & SETTINGS</small>' +
       '<h2>' + safe(label) + '</h2><p>' + email + '</p></div>' +
-      (tileRow(t) || '<p class="d4p-caption">Your trip spending and trip days are available in view-only mode.</p>') +
+      (isMain()&&t?'<section class="card d4-share-join-card"><h3>🔗 Share Join Link</h3>'+
+       '<p>One tap copies this trip’s invite link. Members open it, enter their name and wait for Main Admin or Trip Admin approval.</p>'+
+       '<button type="button" class="btn mint block d4-share-join-button" data-team="share-join-link">🔗 Share Join Link</button>'+
+       '<p class="tiny">Existing trip records stay unchanged. Only approved members can enter.</p></section>':'')+
+      (!isMain()&&!isTripAdmin(t)?'<p class="d4p-caption">Your trip spending and trip days are available in view-only mode.</p>':'') +
       '<h3 class="d4p-title">Appearance</h3><div class="card"><p class="d4p-caption">Theme selection</p>' +
       '<div class="d4p-theme-grid">' + modeButtons + '</div></div>' +
       '<h3 class="d4p-title">Account & Notifications</h3><div class="card"><div class="row">' +
