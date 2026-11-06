@@ -155,3 +155,45 @@ test('two separate clients signed in as the same UID receive live revisions', {t
     unsubscribe();
   }
 });
+
+test('live chat permits members in group, admins in admin room, and blocks forged or revoked access', {timeout:15000}, async()=>{
+  const {query, orderBy, limit} = require('firebase/firestore');
+  const ownerId='2FYUUnPp1JX8wvv9HSvL6QoyaCq2';
+  const owner=env.authenticatedContext(ownerId,{email:'owner@test.example',email_verified:true}).firestore();
+  const admin=env.authenticatedContext('admin-chatter',{email:'admin@test.example',email_verified:true}).firestore();
+  const guest=env.authenticatedContext('guest-chatter').firestore();
+  const outsider=env.authenticatedContext('outsider-chatter').firestore();
+  const base='teamTrips/chat-qa';
+  const root=doc(owner,base);
+  await assertSucceeds(setDoc(root,{trip:{id:'chat-qa',name:'Chat QA',members:['Main Admin','Blessy'],admins:[],expenses:[]},
+    revision:1,updatedBy:ownerId,updatedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(doc(owner,base+'/access/admin@test.example'),{role:'admin'}));
+  await env.withSecurityRulesDisabled(async context=>{
+    await setDoc(doc(context.firestore(),base+'/accessUid/guest-chatter'),
+      {role:'member',name:'Blessy',grantedByUid:ownerId,grantedAt:new Date()});
+  });
+  const msg=(uid,name,text)=>({senderUid:uid,senderName:name,text,createdAt:serverTimestamp()});
+  const chat=(db,room,id)=>doc(db,base+'/chats/'+room+'/messages/'+id);
+  const group=chat(guest,'group','m1');
+  await assertSucceeds(setDoc(group,msg('guest-chatter','Blessy','Hello group')));
+  await assertSucceeds(getDoc(group));
+  await assertSucceeds(getDocs(query(collection(guest,base+'/chats/group/messages'),orderBy('createdAt','desc'),limit(100))));
+  await assertFails(getDocs(collection(guest,base+'/chats/group/messages')));
+  await assertFails(getDoc(chat(outsider,'group','m1')));
+  await assertFails(setDoc(chat(outsider,'group','m2'),msg('outsider-chatter','Outsider','No access')));
+  await assertFails(getDoc(chat(guest,'admins','m3')));
+  await assertFails(setDoc(chat(guest,'admins','m3'),msg('guest-chatter','Blessy','Cannot post here')));
+  await assertSucceeds(setDoc(chat(admin,'admins','m3'),msg('admin-chatter','admin@test.example','Admin news')));
+  await assertSucceeds(getDoc(chat(admin,'group','m1')));
+  await assertFails(setDoc(chat(guest,'group','forged'),msg(ownerId,'Main Admin','Forged')));
+  await assertFails(setDoc(chat(guest,'group','wrong-name'),msg('guest-chatter','Main Admin','Impersonation')));
+  await assertFails(setDoc(chat(guest,'group','too-long'),msg('guest-chatter','Blessy','x'.repeat(2001))));
+  await assertFails(updateDoc(group,{text:'Edited later'}));
+  await assertFails(deleteDoc(chat(admin,'group','m1')));
+  await assertSucceeds(deleteDoc(group));
+  await assertSucceeds(setDoc(chat(guest,'group','m4'),msg('guest-chatter','Blessy','A second message')));
+  await assertSucceeds(deleteDoc(doc(owner,base+'/accessUid/guest-chatter')));
+  await assertFails(getDoc(chat(guest,'group','m4')));
+  await assertFails(setDoc(chat(guest,'group','m5'),msg('guest-chatter','Blessy','After removal')));
+  await assertSucceeds(deleteDoc(chat(owner,'group','m4')));
+});

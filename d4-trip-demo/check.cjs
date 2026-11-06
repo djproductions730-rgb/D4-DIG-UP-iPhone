@@ -8,6 +8,13 @@ const html = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
 const moduleSrc = fs.readFileSync(path.join(dir, 'firebase-sync.js'), 'utf8');
 const teamSyntax = spawnSync(process.execPath, ['--input-type=module', '--check'], {input:fs.readFileSync(path.join(dir,'team-sync.js'),'utf8'),encoding:'utf8'});
 if(teamSyntax.status !== 0) throw new Error(teamSyntax.stderr);
+const liveChatSyntax = spawnSync(process.execPath, ['--input-type=module', '--check'], {
+  input:fs.readFileSync(path.join(dir,'live-chat.js'),'utf8'),encoding:'utf8'
+});
+if (liveChatSyntax.status !== 0) throw new Error(liveChatSyntax.stderr);
+if (!html.includes('live-chat.js?build=28') || !html.includes('live-chat.css?build=28'))
+  throw new Error('Live chat assets must be loaded from the app');
+
 const rules = fs.readFileSync(path.join(dir, 'firestore.rules'), 'utf8');
 const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)];
 if (inline.length !== 1) throw new Error('Expected one D4 Trip app inline script');

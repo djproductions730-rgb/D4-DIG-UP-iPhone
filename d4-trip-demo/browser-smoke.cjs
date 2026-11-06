@@ -202,7 +202,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('.d4-liquid-rail [data-ctx="plan"]').click();
   assert.equal(await page.locator('[data-action="plan-edit"]').count(),0);
   await page.locator('.d4-liquid-rail [data-view="chat"]').click();
-  assert.match(await page.locator('main.main').innerText(),/Coming Soon/);
+  assert.match(await page.locator('main.main').innerText(),/Live Trip Chat/);
   await page.locator('.d4-liquid-rail [data-view="profile"]').click();
   for(const mode of ['light','sunset','midnight']){
     await page.locator('[data-d4-theme="'+mode+'"]').click();
