@@ -18,7 +18,7 @@ const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], 
 if (checked.status !== 0) throw new Error(checked.stderr || 'Module syntax invalid');
 for (const required of [
   '<script src="./firebase-config.js"></script>',
-  '<script type="module" src="./firebase-sync.js?build=26"></script>',
+  '<script type="module" src="./firebase-sync.js?build=27"></script>',
   'window.D4TripLocal=',
   'window.D4TripCloud?.localChanged?.()'
 ]) if (!html.includes(required)) throw new Error('Missing app sync bridge: '+required);
