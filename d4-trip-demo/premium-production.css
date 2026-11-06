@@ -480,3 +480,6 @@ body.d4-premium .d4-main-share-panel label{font-weight:850;color:#c7f0ff;font-si
 body.d4-premium .d4-main-share-panel .d4-main-join-link{display:block!important;visibility:visible!important;opacity:1!important;position:static!important;box-sizing:border-box;width:100%!important;min-width:0!important;min-height:54px!important;padding:12px!important;border:2px solid #66d9ff!important;border-radius:12px!important;background:#072643!important;color:#fff!important;font-size:13px!important;text-overflow:ellipsis}
 body.d4-premium .d4-main-share-panel .d4-share-join-button{width:100%;min-height:51px;border-radius:13px;font-weight:850;font-size:15px}
 body.d4-premium .d4-main-share-panel .tiny{color:#acd8f0}
+
+/* Small release marker so Main Admin can confirm the live build is v26, not cached v24. */
+body.d4-premium .d4-build-version{display:inline-block;font-size:11px;font-weight:700;vertical-align:middle;padding:4px 7px;margin-left:4px;border-radius:8px;border:1px solid #90e5ff70;background:#082d4f99;color:#dcf8ff;letter-spacing:0}
