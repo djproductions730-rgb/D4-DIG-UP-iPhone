@@ -8,7 +8,7 @@
     topBar: topBar, entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
     tripPage: tripPage, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
   };
-  const MODE_KEY = 'd4_trip_premium_mode_v1';
+  const MODE_KEY = 'd4_trip_premium_mode_v2_ocean';
   const modes = ['midnight', 'light', 'sunset'];
   let mode = 'midnight';
   try {
