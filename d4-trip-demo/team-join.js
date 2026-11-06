@@ -20,6 +20,29 @@ const editor=()=>window.D4Team?.canEdit?.()===true;
 const owner=()=>window.D4Team?.canRemove?.()===true;
 let ownRequest=null,requests=[],members=[],stops=[],accountUid='',adminWatching=false,busy=false,seenDecisions=null,seenPending=null;
 const formatError=e=>String(e?.message||e||'Try again').slice(0,240);
+const pendingNameKey='d4_trip_join_name_v1_'+teamId;
+let sendingAuto=false;
+async function sendSavedJoinRequest(){
+ if(!teamId||sendingAuto||!cloud()?.ready||!db()||!cloud()?.auth)return;
+ let name;
+ try{name=sessionStorage.getItem(pendingNameKey)}catch(_){return;}
+ if(!name)return;
+ if(ownRequest?.status==='pending'||ownRequest?.status==='approved'){
+   try{sessionStorage.removeItem(pendingNameKey)}catch(_){}
+   return;
+ }
+ sendingAuto=true;
+ try{
+   await requestJoin(name);
+   try{sessionStorage.removeItem(pendingNameKey)}catch(_){}
+ }catch(err){
+   toast('Could not send join request: '+formatError(err));
+   // Leave the name queued so the guest can use the visible request form.
+ }finally{
+   sendingAuto=false;
+   rerender();
+ }
+}
 
 function stop(){
  for(const stop of stops)stop();
@@ -34,6 +57,7 @@ function watchUser(){
  stops.push(onSnapshot(ownRequestRef(u.uid),s=>{
    if(authUser()?.uid!==watchUid)return;
    ownRequest=s.exists()?s.data():null;rerender();
+   void sendSavedJoinRequest();
  },e=>toast('Join request: '+formatError(e))));
  accessChanged();
 }
@@ -73,6 +97,9 @@ function accessChanged(){
    },e=>toast('Joined users unavailable: '+formatError(e))));
  }
 }
+function readSavedName(){
+ try{return sessionStorage.getItem(pendingNameKey)||''}catch(_){return ''}
+}
 function guestPanel(){
  if(!teamId)return '';
  if(window.D4Team?.hasAccess?.())return '';
@@ -84,7 +111,7 @@ function guestPanel(){
  if(status==='rejected')message='<div class="notice" role="status">❌ Request declined. Contact your trip admin for help.</div>';
  const form=status==='approved'?'':`<form id="d4-join-request" style="display:grid;gap:12px">
    <label for="d4-join-name">Your name</label>
-   <input id="d4-join-name" class="input" name="name" type="text" minlength="2" maxlength="50" autocomplete="name" required value="${safe(ownRequest?.name||'')}" placeholder="Enter your name">
+   <input id="d4-join-name" class="input" name="name" type="text" minlength="2" maxlength="50" autocomplete="name" required value="${safe(ownRequest?.name||readSavedName())}" placeholder="Enter your name">
    <button class="btn mint" type="submit" ${busy?'disabled':''} style="min-height:48px">${busy?'Sending request…':status==='pending'?'↻ Resend Join Request':status==='rejected'?'↻ Request Again':'Request to Join'}</button>
  </form>`;
  return `<section class="card" id="d4-link-join" style="margin-bottom:16px"><h3>🔗 Join this Trip</h3>${message}${form}
@@ -189,5 +216,5 @@ document.addEventListener('click',async event=>{
  finally{busy=false;rerender();}
 });
 window.D4TripJoin={guestPanel,adminPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
-window.addEventListener('d4-auth',watchUser);
-if(cloud()?.ready)watchUser();
+window.addEventListener('d4-auth',()=>{watchUser();void sendSavedJoinRequest()});
+if(cloud()?.ready){watchUser();void sendSavedJoinRequest()}
