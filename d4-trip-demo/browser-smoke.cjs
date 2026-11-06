@@ -260,7 +260,7 @@ async function joinByNameLinkFlow(browser) {
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
   assert.equal(await page.locator('[data-modal="join-trip"]').count(),0,'Legacy code join hidden');
   await page.locator('#d4-open-trip-link').waitFor();
-  assert.match(await page.locator('#d4-invite-link-card').innerText(),/Join a Trip by Name/);
+  assert.match(await page.locator('#d4-invite-link-card').innerText(),/Paste Trip Link[\s\S]*Join Trip/);
   const url=new URL(BASE);
   url.searchParams.set('team','m3-browser-smoke');
   await page.locator('#d4-trip-link-input').fill(url.href);
