@@ -106,8 +106,9 @@ test('Main Admin base Home receives real-time join requests without a team query
  vm.runInContext(src,ctx);
  const empty=window.D4TripJoin.mainAdminInbox();
  assert.match(empty,/0 Pending/);
- assert.equal(listeners.length,1);
+ assert.equal(listeners.length,2);
  assert.equal(listeners[0].ref,'teamTrips/goa-trip/joinRequests');
+ assert.equal(listeners[1].ref,'teamTrips','Admin can discover shared trips absent from local storage');
  listeners[0].next({docs:[]});
  listeners[0].next({docs:[{id:'guest1',data:()=>({
   uid:'guest1',name:'Friend One',status:'pending',createdAt:{seconds:1}
@@ -120,4 +121,12 @@ test('Main Admin base Home receives real-time join requests without a team query
  assert.match(inbox,/data-trip-id="goa-trip"/);
  assert.match(window.D4TripJoin.mainAdminBanner(),/1 pending join request/);
  assert.ok(messages.some(m=>m.includes('new join request')),'A fresh request triggers an in-app notification');
+ listeners[1].next({docs:[{id:'another-trip',data:()=>({trip:{name:'Another Trip'}})}]});
+ assert.equal(listeners.length,3,'Remote trip discovered without local backup');
+ assert.equal(listeners[2].ref,'teamTrips/another-trip/joinRequests');
+ listeners[2].next({docs:[{id:'guest2',data:()=>({
+  uid:'guest2',name:'Second Friend',status:'pending',createdAt:{seconds:2}
+ })}]});
+ assert.match(window.D4TripJoin.mainAdminInbox(),/Second Friend/,'Request arrives from server-only trip');
+
 });
