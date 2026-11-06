@@ -67,7 +67,7 @@
     const library = view === 'entry' ? '' : teamId
       ? '<a class="d4p-nav-library" href="./">My Trips</a>'
       : '<button type="button" class="d4p-nav-library" data-action="entry-back">My Trips</button>';
-    return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header;
+    return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
   };
   entryPage = function () {
     const html = original.entryPage();
