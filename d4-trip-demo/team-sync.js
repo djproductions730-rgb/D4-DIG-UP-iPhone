@@ -149,29 +149,34 @@ document.addEventListener('click',async event=>{
   location.assign(link(tripId));return;
  }
  if(action==='share-join-link'){
-  // Main Admin gets a true one-tap Share Join Link from Settings.
-  // For a private/local trip, publish a shared copy once; never change
-  // the private source or overwrite an existing Firestore trip.
+  // Publish the selected private trip before promising that its link works.
+  // Never overwrite an existing shared trip or modify local history.
   if(!user()||!cloud()?.cloudDb)throw Error('Sign in to Firebase as Main Admin first');
   if(!id&&!cloud()?.isVerifiedOwner?.())throw Error('Main Admin access required');
   if(id&&!canEdit())throw Error('Only trip admins can share a join link');
   const trip=id?null:structuredClone(local.currentTrip());
   const shareId=id||trip?.id;
-  if(!shareId||!/^[a-zA-Z0-9_-]{1,100}$/.test(shareId))throw Error('Select a valid trip first');
-  // Start clipboard copy inside the original tap, before any network awaits.
-  await navigator.clipboard.writeText(link(shareId));
+  if(!shareId||!/^[A-Za-z0-9_-]{1,100}$/.test(shareId))throw Error('Select a valid trip first');
   if(!id){
-   const r=ref(shareId);
-   const originalUid=user().uid;
+   const r=ref(shareId),originalUid=user().uid;
    await runTransaction(cloud().cloudDb,async tx=>{
     if(!cloud()?.isVerifiedOwner?.()||user()?.uid!==originalUid)throw Error('Main Admin account changed');
     const existing=await tx.get(r);
     if(!existing.exists()){
      const shared=structuredClone(trip);
      shared.chats={group:[],admins:[]};
-     tx.set(r,{trip:shared,revision:1,updatedBy:user().uid,updatedAt:serverTimestamp()});
+     tx.set(r,{trip:shared,revision:1,updatedBy:originalUid,updatedAt:serverTimestamp()});
     }
    });
+  }
+  const url=link(shareId);
+  try{
+   await navigator.clipboard.writeText(url);
+  }catch(_){
+   const input=document.getElementById('d4-main-join-link');
+   if(!input)throw Error('Automatic copy unavailable. Select and copy your Join Link.');
+   input.focus();input.select();
+   if(!document.execCommand?.('copy'))throw Error('Tap and hold the Join Link box to copy.');
   }
   say('✅ Link copied! Share it with members.');
   return;
