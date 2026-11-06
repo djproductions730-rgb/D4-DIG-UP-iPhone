@@ -110,6 +110,7 @@
     if (!isMain()) {
       // Exactly one entry action: paste the invitation link and tap Join Trip.
       result = result.replace(/<div class="d4-new-bottom">.*?<\/div>/s, '');
+      result = result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\/button>/s, '');
       result = result.replace('<div class="d4-new-card-list">', inviteLinkCard()+'<div class="d4-new-card-list">');
       if (!result.includes('id="d4-open-trip-link"')) result += inviteLinkCard();
     }
