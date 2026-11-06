@@ -105,7 +105,7 @@
     const html = original.entryPage();
     const appendCard = !html.includes('<div class="d4-new-disclaimer">');
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
-      .replace('<button data-action="enter-app">Open dashboard</button>', '<button type="button" data-action="nav" data-view="profile">🔐 Sign in / Create account</button>')
+      .replace('<button data-action="enter-app">Open dashboard</button>', isMain() ? '<button data-action="enter-app">Open dashboard</button>' : '<button type="button" data-action="d4-open-invite">🔗 Join by Name</button>')
       .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
       .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
       .replace('Choose a trip → Collection → Trip Dashboard', 'Open your invitation link, enter your name, and wait for admin approval')
@@ -248,6 +248,8 @@
       '<span class="pill">🔒 Not active yet</span></div></section>';
   };
   profilePage = function () {
+    // Guest invite links must open the name-only request form, never an account/login screen.
+    if (teamId && !window.D4Team?.hasAccess?.()) return original.profilePage();
     const t = current();
     const account = window.D4TripCloud?.user;
     const label = isMain() ? 'Main Admin' : (t && isTripAdmin(t) ? 'Trip Admin' : 'Member');
