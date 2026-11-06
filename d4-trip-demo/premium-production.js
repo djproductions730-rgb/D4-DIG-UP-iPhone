@@ -123,6 +123,12 @@
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
       '<h2>'+(teamId && window.D4Team?.canRemove?.()?'Main Admin':'Trip Admin')+' Panel</h2>'+
       '<p>Approve join requests, manage members and share the trip.</p></div>'+
+      '<section class="card d4-liquid-share"><h3>🔗 Share Trip Link</h3>'+
+      '<p>Send this private trip link to friends. They enter their name and request approval — no password or trip code.</p>'+
+      (teamId
+        ?'<button type="button" class="btn mint block" data-team="copy">📋 Copy Trip Join Link</button>'
+        :'<p class="tiny">Open your shared trip first to copy its invitation link.</p>')+
+      '</section>'+
       (window.D4TripJoin?.adminPanel?.() || '<div class="card"><h3>Join Requests</h3><p>Request management is loading.</p></div>')+
       '<div class="d4p-grid">'+teamButton('🔗','Share Trip Link','copy')+
       button('👥','Manage Members','open-tab','data-ctx="members"')+
