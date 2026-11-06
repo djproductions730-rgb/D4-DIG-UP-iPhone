@@ -272,7 +272,7 @@ async function joinByNameLinkFlow(browser) {
   url.searchParams.set('team','m3-browser-smoke');
   await page.locator('#d4-trip-link-input').fill(url.href);
   await page.locator('#d4-open-trip-link button[type="submit"]').click();
-  await page.waitForURL(/\?team=m3-browser-smoke/);
+  await page.waitForURL(/\?team=m3-browser-smoke/,{waitUntil:'commit'});
   assert.equal(new URL(page.url()).searchParams.get('team'),'m3-browser-smoke');
   assert.equal(await page.evaluate(()=>sessionStorage.getItem('d4_trip_join_name_v1_m3-browser-smoke')),'Visitor Name','Name handed to join request within same tab');
   assert.equal(new URL(page.url()).searchParams.has('name'),false,'Name not exposed in URL');
