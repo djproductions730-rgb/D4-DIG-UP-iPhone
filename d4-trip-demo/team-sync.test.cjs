@@ -5,14 +5,14 @@ const fs=require('node:fs');
 const path=require('node:path');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 function setup(owner=true){
- const listeners=[],writes=[],inviteWrites=[],shown=[],messages=[];let authEvent,transaction;
+ const listeners=[],writes=[],inviteWrites=[],shown=[],messages=[],copied=[];let authEvent,transaction,clickHandler;
  const account={uid:owner?'owner':'member',email:'test@example.com',emailVerified:true};
  const window={D4TripLocal:{teamId:'trip',showTeam:t=>shown.push(t),render(){},toast:m=>messages.push(m)},D4TripCloud:{ready:true,auth:{currentUser:account},cloudDb:{},isVerifiedOwner:()=>owner},addEventListener:(_e,f)=>authEvent=f};
- const context=vm.createContext({window,structuredClone,URL,location:{href:'https://example.com/?team=trip'},document:{addEventListener(){}},doc:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),collection:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),setDoc:async(ref,data)=>{inviteWrites.push({ref,data})},onSnapshot:(ref,options,next,error)=>{listeners.push({ref,next,error});return()=>{}},serverTimestamp:()=>0,runTransaction:(_db,f)=>transaction(f)});
+ const context=vm.createContext({window,structuredClone,URL,navigator:{clipboard:{writeText:async value=>{copied.push(value)}}},location:{href:'https://example.com/?team=trip'},document:{addEventListener:(type,fn)=>{if(type==='click')clickHandler=fn}},doc:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),collection:(base,...p)=>[typeof base==='string'?base:'',...p].filter(Boolean).join('/'),setDoc:async(ref,data)=>{inviteWrites.push({ref,data})},onSnapshot:(ref,options,next,error)=>{listeners.push({ref,next,error});return()=>{}},serverTimestamp:()=>0,runTransaction:(_db,f)=>transaction(f)});
  vm.runInContext(fs.readFileSync(path.join(__dirname,'team-sync.js'),'utf8').replace(/^import .*;\r?\n/,''),context);
  const snap=(entry,data,metadata={})=>entry.next({exists:()=>!!data,data:()=>data,metadata:{fromCache:false,hasPendingWrites:false,...metadata}});
  transaction=fn=>fn({get:async()=>({data:()=>({revision:1})}),set:(ref,value)=>writes.push({ref,value})});
- return {window,listeners,writes,inviteWrites,shown,messages,snap,api:window.D4Team,signOut(){window.D4TripCloud.auth.currentUser=null;authEvent()},setTransaction:f=>transaction=f};
+ return {window,listeners,writes,inviteWrites,shown,messages,copied,snap,api:window.D4Team,shareJoinLink:()=>clickHandler({target:{closest:()=>({dataset:{team:'share-join-link'}})}}),signOut(){window.D4TripCloud.auth.currentUser=null;authEvent()},setTransaction:f=>transaction=f};
 }
 test('members can view their granted trip but cannot save',()=>{
  const h=setup(false);assert.equal(h.listeners[0].ref,'teamTrips/trip/accessUid/member');h.snap(h.listeners[1],{role:'member'});h.snap(h.listeners[2],{trip:{id:'trip'},revision:1});
@@ -66,6 +66,14 @@ test('Main Admin retains the exclusive Remove Access control',()=>{
  assert.match(controls,/joined@example.com/);
  assert.match(controls,/data-team="revoke-email"/);
  assert.doesNotMatch(controls,/onerror=/);
+});
+test('Main Admin one-tap Share Join Link copies the exact shared trip URL and confirms below',async()=>{
+ const h=setup(true);
+ h.snap(h.listeners[0],{trip:{id:'trip'},revision:1});
+ await h.shareJoinLink();
+ assert.equal(h.copied.length,1);
+ assert.equal(h.copied[0],'https://example.com/?team=trip');
+ assert.ok(h.messages.includes('✅ Link copied! Share it with members.'));
 });
 test('Member cannot add or remove any user',async()=>{
  const h=setup(false);
