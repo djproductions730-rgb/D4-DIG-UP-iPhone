@@ -66,6 +66,9 @@ service cloud.firestore {
           d.revision is int && d.updatedBy == request.auth.uid && d.updatedAt == request.time;
       }
       allow get: if mainAdmin() || (hasEmailGrant() && access().role in ['member','admin']) || guestMember();
+      // Only the designated, email-verified Main Admin may enumerate shared trips
+      // to receive join request notifications across devices and browser sessions.
+      allow list: if mainAdmin();
       allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
       // Trip Admins can add names, but only Main Admin can remove, rename,
       // archive or restore people and change role-bearing roster entries.
