@@ -62,7 +62,9 @@ function panel() {
   } else {
     rows.push('<p>Signed in: <strong>' + safe(bridge.user.email || bridge.user.uid) + '</strong></p>');
     rows.push('<p class="muted" style="font-size:13px">Status: ' + safe(bridge.status) + '</p>');
-    if (!bridge.user.emailVerified) {
+    if (bridge.user.isAnonymous && local()?.teamId) {
+      rows.push('<p class="tiny">Guest access uses a saved Firebase ID on this browser. Do not sign out or clear site data while your request is pending or while you are using the trip.</p>');
+    } else if (!bridge.user.emailVerified) {
       rows.push('<div class="notice">Verify your email to open invited trips.</div><button class="btn small mint" data-cloud-action="verify-email">Send verification email</button> <button class="btn small ghost" data-cloud-action="check-email">I verified my email</button>');
     }
     if (local()?.teamId) { rows.push('<p>Team trip access uses your verified email.</p>'); } else if (bridge.linked) {
@@ -367,7 +369,7 @@ if (configured) {
       bridge.saving = false;
       bridge.revision = 0;
       bridge.error = '';
-      bridge.status = user ? 'Checking cloud backup' : 'Signed out';
+      bridge.status = user ? (user.isAnonymous && local()?.teamId ? 'Guest join session' : 'Checking cloud backup') : 'Signed out';
       bridge.ready = true;
       if (user && !local()?.teamId) watchSnapshot(user);
       window.dispatchEvent?.(new Event('d4-auth'));
