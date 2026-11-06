@@ -456,3 +456,13 @@ body.d4-premium .d4-home-request-item strong{display:block;font-size:15px;overfl
 body.d4-premium .d4-home-request-item small{display:block;font-size:11px;line-height:1.4;color:#b1e0fa}
 body.d4-premium .d4-home-request-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 body.d4-premium .d4-home-request-actions button{min-width:0;min-height:45px;font-size:13px;font-weight:800}
+
+/* Guest join is a standalone, naturally scrollable screen, never clipped by the
+   original fixed-height trip cards. It has one visible name field. */
+body.d4-premium .d4-single-join-entry{box-sizing:border-box;display:flex;flex-direction:column;gap:18px;min-height:100dvh;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;padding:clamp(20px,6vw,44px) 14px calc(28px + env(safe-area-inset-bottom));background:linear-gradient(155deg,#061a35,#06375a 64%,#082447)}
+body.d4-premium .d4-join-entry-brand{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 9px;color:#e2f8ff}
+body.d4-premium .d4-join-entry-brand strong{font-weight:900;font-size:21px;letter-spacing:.6px}
+body.d4-premium .d4-join-entry-brand span{font-size:12px;color:#b0e5fa}
+body.d4-premium .d4-single-join-entry .d4-name-link-card{margin:0!important;width:100%;max-width:560px;align-self:center;overflow:visible!important;min-height:auto!important}
+body.d4-premium .d4-join-entry-note{font-size:12px;color:#c5e4f1;text-align:center}
+body.d4-premium #d4-guest-name-input{display:block!important;opacity:1!important;visibility:visible!important;position:static!important}
