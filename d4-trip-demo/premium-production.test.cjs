@@ -45,7 +45,7 @@ const context = {
     documentElement: {style:{}},
     addEventListener:(name,callback)=>{events[name]=callback}
   },
-  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true}},
+  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
   current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
@@ -101,6 +101,9 @@ assert.match(context.chatsPage(), /Coming Soon/);
 assert.doesNotMatch(context.chatsPage(),/legacy-live-chat/);
 const dashboard=context.tripOverview(t);
 assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock names');
+assert.match(dashboard,/d4-home-join-requests/,'Shared trip admin home displays pending approvals');
+assert.match(dashboard,/data-join-decision="approved"/,'Home has Accept action');
+assert.match(dashboard,/data-join-decision="rejected"/,'Home has Reject action');
 assert.match(dashboard,/Paid \/ Pending/);
 assert.match(dashboard,/d4p-nav-grid/);
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
