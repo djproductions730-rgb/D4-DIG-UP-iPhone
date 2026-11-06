@@ -48,7 +48,7 @@ const context = {
     documentElement: {style:{}},
     addEventListener:(name,callback)=>{events[name]=callback}
   },
-  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
+  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
   current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
@@ -64,6 +64,12 @@ assert.match(context.entryPage(),/data-team="share-join-link"/,'Main Admin My Tr
 assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-id/,'Main Admin sees exact trip invitation URL');
 assert.match(context.home(),/id="d4-main-join-link"/,'Home displays share URL');
 assert.match(context.profilePage(),/id="d4-main-join-link"/,'Settings displays share URL');
+context.teamId='';
+assert.match(context.home(),/d4-main-admin-inbox/,'Base Main Admin Home shows incoming requests without ?team=');
+assert.match(context.entryPage(),/d4-main-admin-inbox/,'My Trips shows Main Admin requests');
+assert.match(context.home(),/data-join-decision="approved"/,'Base Home allows direct approve');
+assert.match(context.home(),/data-join-decision="rejected"/,'Base Home allows direct reject');
+context.teamId='real-team-id';
 assert.match(context.topBar(),/data-action="d4-back"/);
 assert.match(context.topBar(),/Back to Payments/,'overview back leads to payments');
 assert.match(context.topBar(),/My Trips/);
