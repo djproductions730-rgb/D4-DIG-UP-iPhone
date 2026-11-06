@@ -252,15 +252,30 @@
         (i.count?'<span class="d4-liquid-badge">'+i.count+'</span>':'')+'</button>').join('')+'</nav>';
   };
   function adminSurface(){
-    if (!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current()))) return '';
+    const t=current();
+    const shared=!!teamId;
+    const sharedEditor=shared&&window.D4Team?.canEdit?.()===true;
+    const verifiedMain=isMain();
+    if(!t||!(shared?sharedEditor:isTripAdmin(t)))return '';
+    const role=verifiedMain||(shared&&window.D4Team?.canRemove?.()===true)?'Main Admin':'Trip Admin';
+    const requests=shared
+      ?(window.D4TripJoin?.adminPanel?.()||
+        '<section class="card"><h3>🔔 Join Requests</h3><p>Loading shared trip approvals…</p></section>')
+      :verifiedMain
+       ?(window.D4TripJoin?.mainAdminInbox?.()||
+         '<section class="card"><h3>🔔 Join Requests</h3><p>Connecting to Firebase join requests…</p></section>')
+       :'<section class="card d4-admin-role-help"><h3>🔔 Join Requests</h3>'+
+        '<p>This device is using a local Trip Admin profile. To see pending requests, sign in with the authorized Firebase admin account and open the shared trip.</p>'+
+        '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
-      '<h2>'+(teamId && window.D4Team?.canRemove?.()?'Main Admin':'Trip Admin')+' Panel</h2>'+
-      '<p>Approve join requests, manage members and share the trip.</p></div>'+
-      mainSharePanel(current())+
-      (window.D4TripJoin?.adminPanel?.() || '<div class="card"><h3>Join Requests</h3><p>Request management is loading.</p></div>')+
+      '<h2>'+role+' Panel</h2>'+
+      '<p>Review join requests, manage members and share the trip.</p></div>'+
+      requests+
+      mainSharePanel(t)+
+      (shared||verifiedMain?'':'<section class="card"><h3>🔗 Share Trip Link</h3><p>Sign in as Main Admin to publish and copy this trip’s invitation link.</p></section>')+
       '<div class="d4p-grid">'+
       button('👥','Manage Members','open-tab','data-ctx="members"')+
-      (teamId && window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
+      (shared&&window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
       '</div></section>';
   }
   document.addEventListener('click',function(e){
