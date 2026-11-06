@@ -124,9 +124,13 @@ function guestPanel(){
  * independent of the team-specific listener used on shared links. */
 const mainInbox=new Map();
 const mainInboxStops=new Map();
+const mainGrants=new Map();
+const mainGrantStops=new Map();
 let mainInboxUid='',mainInboxCatalogStop=null,mainInboxCatalog=new Map();
 function clearMainInbox(){
  for(const unsubscribe of mainInboxStops.values())unsubscribe();
+ for(const unsubscribe of mainGrantStops.values())unsubscribe();
+ mainGrantStops.clear();mainGrants.clear();
  mainInboxStops.clear();mainInbox.clear();mainInboxUid='';
  if(mainInboxCatalogStop)mainInboxCatalogStop();mainInboxCatalogStop=null;mainInboxCatalog.clear();
 }
@@ -147,6 +151,9 @@ function watchMainInbox(){
  const allowed=new Set(valid.map(t=>t.id));
  for(const [trip,unsubscribe] of mainInboxStops){
   if(!allowed.has(trip)){unsubscribe();mainInboxStops.delete(trip);mainInbox.delete(trip);}
+ }
+ for(const [trip,unsubscribe] of mainGrantStops){
+  if(!allowed.has(trip)){unsubscribe();mainGrantStops.delete(trip);mainGrants.delete(trip);}
  }
  for(const trip of valid){
   if(mainInboxStops.has(trip.id))continue;
@@ -177,6 +184,13 @@ function watchMainInbox(){
    if(!/permission|not.found/i.test(message))toast('Join inbox: '+message);
   });
   mainInboxStops.set(tripId,unsubscribe);
+  mainGrantStops.set(tripId,onSnapshot(collection(doc(db(),'teamTrips',tripId),'accessUid'),snap=>{
+    if(!isBaseMainAdmin()||authUser()?.uid!==uid)return;
+    mainGrants.set(tripId,new Map(snap.docs.map(d=>[d.id,{uid:d.id,...d.data()}])));
+    rerender();
+  },e=>{
+    if(!/permission|not.found/i.test(formatError(e)))toast('Approved members: '+formatError(e));
+  }));
  }
  if(!mainInboxCatalogStop){
   // Main Admin can also discover shared trips missing from this device's
@@ -189,6 +203,63 @@ function watchMainInbox(){
    watchMainInbox();
   },e=>toast('Cannot monitor all shared trips: '+formatError(e)));
  }
+}
+
+function isMainOwnerOfTrip(){
+ return isBaseMainAdmin() || !!teamId&&owner();
+}
+function approvedRosterRows(tripFilter=''){
+ if(!isMainOwnerOfTrip())return [];
+ if(isBaseMainAdmin())watchMainInbox();
+ const all=isBaseMainAdmin()
+  ?[...mainInbox.values()].flat()
+  :requests.map(r=>({...r,tripId:teamId,tripName:window.D4TripLocal?.currentTrip?.()?.name||'Trip'}));
+ return all.filter(r=>r.status==='approved'&&(!tripFilter||r.tripId===tripFilter))
+  .map(r=>{
+    const grants=isBaseMainAdmin()?mainGrants.get(r.tripId):null;
+    const fromGuest=members.find(g=>g.uid===r.uid);
+    const grant=grants?.get(r.uid)||fromGuest;
+    // Do not include revoked users once the active grant snapshot has arrived.
+    if(grants&&!grant)return null;
+    return {...r,joinedName:r.joinedName||grant?.name||r.name,role:grant?.role||'member'};
+  }).filter(Boolean).sort((a,b)=>String(a.joinedName).localeCompare(String(b.joinedName)));
+}
+function approvedMembersPanel(tripFilter=''){
+ if(!isMainOwnerOfTrip())return '';
+ const rows=approvedRosterRows(tripFilter);
+ const cards=rows.map(r=>'<div class="d4-home-request-item d4-approved-member">'+
+  '<div><strong>👤 '+safe(r.joinedName)+'</strong><small>'+safe(r.tripName||'Trip')+
+  ' · '+(r.role==='admin'?'🛡️ Trip Admin':'✅ Approved Member')+'</small></div>'+
+  '<div class="d4-home-request-actions">'+
+  '<button type="button" class="btn small '+(r.role==='admin'?'ghost':'mint')+
+  '" data-join-role="'+(r.role==='admin'?'member':'admin')+'" data-trip-id="'+safe(r.tripId)+
+  '" data-uid="'+safe(r.uid)+'">'+(r.role==='admin'?'↘ Remove Admin':'🛡️ Make Admin')+'</button></div></div>').join('');
+ return '<section class="card d4-home-join-requests d4-approved-members-panel" aria-label="Approved link members">'+
+  '<div class="space-between"><h3>👥 Approved Members</h3><span class="pill">'+rows.length+'</span></div>'+
+  '<p class="tiny">Approved link members are saved in Firebase. Only Main Admin can change their admin access.</p>'+
+  (cards||'<p class="tiny">No approved link members yet.</p>')+'</section>';
+}
+async function changeUidRole(uid,role,tripId){
+ if(!isMainOwnerOfTrip()||!cloud()?.isVerifiedOwner?.()||!authUser()?.emailVerified)
+  throw Error('Only verified Main Admin can change roles.');
+ if(!['member','admin'].includes(role)||!/^[A-Za-z0-9_-]{1,128}$/.test(uid)
+   ||!/^[A-Za-z0-9_-]{1,100}$/.test(tripId))throw Error('Invalid member or role.');
+ await runTransaction(db(),async tx=>{
+  if(!cloud()?.isVerifiedOwner?.()||!authUser()?.emailVerified)
+   throw Error('Main Admin account changed.');
+  const tr=doc(db(),'teamTrips',tripId),grantRef=doc(tr,'accessUid',uid);
+  const [tripSnap,grantSnap]=await Promise.all([tx.get(tr),tx.get(grantRef)]);
+  if(!tripSnap.exists()||!grantSnap.exists())throw Error('Member not found in the shared trip.');
+  const grant=grantSnap.data(),trip=structuredClone(tripSnap.data().trip);
+  const name=grant.name;
+  if(!trip.members.includes(name))throw Error('Member is not in the current trip roster.');
+  const admins=new Set(trip.admins||[]);
+  if(role==='admin')admins.add(name);else admins.delete(name);
+  trip.admins=[...admins];
+  tx.update(tr,{trip,revision:tripSnap.data().revision+1,updatedBy:authUser().uid,updatedAt:serverTimestamp()});
+  tx.update(grantRef,{role});
+ });
+ toast(role==='admin'?'🛡️ Member promoted to Trip Admin':'Member changed back to regular access');
 }
 function mainAdminInbox(){
  if(!isBaseMainAdmin())return '';
@@ -211,7 +282,7 @@ function mainAdminInbox(){
   '<div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">'+pending.length+' Pending</span></div>'+
   '<p class="tiny">Live requests for your shared trips. Accept or reject directly here.</p>'+
   (cards||'<p class="tiny">No pending requests for your trips.</p>')+
-  (history?'<h4>Recent decisions</h4>'+history:'')+'</section>';
+  (history?'<h4>Recent decisions</h4>'+history:'')+'</section>'+approvedMembersPanel();
 }
 function mainAdminBanner(){
  if(!isBaseMainAdmin())return '';
@@ -243,7 +314,7 @@ function adminPanel(){
  const activity=owner()?'<h4 style="margin-top:15px">Main Admin · Approval history</h4>'+
    (recent.map(r=>`<p class="tiny" style="overflow-wrap:anywhere">${r.status==='approved'?'✅ Approved':'❌ Rejected'}: <b>${safe(r.name)}</b> · by ${safe(r.decidedByEmail||r.decidedByUid||'Admin')}</p>`).join('')||'<p class="tiny">No approval activity yet.</p>'):'';
  const roster=owner()?'<h4 style="margin-top:15px">Joined link members</h4>'+
-   (members.map(g=>`<div class="list-row" style="display:flex;gap:10px;justify-content:space-between;align-items:center"><div><b>${safe(g.name)}</b><small>Approved member</small></div><button type="button" class="btn small negative" data-join-remove="${safe(g.uid)}" style="min-height:44px">Remove Access</button></div>`).join('')||'<p class="tiny">No link-joined members.</p>'):'';
+   (members.map(g=>`<div class="list-row" style="display:flex;gap:10px;justify-content:space-between;align-items:center"><div><b>${safe(g.name)}</b><small>${g.role==='admin'?'Trip Admin':'Approved Member'}</small></div><div class="row" style="flex-wrap:wrap;gap:8px"><button type="button" class="btn small mint" data-join-role="${g.role==='admin'?'member':'admin'}" data-trip-id="${safe(teamId)}" data-uid="${safe(g.uid)}" style="min-height:44px">${g.role==='admin'?'Remove Admin':'Make Admin'}</button><button type="button" class="btn small negative" data-join-remove="${safe(g.uid)}" style="min-height:44px">Remove Access</button></div></div>`).join('')||'<p class="tiny">No link-joined members.</p>'):'';
  return `<section class="card" style="margin:12px 0 16px"><div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">${pending.length} Pending</span></div>
  <p class="tiny">Main Admin and Trip Admin may accept or reject. Main Admin can see every decision.</p>
  ${cards||'<p class="tiny">No pending requests.</p>'}${activity}${roster}</section>`;
@@ -321,15 +392,17 @@ document.addEventListener('submit',async event=>{
 document.addEventListener('click',async event=>{
  const decision=event.target.closest('[data-join-decision]');
  const remove=event.target.closest('[data-join-remove]');
- if(!decision&&!remove)return;
+ const roleChange=event.target.closest('[data-join-role]');
+ if(!decision&&!remove&&!roleChange)return;
  event.preventDefault();
  if(busy)return;busy=true;
  try{
    if(decision)await decide(decision.dataset.uid,decision.dataset.joinDecision,decision.dataset.tripId||teamId);
+   else if(roleChange)await changeUidRole(roleChange.dataset.uid,roleChange.dataset.joinRole,roleChange.dataset.tripId||teamId);
    else await removeAccess(remove.dataset.joinRemove);
  }catch(e){toast('Join approval: '+formatError(e))}
  finally{busy=false;rerender();}
 });
-window.D4TripJoin={guestPanel,adminPanel,homeRequests,mainAdminInbox,mainAdminBanner,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
+window.D4TripJoin={guestPanel,adminPanel,homeRequests,mainAdminInbox,mainAdminBanner,approvedMembersPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
 window.addEventListener('d4-auth',()=>{watchUser();watchMainInbox();if(!authUser())void sendSavedJoinRequest()});
 if(cloud()?.ready){watchUser();if(!authUser())void sendSavedJoinRequest()}
