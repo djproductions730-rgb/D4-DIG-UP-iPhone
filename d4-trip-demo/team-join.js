@@ -18,12 +18,12 @@ const toast=s=>window.D4TripLocal?.toast?.(s);
 const rerender=()=>window.D4TripLocal?.render?.();
 const editor=()=>window.D4Team?.canEdit?.()===true;
 const owner=()=>window.D4Team?.canRemove?.()===true;
-let ownRequest=null,requests=[],members=[],stops=[],accountUid='',adminWatching=false,busy=false,seenDecisions=null;
+let ownRequest=null,requests=[],members=[],stops=[],accountUid='',adminWatching=false,busy=false,seenDecisions=null,seenPending=null;
 const formatError=e=>String(e?.message||e||'Try again').slice(0,240);
 
 function stop(){
  for(const stop of stops)stop();
- stops=[];ownRequest=null;requests=[];members=[];accountUid='';adminWatching=false;seenDecisions=null;
+ stops=[];ownRequest=null;requests=[];members=[];accountUid='';adminWatching=false;seenDecisions=null;seenPending=null;
 }
 function watchUser(){
  const u=authUser();
@@ -46,6 +46,13 @@ function accessChanged(){
  stops.push(onSnapshot(requestsRef(),snap=>{
    if(authUser()?.uid!==accountUid)return;
    const next=snap.docs.map(d=>({...d.data(),uid:d.id}));
+   if(seenPending){
+     for(const rq of next){
+       const old=seenPending.get(rq.uid),fresh=rq.createdAt?.seconds||0;
+       if(rq.status==='pending'&&old&&fresh>old)toast('🔔 '+rq.name+' resent a join request');
+     }
+   }
+   seenPending=new Map(next.filter(r=>r.status==='pending').map(r=>[r.uid,r.createdAt?.seconds||0]));
    if(owner()&&seenDecisions){
      for(const change of next){
        if(change.status==='pending'||change.decidedByUid===authUser()?.uid)continue;
@@ -77,7 +84,7 @@ function guestPanel(){
  if(status==='rejected')message='<div class="notice" role="status">❌ Request declined. Contact your trip admin for help.</div>';
  const form=status==='approved'?'':`<form id="d4-join-request" style="display:grid;gap:12px">
    <label for="d4-join-name">Your name</label>
-   <input id="d4-join-name" class="input" name="name" type="text" minlength="2" maxlength="50" autocomplete="name" required placeholder="Enter your name">
+   <input id="d4-join-name" class="input" name="name" type="text" minlength="2" maxlength="50" autocomplete="name" required value="${safe(ownRequest?.name||'')}" placeholder="Enter your name">
    <button class="btn mint" type="submit" ${busy?'disabled':''} style="min-height:48px">${busy?'Sending request…':status==='pending'?'↻ Resend Join Request':status==='rejected'?'↻ Request Again':'Request to Join'}</button>
  </form>`;
  return `<section class="card" id="d4-link-join" style="margin-bottom:16px"><h3>🔗 Join this Trip</h3>${message}${form}
