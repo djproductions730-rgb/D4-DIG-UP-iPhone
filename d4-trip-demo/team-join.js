@@ -18,12 +18,12 @@ const toast=s=>window.D4TripLocal?.toast?.(s);
 const rerender=()=>window.D4TripLocal?.render?.();
 const editor=()=>window.D4Team?.canEdit?.()===true;
 const owner=()=>window.D4Team?.canRemove?.()===true;
-let ownRequest=null,requests=[],members=[],stops=[],accountUid='',adminWatching=false,busy=false;
+let ownRequest=null,requests=[],members=[],stops=[],accountUid='',adminWatching=false,busy=false,seenDecisions=null;
 const formatError=e=>String(e?.message||e||'Try again').slice(0,240);
 
 function stop(){
  for(const stop of stops)stop();
- stops=[];ownRequest=null;requests=[];members=[];accountUid='';adminWatching=false;
+ stops=[];ownRequest=null;requests=[];members=[];accountUid='';adminWatching=false;seenDecisions=null;
 }
 function watchUser(){
  const u=authUser();
@@ -45,7 +45,17 @@ function accessChanged(){
  adminWatching=true;
  stops.push(onSnapshot(requestsRef(),snap=>{
    if(authUser()?.uid!==accountUid)return;
-   requests=snap.docs.map(d=>({...d.data(),uid:d.id}));
+   const next=snap.docs.map(d=>({...d.data(),uid:d.id}));
+   if(owner()&&seenDecisions){
+     for(const change of next){
+       if(change.status==='pending'||change.decidedByUid===authUser()?.uid)continue;
+       if(seenDecisions.get(change.uid)==='pending'){
+         toast('🔔 Trip Admin '+(change.decidedByEmail||'')+' '+(change.status==='approved'?'approved ':'rejected ')+change.name);
+       }
+     }
+   }
+   seenDecisions=new Map(next.map(r=>[r.uid,r.status]));
+   requests=next;
    requests.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
    rerender();
  },e=>{adminWatching=false;toast('Join notifications unavailable: '+formatError(e));}));
@@ -93,8 +103,14 @@ function adminPanel(){
 function notificationBanner(){
  if(!editor())return '';
  const pending=requests.filter(r=>r.status==='pending').length;
- if(!pending)return '';
- return `<div class="card" style="margin:10px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><b>🔔 ${pending} join request${pending>1?'s':''} waiting</b><button type="button" class="btn small mint" data-action="open-tab" data-ctx="members" style="min-height:44px">Review requests</button></div>`;
+ const lastAdminDecision=owner()?requests.find(r=>r.status!=='pending'&&r.decidedByUid!==authUser()?.uid):null;
+ if(!pending&&!lastAdminDecision)return '';
+ const latest=lastAdminDecision
+  ?safe(lastAdminDecision.name)+' '+(lastAdminDecision.status==='approved'?'approved':'rejected')+' by '+safe(lastAdminDecision.decidedByEmail||'Trip Admin')
+  :'';
+ return `<div class="card" style="margin:10px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+ <b>🔔 ${pending?pending+' join request'+(pending>1?'s':'')+' waiting':latest}</b>
+ <button type="button" class="btn small mint" data-action="open-tab" data-ctx="members" style="min-height:44px">${pending?'Review requests':'View approval history'}</button></div>`;
 }
 async function requestJoin(name){
  name=String(name||'').trim().replace(/\s+/g,' ');
