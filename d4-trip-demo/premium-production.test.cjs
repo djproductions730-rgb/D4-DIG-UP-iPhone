@@ -65,6 +65,26 @@ assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-
 assert.match(context.home(),/id="d4-main-join-link"/,'Home displays share URL');
 assert.match(context.profilePage(),/id="d4-main-join-link"/,'Settings displays share URL');
 context.teamId='';
+context.view='trip';
+context.tripTab='overview';
+vm.runInContext('adminOpen=true',context);
+const baseAdminPanel=context.tripPage();
+assert.match(baseAdminPanel,/Main Admin Panel/,'Verified Main Admin is labeled correctly');
+assert.match(baseAdminPanel,/d4-main-admin-inbox/,'Main Admin Control Centre shows live inbox');
+assert.match(baseAdminPanel,/data-join-decision="approved"/,'Direct accept action is available');
+assert.match(baseAdminPanel,/data-join-decision="rejected"/,'Direct reject action is available');
+assert.match(baseAdminPanel,/d4-main-join-link/,'Full trip link is displayed in Control Centre');
+assert.doesNotMatch(baseAdminPanel,/Request management is loading|Open your shared trip first/,'Old misleading placeholders removed');
+owner=false;
+const localAdminPanel=context.tripPage();
+assert.match(localAdminPanel,/Trip Admin Panel/,'Local Trip Admin role is distinguishable');
+assert.match(localAdminPanel,/Firebase Sign In/,'Local admins get an actionable authorization message');
+assert.doesNotMatch(localAdminPanel,/Request management is loading/);
+owner=true;
+vm.runInContext('adminOpen=false',context);
+context.teamId='real-team-id';
+
+context.teamId='';
 assert.match(context.home(),/d4-main-admin-inbox/,'Base Main Admin Home shows incoming requests without ?team=');
 assert.match(context.entryPage(),/d4-main-admin-inbox/,'My Trips shows Main Admin requests');
 assert.match(context.home(),/data-join-decision="approved"/,'Base Home allows direct approve');
