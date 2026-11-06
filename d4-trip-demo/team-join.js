@@ -75,10 +75,10 @@ function guestPanel(){
  if(status==='pending')message='<div class="notice" role="status">⏳ Your join request is pending. An admin will review it.</div>';
  if(status==='approved')message='<div class="notice" role="status">✅ Approved. Opening your trip… If access was removed, contact Main Admin.</div>';
  if(status==='rejected')message='<div class="notice" role="status">❌ Request declined. Contact your trip admin for help.</div>';
- const form=status?'':`<form id="d4-join-request" style="display:grid;gap:12px">
+ const form=status==='approved'?'':`<form id="d4-join-request" style="display:grid;gap:12px">
    <label for="d4-join-name">Your name</label>
    <input id="d4-join-name" class="input" name="name" type="text" minlength="2" maxlength="50" autocomplete="name" required placeholder="Enter your name">
-   <button class="btn mint" type="submit" ${busy?'disabled':''} style="min-height:48px">${busy?'Sending request…':'Request to Join'}</button>
+   <button class="btn mint" type="submit" ${busy?'disabled':''} style="min-height:48px">${busy?'Sending request…':status==='pending'?'↻ Resend Join Request':status==='rejected'?'↻ Request Again':'Request to Join'}</button>
  </form>`;
  return `<section class="card" id="d4-link-join" style="margin-bottom:16px"><h3>🔗 Join this Trip</h3>${message}${form}
  <p class="tiny">Join requests use a private Firebase account ID. You cannot view payments, members or trip details until approved.</p>
@@ -115,13 +115,14 @@ function notificationBanner(){
 async function requestJoin(name){
  name=String(name||'').trim().replace(/\s+/g,' ');
  if(name.length<2||name.length>50)throw Error('Enter your name (2–50 characters)');
+ if(ownRequest?.status==='approved')throw Error('Already approved. Contact Main Admin if access is unavailable.');
  if(!teamId||!/^[A-Za-z0-9_-]{1,100}$/.test(teamId))throw Error('Invalid Trip Link');
  if(!cloud()?.ready||!db()||!cloud()?.auth)throw Error('Firebase is still starting. Try again.');
  let u=authUser();
  if(!u){const result=await signInAnonymously(cloud().auth);u=result.user;}
  if(!u)throw Error('Sign-in unavailable. Enable Anonymous sign-in in Firebase Authentication.');
  await setDoc(ownRequestRef(u.uid),{uid:u.uid,name,status:'pending',createdAt:serverTimestamp()});
- toast('Join request sent. Await Main Admin or Trip Admin approval.');
+ toast(ownRequest?.status==='pending'?'Join request resent to Main Admin and Trip Admin.':'Join request sent. Await Main Admin or Trip Admin approval.');
 }
 async function decide(uid,status){
  if(!editor()||!['approved','rejected'].includes(status))throw Error('Only an authorized Trip Admin can decide.');
