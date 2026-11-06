@@ -1,5 +1,5 @@
-const CACHE='d4-trip-app-v25-admin-control-centre-fix';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js','./team-sync.js','./team-join.js','./team-invite-runtime.js','./premium-production.css','./premium-production.js','./shared-beta.js','./shared-runtime.js','./intro.css','./trip-intro.js','./intro-logo.svg'];
+const CACHE='d4-trip-app-v26-versioned-js-admin-panel';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js?build=26','./team-sync.js?build=26','./team-join.js?build=26','./team-invite-runtime.js?build=26','./premium-production.css?build=26','./premium-production.js?build=26','./shared-beta.js','./shared-runtime.js?build=26','./intro.css','./trip-intro.js','./intro-logo.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
   self.skipWaiting();
