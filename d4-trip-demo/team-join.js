@@ -118,6 +118,91 @@ function guestPanel(){
  <p class="tiny">Join requests use a private Firebase account ID. You cannot view payments, members or trip details until approved.</p>
  ${!u?'<p class="tiny">A free guest sign-in is created automatically when you send a request.</p>':''}</section>`;
 }
+
+/* Main Admin's normal app URL has no ?team= parameter. Subscribe to requests
+ * for the trips already visible in Main Admin's local trip library. This is
+ * independent of the team-specific listener used on shared links. */
+const mainInbox=new Map();
+const mainInboxStops=new Map();
+let mainInboxUid='',mainInboxWatching=false;
+function clearMainInbox(){
+ for(const unsubscribe of mainInboxStops.values())unsubscribe();
+ mainInboxStops.clear();mainInbox.clear();mainInboxUid='';mainInboxWatching=false;
+}
+function isBaseMainAdmin(){
+ return !teamId && cloud()?.ready && !!db() &&
+   cloud()?.isVerifiedOwner?.()===true && !!authUser()?.emailVerified;
+}
+function watchMainInbox(){
+ if(!isBaseMainAdmin()){if(mainInboxUid)clearMainInbox();return;}
+ const uid=authUser()?.uid;
+ if(mainInboxUid!==uid){clearMainInbox();mainInboxUid=uid;}
+ const trips=window.D4TripLocal?.getData?.()?.trips||[];
+ const valid=trips.filter(t=>t&&typeof t.id==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(t.id)).slice(0,75);
+ const allowed=new Set(valid.map(t=>t.id));
+ for(const [trip,unsubscribe] of mainInboxStops){
+  if(!allowed.has(trip)){unsubscribe();mainInboxStops.delete(trip);mainInbox.delete(trip);}
+ }
+ for(const trip of valid){
+  if(mainInboxStops.has(trip.id))continue;
+  const tripId=trip.id;
+  let initialized=false;
+  const unsubscribe=onSnapshot(collection(doc(db(),'teamTrips',tripId),'joinRequests'),snap=>{
+   if(!isBaseMainAdmin()||authUser()?.uid!==uid)return;
+   const previous=mainInbox.get(tripId)||[];
+   const current=snap.docs.map(d=>({...d.data(),uid:d.id,tripId,tripName:trip.name}));
+   const pending=current.filter(x=>x.status==='pending');
+   const previousTimes=new Map(previous.filter(x=>x.status==='pending').map(x=>[x.uid,x.createdAt?.seconds||0]));
+   const newlyPending=pending.filter(x=>!previousTimes.has(x.uid)||
+     (x.createdAt?.seconds||0)>previousTimes.get(x.uid));
+   if(initialized&&newlyPending.length){
+    toast('🔔 '+newlyPending.length+' new join request'+(newlyPending.length>1?'s':'')+
+     ' for '+trip.name);
+   }else if(!initialized&&pending.length){
+    toast('🔔 '+pending.length+' pending join request'+(pending.length>1?'s':'')+
+     ' for '+trip.name);
+   }
+   initialized=true;
+   mainInbox.set(tripId,current);
+   rerender();
+  },error=>{
+   if(!isBaseMainAdmin())return;
+   // A private trip not yet published does not have a shared inbox.
+   const message=formatError(error);
+   if(!/permission|not.found/i.test(message))toast('Join inbox: '+message);
+  });
+  mainInboxStops.set(tripId,unsubscribe);
+ }
+}
+function mainAdminInbox(){
+ if(!isBaseMainAdmin())return '';
+ watchMainInbox();
+ const all=[...mainInbox.values()].flat().sort((a,b)=>
+  (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+ const pending=all.filter(r=>r.status==='pending');
+ const cards=pending.map(r=>'<div class="d4-home-request-item">'+
+  '<div><strong>'+safe(r.name)+'</strong><small>'+safe(r.tripName)+
+  ' · Awaiting approval</small></div>'+
+  '<div class="d4-home-request-actions">'+
+  '<button type="button" class="btn small mint" data-join-decision="approved" data-trip-id="'+safe(r.tripId)+
+  '" data-uid="'+safe(r.uid)+'">✓ Accept</button>'+
+  '<button type="button" class="btn small ghost" data-join-decision="rejected" data-trip-id="'+safe(r.tripId)+
+  '" data-uid="'+safe(r.uid)+'">✕ Reject</button></div></div>').join('');
+ const history=all.filter(r=>r.status!=='pending').slice(0,5).map(r=>
+  '<p class="tiny">'+(r.status==='approved'?'✅ Approved':'❌ Rejected')+
+  ': '+safe(r.name)+' · '+safe(r.tripName)+'</p>').join('');
+ return '<section class="card d4-home-join-requests d4-main-admin-inbox" aria-label="Main Admin pending join requests">'+
+  '<div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">'+pending.length+' Pending</span></div>'+
+  '<p class="tiny">Live requests for your shared trips. Accept or reject directly here.</p>'+
+  (cards||'<p class="tiny">No pending requests for your trips.</p>')+
+  (history?'<h4>Recent decisions</h4>'+history:'')+'</section>';
+}
+function mainAdminBanner(){
+ if(!isBaseMainAdmin())return '';
+ const pending=[...mainInbox.values()].flat().filter(r=>r.status==='pending').length;
+ return pending?'<div class="d4-main-join-banner" role="status">🔔 '+pending+
+  ' pending join request'+(pending>1?'s':'')+' — review in Main Admin Home</div>':'';
+}
 function homeRequests(){
  if(!teamId||!editor())return '';
  const pending=requests.filter(r=>r.status==='pending');
@@ -171,12 +256,13 @@ async function requestJoin(name){
  await setDoc(ownRequestRef(u.uid),{uid:u.uid,name,status:'pending',createdAt:serverTimestamp()});
  toast(ownRequest?.status==='pending'?'Join request resent to Main Admin and Trip Admin.':'Join request sent. Await Main Admin or Trip Admin approval.');
 }
-async function decide(uid,status){
- if(!editor()||!['approved','rejected'].includes(status))throw Error('Only an authorized Trip Admin can decide.');
+async function decide(uid,status,tripForApproval=teamId){
+ if(!(editor()||isBaseMainAdmin())||!['approved','rejected'].includes(status))throw Error('Only an authorized Trip Admin can decide.');
+ if(!tripForApproval||!/^[A-Za-z0-9_-]{1,100}$/.test(tripForApproval))throw Error('Select a valid shared trip');
  if(!/^[A-Za-z0-9_-]{1,128}$/.test(uid))throw Error('Invalid request');
  const actor=authUser(),actorUid=actor?.uid;
  await runTransaction(db(),async tx=>{
-   const rq=ownRequestRef(uid),tr=tripRef(),gr=uidGrantRef(uid);
+   const tr=doc(db(),'teamTrips',tripForApproval),rq=doc(tr,'joinRequests',uid),gr=doc(tr,'accessUid',uid);
    const requestSnap=await tx.get(rq);
    if(!requestSnap.exists()||requestSnap.data().status!=='pending')throw Error('Request already handled.');
    const requested=requestSnap.data(),name=String(requested.name||'');
@@ -223,11 +309,11 @@ document.addEventListener('click',async event=>{
  event.preventDefault();
  if(busy)return;busy=true;
  try{
-   if(decision)await decide(decision.dataset.uid,decision.dataset.joinDecision);
+   if(decision)await decide(decision.dataset.uid,decision.dataset.joinDecision,decision.dataset.tripId||teamId);
    else await removeAccess(remove.dataset.joinRemove);
  }catch(e){toast('Join approval: '+formatError(e))}
  finally{busy=false;rerender();}
 });
-window.D4TripJoin={guestPanel,adminPanel,homeRequests,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
-window.addEventListener('d4-auth',()=>{watchUser();if(!authUser())void sendSavedJoinRequest()});
+window.D4TripJoin={guestPanel,adminPanel,homeRequests,mainAdminInbox,mainAdminBanner,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
+window.addEventListener('d4-auth',()=>{watchUser();watchMainInbox();if(!authUser())void sendSavedJoinRequest()});
 if(cloud()?.ready){watchUser();if(!authUser())void sendSavedJoinRequest()}
