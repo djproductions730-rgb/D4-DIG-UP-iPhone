@@ -102,7 +102,7 @@ test('Main Admin base Home receives real-time join requests without a team query
   onSnapshot:(ref,next,error)=>{listeners.push({ref,next,error});return()=>{}},
   runTransaction:async()=>{},setDoc:async()=>{},serverTimestamp:()=>0,signInAnonymously:async()=>{}
  });
- const src=fs.readFileSync(path.join(__dirname,'team-join.js'),'utf8').replace(/^import .*;\\r?\\n/gm,'');
+ const src=fs.readFileSync(path.join(__dirname,'team-join.js'),'utf8').replace(/^import .*;\r?\n/gm,'');
  vm.runInContext(src,ctx);
  const empty=window.D4TripJoin.mainAdminInbox();
  assert.match(empty,/0 Pending/);
