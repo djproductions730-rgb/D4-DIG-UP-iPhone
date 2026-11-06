@@ -160,8 +160,9 @@ document.addEventListener('click',async event=>{
   if(!shareId||!/^[a-zA-Z0-9_-]{1,100}$/.test(shareId))throw Error('Select a valid trip first');
   if(!id){
    const r=ref(shareId);
+   const originalUid=user().uid;
    await runTransaction(cloud().cloudDb,async tx=>{
-    if(!cloud()?.isVerifiedOwner?.()||user()?.uid!==cloud().auth.currentUser?.uid)throw Error('Main Admin account changed');
+    if(!cloud()?.isVerifiedOwner?.()||user()?.uid!==originalUid)throw Error('Main Admin account changed');
     const existing=await tx.get(r);
     if(!existing.exists()){
      const shared=structuredClone(trip);
