@@ -99,6 +99,17 @@ async function smoke(browser,label,viewport,mobile) {
     layout.railX+layout.railW<=layout.viewport+1,label+' right rail visible inside viewport');
   assert.equal(await page.locator('.d4p-bottom:visible').count(),0,label+' no bottom navigation');
   assert.ok(layout.scrollWidth<=layout.viewport+2,label+' no sideways page scroll');
+  const scrollCheck=await page.evaluate(()=>{
+    const main=document.querySelector('.app-shell>.main');
+    const initial=window.scrollY;
+    const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+    window.scrollTo(0,maxScroll);
+    return {maxScroll,actual:window.scrollY,overflow:getComputedStyle(main).overflowY};
+  });
+  assert.ok(scrollCheck.overflow!=='hidden',label+' main content must allow vertical scrolling');
+  if(scrollCheck.maxScroll>20)assert.ok(scrollCheck.actual>5,label+' vertical page scroll works');
+  await page.evaluate(()=>window.scrollTo(0,0));
+
   assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
   assert.equal(await navGrid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,
     label+' navigation renders three equal columns');
