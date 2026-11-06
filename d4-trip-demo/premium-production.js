@@ -69,67 +69,97 @@
     return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
   };
   const GUEST_NAME_KEY='d4_trip_guest_name_v1';
+  const JOIN_STAGE_KEY='d4_trip_guest_join_stage_v1';
   function savedGuestName(){
     try{return String(localStorage.getItem(GUEST_NAME_KEY)||'').slice(0,50)}catch(_){return ''}
+  }
+  function guestJoinStage(){
+    try{return sessionStorage.getItem(JOIN_STAGE_KEY)==='link'?'link':'name'}catch(_){return 'name'}
   }
   document.addEventListener('input',function(event){
     if(event.target?.id!=='d4-guest-name-input')return;
     try{localStorage.setItem(GUEST_NAME_KEY,String(event.target.value||'').slice(0,50))}catch(_){}
   });
   function inviteLinkCard() {
-    return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip with link">'+
-      '<h2>🔗 Join Trip</h2>'+
-      '<p>Enter your name and paste the private Trip Link. Tap Join Trip to send an approval request.</p>'+
-      '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
+    const name=savedGuestName();
+    const stage=guestJoinStage();
+    const first='<form id="d4-save-join-name" style="display:grid;gap:12px">'+
       '<div class="d4-join-name-field"><label for="d4-guest-name-input">👤 Your Name</label>'+
-      '<input id="d4-guest-name-input" name="name" class="input d4-join-visible-name" type="text" minlength="2" maxlength="50" autocomplete="name" value="'+safe(savedGuestName())+'" placeholder="Type your name here" required>'+
+      '<input id="d4-guest-name-input" name="name" class="input d4-join-visible-name" type="text" minlength="2" maxlength="50" autocomplete="name" value="'+safe(name)+'" placeholder="Type your name here" required>'+
       '<small>Your name saves automatically on this device.</small></div>'+
+      '<button type="submit" class="btn mint block d4-guest-join-button">Submit Name</button></form>';
+    const second='<p class="d4-join-saved-name">✅ Name saved: <strong>'+safe(name)+'</strong></p>'+
+      '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
-      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste the link here" required>'+
-      '<button type="submit" class="btn mint block d4-guest-join-button">Join Trip</button></form>'+
-      '<p class="tiny">No trip code, email or password needed.</p>'+
+      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste your Main Admin link here" required>'+
+      '<button type="submit" class="btn mint block d4-guest-join-button">Continue with the Link</button></form>'+
+      '<button type="button" class="btn small ghost" data-action="d4-edit-join-name">✎ Edit Name</button>';
+    return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip by name then link">'+
+      '<h2>🔗 Join Trip</h2>'+
+      '<p>'+(stage==='name'?'Step 1 of 2 · Enter your name first.':'Step 2 of 2 · Paste the link shared by your admin.')+'</p>'+
+      (stage==='name'?first:second)+
+      '<p class="tiny">Main Admin or Trip Admin must approve your request. No trip code, email or password required.</p>'+
       '</section>';
   }
-  document.addEventListener('submit', function(event){
+  document.addEventListener('submit',function(event){
+    if(event.target?.id!=='d4-save-join-name')return;
+    event.preventDefault();
+    const name=String(new FormData(event.target).get('name')||'').trim().replace(/\\s+/g,' ');
+    if(name.length<2||name.length>50){window.D4TripLocal?.toast?.('Enter your name (2–50 characters).');return}
+    try{
+      localStorage.setItem(GUEST_NAME_KEY,name);
+      sessionStorage.setItem(JOIN_STAGE_KEY,'link');
+    }catch(_){}
+    render();
+    document.querySelector('#d4-trip-link-input')?.focus({preventScroll:true});
+  });
+  document.addEventListener('submit',function(event){
     if(event.target?.id!=='d4-open-trip-link')return;
     event.preventDefault();
-    const form=new FormData(event.target);
-    const value=String(form.get('tripLink')||'').trim();
-    const name=String(form.get('name')||'').trim().replace(/\s+/g,' ');
-    try {
-      if(name.length<2||name.length>50)throw Error('Enter your name (2–50 characters).');
+    const value=String(new FormData(event.target).get('tripLink')||'').trim();
+    const name=savedGuestName().trim().replace(/\\s+/g,' ');
+    try{
+      if(name.length<2||name.length>50)throw Error('Save your name first.');
       const url=new URL(value);
       const trip=url.searchParams.get('team');
-      if(!trip || !/^[A-Za-z0-9_-]{1,100}$/.test(trip))throw Error('Use a valid Trip Share Link from your admin.');
-      if(url.origin!==location.origin || url.pathname!==location.pathname)
+      if(!trip||!/^[A-Za-z0-9_-]{1,100}$/.test(trip))throw Error('Use a valid Trip Share Link from your admin.');
+      if(url.origin!==location.origin||url.pathname!==location.pathname)
         throw Error('This link must be for the same D4 Trip app.');
-      try{localStorage.setItem(GUEST_NAME_KEY,name)}catch(_){}
-      // Same-origin session handoff: never place the member name in a shareable URL.
+      // Do not expose member names in URLs. This same-tab handoff creates a request after navigation.
       sessionStorage.setItem('d4_trip_join_name_v1_'+trip,name);
       location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
-    } catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link');}
+    }catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link')}
   });
   document.addEventListener('click',function(event){
-    const button=event.target.closest('[data-action="d4-open-invite"]');
-    if(!button)return;
+    if(event.target.closest('[data-action="d4-edit-join-name"]')){
+      event.preventDefault();
+      try{sessionStorage.setItem(JOIN_STAGE_KEY,'name')}catch(_){}
+      render();
+      document.querySelector('#d4-guest-name-input')?.focus({preventScroll:true});
+      return;
+    }
+    if(!event.target.closest('[data-action="d4-open-invite"]'))return;
     event.preventDefault();
     event.stopPropagation();
     view='entry';
     render();
     document.querySelector('#d4-invite-link-card')?.scrollIntoView({block:'center',behavior:'smooth'});
-    document.querySelector('#d4-trip-link-input')?.focus({preventScroll:true});
+    document.querySelector('#d4-guest-name-input, #d4-trip-link-input')?.focus({preventScroll:true});
   },true);
   entryPage = function () {
-    const html = original.entryPage();
-    let result = html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
-      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s, '')
-      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s, '');
-    if (!isMain()) {
-      // Exactly one entry action: paste the invitation link and tap Join Trip.
-      result = result.replace(/<div class="d4-new-bottom">.*?<\/div>/s, '');
-      result = result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\/button>/s, '');
-      result = result.replace('<div class="d4-new-card-list">', inviteLinkCard()+'<div class="d4-new-card-list">');
-      if (!result.includes('id="d4-open-trip-link"')) result += inviteLinkCard();
+    const html=original.entryPage();
+    let result=html.replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
+      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\\/button>/s,'')
+      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\\/button>/s,'');
+    if(!isMain()){
+      // Remove legacy buttons from both the default and older cached entry layouts.
+      result=result.replace(/<div class="d4-new-bottom">.*?<\\/div>/s,'');
+      result=result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\\/button>/s,'');
+      result=result.replace('<div class="d4-new-card-list">',inviteLinkCard()+'<div class="d4-new-card-list">');
+      if(!result.includes('id="d4-invite-link-card"'))result+=inviteLinkCard();
+    }else if(teamId&&window.D4Team?.canEdit?.()){
+      // Admin's initial Home screen displays requests without opening Members.
+      result=(window.D4TripJoin?.adminPanel?.()||'')+result;
     }
     return result;
   };
@@ -223,6 +253,7 @@
       '<div class="d4p-hero"><small>✦ D4 TRIP · YOUR JOURNEY</small><h2>' +
       safe(t.destination) + '</h2><p>' + safe(t.name) + ' · ' +
       shortDate(t.start) + ' – ' + shortDate(t.end) + '</p></div>' +
+      (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : '') +
       '<div class="d4p-stats"><div class="d4p-stat"><small>Members</small><strong>' +
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
       days + '</strong></div><div class="d4p-stat"><small>Remaining</small><strong>' +
