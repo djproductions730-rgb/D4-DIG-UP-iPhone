@@ -83,3 +83,41 @@ test('Member cannot add or remove any user',async()=>{
  await assert.rejects(h.api.inviteMember('new@example.com'),/Only Main Admin and Trip Admin/);
  assert.equal(h.inviteWrites.length,0);
 });
+
+
+test('Main Admin base Home receives real-time join requests without a team query parameter',()=>{
+ const listeners=[],messages=[],events={};
+ const user={uid:'owner',email:'owner@example.test',emailVerified:true};
+ const window={
+  D4TripLocal:{teamId:null,getData:()=>({trips:[{id:'goa-trip',name:'Goa Trip'}]}),
+   render(){},toast:m=>messages.push(m)},
+  D4TripCloud:{ready:true,auth:{currentUser:user},cloudDb:{},isVerifiedOwner:()=>true},
+  D4Team:{canEdit:()=>false,canRemove:()=>false},
+  addEventListener:(type,fn)=>{events[type]=fn}
+ };
+ const ctx=vm.createContext({window,structuredClone,
+  document:{addEventListener(){}},sessionStorage:{getItem:()=>null},
+  doc:(base,...args)=>[typeof base==='string'?base:'',...args].filter(Boolean).join('/'),
+  collection:(base,...args)=>[typeof base==='string'?base:'',...args].filter(Boolean).join('/'),
+  onSnapshot:(ref,next,error)=>{listeners.push({ref,next,error});return()=>{}},
+  runTransaction:async()=>{},setDoc:async()=>{},serverTimestamp:()=>0,signInAnonymously:async()=>{}
+ });
+ const src=fs.readFileSync(path.join(__dirname,'team-join.js'),'utf8').replace(/^import .*;\\r?\\n/gm,'');
+ vm.runInContext(src,ctx);
+ const empty=window.D4TripJoin.mainAdminInbox();
+ assert.match(empty,/0 Pending/);
+ assert.equal(listeners.length,1);
+ assert.equal(listeners[0].ref,'teamTrips/goa-trip/joinRequests');
+ listeners[0].next({docs:[]});
+ listeners[0].next({docs:[{id:'guest1',data:()=>({
+  uid:'guest1',name:'Friend One',status:'pending',createdAt:{seconds:1}
+ })}]});
+ const inbox=window.D4TripJoin.mainAdminInbox();
+ assert.match(inbox,/Friend One/);
+ assert.match(inbox,/Goa Trip/);
+ assert.match(inbox,/data-join-decision="approved"/);
+ assert.match(inbox,/data-join-decision="rejected"/);
+ assert.match(inbox,/data-trip-id="goa-trip"/);
+ assert.match(window.D4TripJoin.mainAdminBanner(),/1 pending join request/);
+ assert.ok(messages.some(m=>m.includes('new join request')),'A fresh request triggers an in-app notification');
+});
