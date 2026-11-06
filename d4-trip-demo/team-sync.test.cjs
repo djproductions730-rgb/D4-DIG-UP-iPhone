@@ -46,7 +46,9 @@ test('Trip Admin sees one Add Member flow and can invite, but cannot revoke join
  assert.equal(h.api.canRemove(),false);
  const ui=h.api.controls({id:'trip'});
  assert.doesNotMatch(ui,/data-team="revoke"|data-team="invite"/);
- assert.match(ui,/Share the trip link/);
+ assert.match(ui,/Share Trip Link/);
+ assert.match(ui,/data-team="copy"/);
+ assert.doesNotMatch(ui,/Generate Member Code|Generate Admin Code/);
  const invited=await h.api.inviteMember('NEW@EXAMPLE.COM');
  assert.equal(invited,'new@example.com');
  assert.equal(h.inviteWrites[0].ref,'teamTrips/trip/access/new@example.com');
