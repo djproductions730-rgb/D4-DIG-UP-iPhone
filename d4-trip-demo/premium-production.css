@@ -471,3 +471,12 @@ body.d4-premium .d4-guest-existing-trips{width:100%;max-width:560px;align-self:c
 body.d4-premium .d4-guest-existing-trips h3{font-size:16px;margin:10px 0}
 body.d4-premium .d4-guest-existing-trips .d4-new-card-list{display:grid!important;height:auto!important;min-height:0!important;overflow:visible!important;grid-template-rows:auto!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;padding:0!important}
 body.d4-premium .d4-guest-existing-trips .d4-new-trip-card{min-height:105px!important;max-height:none!important}
+
+/* Main Admin share: visible URL, direct copy, accessible from Home, My Trips and Settings. */
+body.d4-premium .d4-main-share-panel{box-sizing:border-box;display:grid;gap:11px;width:calc(100% - 20px);max-width:620px;margin:15px auto 18px!important;padding:18px!important;border:1px solid #71d7ff9b!important;border-radius:21px!important;background:linear-gradient(135deg,#134e75ee,#063051f0)!important;position:relative;z-index:2;overflow:visible!important}
+body.d4-premium .d4-main-share-panel h3{font-size:19px;margin:0}
+body.d4-premium .d4-main-share-panel p{margin:0;font-size:13px;line-height:1.5}
+body.d4-premium .d4-main-share-panel label{font-weight:850;color:#c7f0ff;font-size:13px}
+body.d4-premium .d4-main-share-panel .d4-main-join-link{display:block!important;visibility:visible!important;opacity:1!important;position:static!important;box-sizing:border-box;width:100%!important;min-width:0!important;min-height:54px!important;padding:12px!important;border:2px solid #66d9ff!important;border-radius:12px!important;background:#072643!important;color:#fff!important;font-size:13px!important;text-overflow:ellipsis}
+body.d4-premium .d4-main-share-panel .d4-share-join-button{width:100%;min-height:51px;border-radius:13px;font-weight:850;font-size:15px}
+body.d4-premium .d4-main-share-panel .tiny{color:#acd8f0}
