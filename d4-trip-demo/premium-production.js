@@ -104,7 +104,7 @@
   document.addEventListener('submit',function(event){
     if(event.target?.id!=='d4-save-join-name')return;
     event.preventDefault();
-    const name=String(new FormData(event.target).get('name')||'').trim().replace(/\\s+/g,' ');
+    const name=String(new FormData(event.target).get('name')||'').trim().replace(/\s+/g,' ');
     if(name.length<2||name.length>50){window.D4TripLocal?.toast?.('Enter your name (2–50 characters).');return}
     try{
       localStorage.setItem(GUEST_NAME_KEY,name);
@@ -117,7 +117,7 @@
     if(event.target?.id!=='d4-open-trip-link')return;
     event.preventDefault();
     const value=String(new FormData(event.target).get('tripLink')||'').trim();
-    const name=savedGuestName().trim().replace(/\\s+/g,' ');
+    const name=savedGuestName().trim().replace(/\s+/g,' ');
     try{
       if(name.length<2||name.length>50)throw Error('Save your name first.');
       const url=new URL(value);
@@ -149,12 +149,12 @@
   entryPage = function () {
     const html=original.entryPage();
     let result=html.replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
-      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\\/button>/s,'')
-      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\\/button>/s,'');
+      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
+      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
     if(!isMain()){
       // Remove legacy buttons from both the default and older cached entry layouts.
-      result=result.replace(/<div class="d4-new-bottom">.*?<\\/div>/s,'');
-      result=result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\\/button>/s,'');
+      result=result.replace(/<div class="d4-new-bottom">.*?<\/div>/s,'');
+      result=result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\/button>/s,'');
       result=result.replace('<div class="d4-new-card-list">',inviteLinkCard()+'<div class="d4-new-card-list">');
       if(!result.includes('id="d4-invite-link-card"'))result+=inviteLinkCard();
     }else if(teamId&&window.D4Team?.canEdit?.()){
