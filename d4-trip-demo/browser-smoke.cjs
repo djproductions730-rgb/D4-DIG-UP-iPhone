@@ -85,18 +85,19 @@ async function smoke(browser,label,viewport,mobile) {
   const layout=await page.evaluate(()=>{
     const shell=document.querySelector('.app-shell')?.getBoundingClientRect();
     const main=document.querySelector('.app-shell>.main')?.getBoundingClientRect();
-    const bottom=document.querySelector('.d4p-bottom')?.getBoundingClientRect();
+    const rail=document.querySelector('.d4-liquid-rail')?.getBoundingClientRect();
     return {viewport:innerWidth,shellX:shell?.x,shellW:shell?.width,
-      mainW:main?.width,bottomX:bottom?.x,bottomW:bottom?.width,
+      mainW:main?.width,railX:rail?.x,railW:rail?.width,
       scrollWidth:document.documentElement.scrollWidth};
   });
   assert.ok(Math.abs(layout.shellX)<=1,label+' shell must start at screen edge');
   assert.ok(Math.abs(layout.shellW-layout.viewport)<=2,label+' full-width app shell');
-  // On desktop, the content column may have a little intentional inner padding.
-  // On phones, outer website gutters are forbidden: content and navigation must fill the viewport.
-  if (mobile) assert.ok(Math.abs(layout.mainW-layout.viewport)<=2,label+' edge-to-edge main panel');
-  else assert.ok(layout.mainW>=layout.viewport-32,label+' desktop main panel remains fluid');
-  assert.ok(Math.abs(layout.bottomX)<=1 && Math.abs(layout.bottomW-layout.viewport)<=2,label+' full-screen bottom bar');
+  // Approved design: main content reserves room for the right-side compact rail.
+  assert.ok(layout.mainW>=layout.viewport-145 && layout.mainW<layout.viewport,
+    label+' main panel reserves sidebar width');
+  assert.ok(layout.railW>=58 && layout.railX>=0 &&
+    layout.railX+layout.railW<=layout.viewport+1,label+' right rail visible inside viewport');
+  assert.equal(await page.locator('.d4p-bottom:visible').count(),0,label+' no bottom navigation');
   assert.ok(layout.scrollWidth<=layout.viewport+2,label+' no sideways page scroll');
   assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
   assert.equal(await navGrid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,
