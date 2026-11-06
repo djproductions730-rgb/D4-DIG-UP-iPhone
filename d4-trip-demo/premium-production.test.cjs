@@ -12,6 +12,15 @@ new vm.Script(src, {filename:'premium-production.js'});
 
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
+const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+for(const asset of ['premium-production.js','premium-production.css','team-sync.js','team-join.js','firebase-sync.js']){
+  assert.ok(html.includes('./'+asset+'?build=26'), 'Versioned asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=26'), 'Versioned asset missing from offline cache: '+asset);
+}
+assert.match(html, /sw\.js\?build=26/, 'Force service-worker update');
+assert.match(src, /d4-build-version/, 'Admin v26 build marker');
+assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
+
 assert.doesNotMatch(html, /Join with Trip Code|Cloud code joining is not active yet/,'Old code join modal and redemption flow must not ship');
 for (const color of ['#081B43','#14275A','#7138F5','#F332B5','#FF9A50','#FFD26B']) {
   assert.ok(css.includes(color), 'Missing design token '+color);
