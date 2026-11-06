@@ -118,6 +118,19 @@ function guestPanel(){
  <p class="tiny">Join requests use a private Firebase account ID. You cannot view payments, members or trip details until approved.</p>
  ${!u?'<p class="tiny">A free guest sign-in is created automatically when you send a request.</p>':''}</section>`;
 }
+function homeRequests(){
+ if(!teamId||!editor())return '';
+ const pending=requests.filter(r=>r.status==='pending');
+ const cards=pending.map(r=>'<div class="d4-home-request-item">'+
+  '<div><strong>'+safe(r.name)+'</strong><small>Requested to join · Pending approval</small></div>'+
+  '<div class="d4-home-request-actions"><button type="button" class="btn small mint" data-join-decision="approved" data-uid="'+safe(r.uid)+'">✓ Accept</button>'+
+  '<button type="button" class="btn small ghost" data-join-decision="rejected" data-uid="'+safe(r.uid)+'">✕ Reject</button></div>'+
+  '</div>').join('');
+ return '<section class="card d4-home-join-requests" aria-label="Home pending join requests">'+
+  '<div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">'+pending.length+' Pending</span></div>'+
+  '<p class="tiny">Main Admin and Trip Admin can approve or reject directly from Home.</p>'+
+  (cards||'<p class="tiny">No pending join requests.</p>')+'</section>';
+}
 function adminPanel(){
  if(!teamId||!editor())return '';
  const pending=requests.filter(r=>r.status==='pending');
@@ -215,6 +228,6 @@ document.addEventListener('click',async event=>{
  }catch(e){toast('Join approval: '+formatError(e))}
  finally{busy=false;rerender();}
 });
-window.D4TripJoin={guestPanel,adminPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
+window.D4TripJoin={guestPanel,adminPanel,homeRequests,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
 window.addEventListener('d4-auth',()=>{watchUser();if(!authUser())void sendSavedJoinRequest()});
 if(cloud()?.ready){watchUser();if(!authUser())void sendSavedJoinRequest()}
