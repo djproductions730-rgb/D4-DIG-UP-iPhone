@@ -444,3 +444,15 @@ body.d4-premium .d4-name-link-card input.d4-join-visible-name{
  border-radius:13px!important;font-size:16px!important;
 }
 body.d4-premium .d4-join-name-field small{color:#b9e5f8;font-size:11px;line-height:1.4}
+
+/* Two-step guest joining and always-visible Home approval controls. */
+body.d4-premium .d4-join-saved-name{padding:12px 13px!important;background:#0c4f67!important;border:1px solid #78dfff96;border-radius:14px;color:#d4fff5!important;overflow-wrap:anywhere}
+body.d4-premium .d4-name-link-card form{min-width:0;max-width:100%}
+body.d4-premium .d4-home-join-requests{margin:16px 0!important;padding:16px 14px!important;border:1px solid #78dfff85!important;background:linear-gradient(125deg,#0e4669,#092b47)!important;border-radius:20px!important}
+body.d4-premium .d4-home-join-requests h3{font-size:17px;margin:0}
+body.d4-premium .d4-home-join-requests .pill{white-space:nowrap}
+body.d4-premium .d4-home-request-item{display:grid;gap:9px;padding:13px 10px;margin:10px 0 0;border:1px solid #8dddff63;border-radius:14px;background:#062c4abb;min-width:0}
+body.d4-premium .d4-home-request-item strong{display:block;font-size:15px;overflow-wrap:anywhere}
+body.d4-premium .d4-home-request-item small{display:block;font-size:11px;line-height:1.4;color:#b1e0fa}
+body.d4-premium .d4-home-request-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+body.d4-premium .d4-home-request-actions button{min-width:0;min-height:45px;font-size:13px;font-weight:800}
