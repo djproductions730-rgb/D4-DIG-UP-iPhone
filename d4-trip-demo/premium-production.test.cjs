@@ -12,6 +12,7 @@ new vm.Script(src, {filename:'premium-production.js'});
 
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
+assert.doesNotMatch(html, /Join with Trip Code|Cloud code joining is not active yet/,'Old code join modal and redemption flow must not ship');
 for (const color of ['#081B43','#14275A','#7138F5','#F332B5','#FF9A50','#FFD26B']) {
   assert.ok(css.includes(color), 'Missing design token '+color);
 }
