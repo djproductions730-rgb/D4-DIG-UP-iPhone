@@ -28,6 +28,8 @@ const events = {};
 const cloud = {user:{email:'owner@example.test'}};
 const context = {
   topBar:()=>'original-header',
+  home:()=>'<div class="hero"><div class="row"><button data-action="d4-open-invite">Join by Name</button></div></div><section>Dashboard</section>',
+  tripsPage:()=>'<button data-action="d4-open-invite">Join by Name</button><div class="trip-list">Trips</div>',
   entryPage: () => '<h1>My Trips</h1><button class="d4-install-help" data-action="install-help">Install D4 Trip on Phone</button>' +
     '<button class="d4-install-help" data-action="replay-intro">Replay Logo Intro</button>' +
     '<button data-action="enter-app">Open dashboard</button>Choose a trip → Collection → Trip Dashboard',
@@ -80,13 +82,16 @@ assert.match(entry, /Explore Trips/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
 owner=false;
 const guestEntry=context.entryPage();
-assert.match(guestEntry,/d4-save-join-name/,'Step 1 saves name before link');
-assert.match(guestEntry,/Your Name/);
-assert.match(guestEntry,/name="name"/);
+assert.match(guestEntry,/d4-single-join-entry/,'Guest has standalone scrollable name entry');
+assert.match(guestEntry,/d4-save-join-name/,'Step 1 is visible immediately');
+assert.match(guestEntry,/id="d4-guest-name-input"/,'Name input visible');
 assert.match(guestEntry,/Submit Name/);
-assert.doesNotMatch(guestEntry,/id="d4-open-trip-link"|Paste Trip Link|Continue with the Link/,'Step 2 hidden until name submitted');
-assert.equal((guestEntry.match(/<button[^>]*type="submit"[^>]*>/g)||[]).length,1,'Only one step-one submit button');
-assert.doesNotMatch(guestEntry,/data-action="d4-open-invite"|data-modal="join-trip"|Join with Code|Open dashboard/,'No duplicate or code join controls');
+assert.doesNotMatch(guestEntry,/d4-new-card-list|d4-new-bottom|d4-open-trip-link|Join with Code/,'Old trip grid and second step cannot clip name box');
+assert.equal((guestEntry.match(/<button[^>]*type="submit"[^>]*>/g)||[]).length,1,'Only one form action at a time');
+const guestHome=context.home();
+assert.equal((guestHome.match(/Join by Name/g)||[]).length,0,'Duplicate Join by Name button removed from Home');
+assert.equal((guestHome.match(/id="d4-guest-name-input"/g)||[]).length,1,'Home shows one usable Name box');
+assert.doesNotMatch(context.tripsPage(),/Join by Name/,'Trips list does not show duplicate Join by Name button');
 owner=true;
 const board=context.collectionsPage();
 assert.match(board, /d4p-ring/);
