@@ -84,6 +84,15 @@ test('malformed new data and untrusted other collections remain denied',async()=
   await assertFails(setDoc(doc(alice,'trips/trip1/messages/msg1'),{text:'not authorized'}));
 });
 
+test('only verified Main Admin can enumerate shared trips to receive cross-device join notifications',async()=>{
+ const main=env.authenticatedContext('2FYUUnPp1JX8wvv9HSvL6QoyaCq2',{
+   email:'main@example.test',email_verified:true
+ }).firestore();
+ await assertSucceeds(getDocs(collection(main,'teamTrips')));
+ await assertFails(getDocs(collection(auth('bob').firestore(),'teamTrips')));
+ await assertFails(getDocs(collection(unauth().firestore(),'teamTrips')));
+});
+
 test('two separate clients signed in as the same UID receive live revisions', {timeout:15000}, async()=>{
   const first=auth('alice').firestore();
   const second=auth('alice').firestore();
