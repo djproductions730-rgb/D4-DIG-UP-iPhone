@@ -119,10 +119,22 @@ service cloud.firestore {
                 getAfter(grantPath).data.name == d.joinedName &&
                 getAfter(tripPath).data.trip.members.hasAny([d.joinedName])) );
         }
+        // A guest may refresh their own pending request or retry after a rejection.
+        // Never allow a resend to undo approval, alter a grant or create a member.
+        function validResendRequest() {
+          let d = request.resource.data;
+          return ownRequest() &&
+            resource.data.status in ['pending','rejected'] &&
+            d.keys().hasAll(['uid','name','status','createdAt']) &&
+            d.keys().hasOnly(['uid','name','status','createdAt']) &&
+            d.uid == guestUid &&
+            d.name is string && d.name.size() >= 2 && d.name.size() <= 50 &&
+            d.status == 'pending' && d.createdAt == request.time;
+        }
         allow get: if ownRequest() || editor();
         allow list: if editor();
         allow create: if validNewRequest();
-        allow update: if validDecision();
+        allow update: if validDecision() || validResendRequest();
         allow delete: if mainAdmin();
       }
       match /accessUid/{guestUid} {
