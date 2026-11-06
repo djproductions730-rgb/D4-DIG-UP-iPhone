@@ -180,7 +180,7 @@
         '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
         '</main>';
     }
-    return original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
+    return (isMain()?mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
       .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
       .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
   };
