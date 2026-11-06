@@ -44,7 +44,7 @@ const context = {
     documentElement: {style:{}},
     addEventListener:(name,callback)=>{events[name]=callback}
   },
-  window: {D4TripCloud:cloud,D4Team:{}},
+  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true}},
   current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
@@ -76,11 +76,14 @@ assert.match(css,/d4-liquid-rail\{position:fixed/);
 assert.match(css,/right:8px/);
 const entry = context.entryPage();
 assert.match(entry, /Explore Trips/);
-assert.match(entry, /data-view="profile"[^>]*>🔐 Sign in \/ Create account/);
+assert.match(entry, /data-action="enter-app"/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
 assert.match(entry,/d4-open-trip-link/,'Entry includes private trip link form');
 assert.match(entry,/Join a Trip by Name/);
 assert.doesNotMatch(entry,/data-modal="join-trip"|Join with Code/);
+owner=false;
+assert.match(context.entryPage(),/data-action="d4-open-invite"/,'Guest uses link, not Firebase email login');
+owner=true;
 const board=context.collectionsPage();
 assert.match(board, /d4p-ring/);
 assert.match(board, /d4-blue-breakdown/);
