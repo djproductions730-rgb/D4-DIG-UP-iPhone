@@ -268,7 +268,7 @@
         '<p>This device is using a local Trip Admin profile. To see pending requests, sign in with the authorized Firebase admin account and open the shared trip.</p>'+
         '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
-      '<h2>'+role+' Panel</h2>'+
+      '<h2>'+role+' Panel <small class="d4-build-version">v26</small></h2>'+
       '<p>Review join requests, manage members and share the trip.</p></div>'+
       requests+
       mainSharePanel(t)+
