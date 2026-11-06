@@ -105,16 +105,13 @@
   entryPage = function () {
     const html = original.entryPage();
     let result = html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
-      .replace(/<button class="d4-install-help" data-action="install-help">[\\s\\S]*?<\\/button>/, '')
-      .replace(/<button class="d4-install-help" data-action="replay-intro">[\\s\\S]*?<\\/button>/, '');
+      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s, '')
+      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s, '');
     if (!isMain()) {
-      // Guest has exactly ONE join control: Paste Trip Link + Join Trip.
-      // Hide duplicate old dashboard/join buttons but preserve existing trip cards/data.
-      result = result.replace(/<div class="d4-new-bottom">[\\s\\S]*?<\\/div>/, '');
+      // Exactly one entry action: paste the invitation link and tap Join Trip.
+      result = result.replace(/<div class="d4-new-bottom">.*?<\/div>/s, '');
       result = result.replace('<div class="d4-new-card-list">', inviteLinkCard()+'<div class="d4-new-card-list">');
       if (!result.includes('id="d4-open-trip-link"')) result += inviteLinkCard();
-    } else {
-      result = result.replace('<div class="d4-new-disclaimer">', '<div class="d4-new-disclaimer">');
     }
     return result;
   };
