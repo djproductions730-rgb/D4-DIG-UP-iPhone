@@ -412,3 +412,10 @@ html:has(body.d4-premium){height:auto!important;overflow-y:auto!important;oversc
 body.d4-premium{height:auto!important;min-height:100dvh!important;overflow-y:auto!important;overscroll-behavior-y:auto!important}
 body.d4-premium .d4-liquid-rail{touch-action:pan-y;overscroll-behavior:contain}
 @media(max-width:760px){body.d4-premium .app-shell{padding-left:7px!important;padding-right:clamp(76px,19vw,102px)!important}body.d4-premium .app-shell>.main{padding:9px 3px 28px!important}}
+
+/* Single-tap Main Admin share action and lower-screen copy confirmation */
+body.d4-premium .d4-share-join-card{display:grid;gap:9px;margin:14px 0;padding:19px;border-radius:21px}
+body.d4-premium .d4-share-join-card h3{margin:0;font-size:18px;line-height:1.3}
+body.d4-premium .d4-share-join-card p{margin:0;line-height:1.55}
+body.d4-premium .d4-share-join-button{min-height:54px;font-weight:850;font-size:15px;white-space:normal}
+body.d4-premium .toast{position:fixed!important;bottom:calc(20px + env(safe-area-inset-bottom))!important;left:50%!important;z-index:5000!important;max-width:min(92vw,390px);background:linear-gradient(110deg,#0b5b88,#079dca)!important;color:#fff!important;border:1px solid #8ce7ff90!important;box-shadow:0 12px 35px #00192a98!important;font-size:13px!important}
