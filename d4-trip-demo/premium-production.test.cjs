@@ -49,7 +49,7 @@ const context = {
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
   get tripTab(){return tab},set tripTab(v){tab=v},
-  collectionTotals:()=>({progress:40,full:1,partial:1,unpaid:0,paid:5000,target:12500,pending:7500}),
+  collectionTotals:()=>({progress:40,full:1,partial:1,unpaid:0,paid:5000,target:12500,pending:7500,rows:[{member:'Member A',status:'Paid',paid:4000},{member:'Member B',status:'Partial',paid:1000}]}),
   money:v=>'₹'+v, datesInTrip:()=>['2026-11-06','2026-11-07','2026-11-08','2026-11-09'],
   shortDate:v=>v
 };
@@ -80,6 +80,10 @@ assert.match(entry, /data-view="profile"[^>]*>🔐 Sign in \/ Create account/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
 const board=context.collectionsPage();
 assert.match(board, /d4p-ring/);
+assert.match(board, /d4-blue-breakdown/);
+for(const label of ['Total Trip Amount','Paid in Full','Advance \/ Partial Paid','Total Received','Remaining Amount'])assert.ok(board.includes(label));
+assert.match(css,/d4-blue-breakdown/);
+assert.match(css,/touch-action:pan-y/);
 assert.match(board, /Continue/);
 assert.match(board, /Skip/);
 assert.match(board, /enter-selected-trip/);
