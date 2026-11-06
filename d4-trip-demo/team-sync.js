@@ -158,6 +158,8 @@ document.addEventListener('click',async event=>{
   const trip=id?null:structuredClone(local.currentTrip());
   const shareId=id||trip?.id;
   if(!shareId||!/^[a-zA-Z0-9_-]{1,100}$/.test(shareId))throw Error('Select a valid trip first');
+  // Start clipboard copy inside the original tap, before any network awaits.
+  await navigator.clipboard.writeText(link(shareId));
   if(!id){
    const r=ref(shareId);
    const originalUid=user().uid;
@@ -171,7 +173,6 @@ document.addEventListener('click',async event=>{
     }
    });
   }
-  await navigator.clipboard.writeText(link(shareId));
   say('✅ Link copied! Share it with members.');
   return;
  }
