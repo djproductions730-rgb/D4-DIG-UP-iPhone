@@ -8,7 +8,7 @@ const ref=tripId=>doc(cloud().cloudDb,'teamTrips',tripId);
 const grant=(tripId,email)=>doc(ref(tripId),'access',email);
 const say=message=>local.toast(message);
 const htmlSafe=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const canEdit=()=>!!user()?.emailVerified && (role==='owner'||role==='admin');
+const canEdit=()=>role==='owner'?(!!user()?.emailVerified&&cloud()?.isVerifiedOwner?.()===true):role==='admin';
 const canRemove=()=>!!user()?.emailVerified && role==='owner' && cloud()?.isVerifiedOwner?.()===true;
 const link=tripId=>{const url=new URL(location.href);url.search='';url.searchParams.set('team',tripId);url.hash='';return url.href};
 function clear(){
@@ -33,7 +33,7 @@ function connect(){
  };
  const setRole=()=>{
    if(token!==generation)return;
-   const next=emailRole==='admin'?'admin':emailRole==='member'?'member':uidRole==='member'?'member':'';
+   const next=emailRole==='admin'||uidRole==='admin'?'admin':emailRole==='member'||uidRole==='member'?'member':'';
    if(role===next)return;
    const wasAuthorized=!!role;
    role=next;
