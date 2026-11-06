@@ -1,4 +1,4 @@
-const CACHE='d4-trip-app-v23-admin-visible-share-link';
+const CACHE='d4-trip-app-v24-admin-join-inbox';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js','./team-sync.js','./team-join.js','./team-invite-runtime.js','./premium-production.css','./premium-production.js','./shared-beta.js','./shared-runtime.js','./intro.css','./trip-intro.js','./intro-logo.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
