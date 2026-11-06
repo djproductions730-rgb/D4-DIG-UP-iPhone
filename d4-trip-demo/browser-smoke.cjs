@@ -181,7 +181,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('#profileSelect').selectOption('A');
   await page.locator('.d4p-breadcrumb [data-action="d4-back"]').click();
   assert.equal(await page.locator('[data-action="collection-quick-add"]').count(),0);
-  await page.locator('[data-action="open-tab"][data-ctx="members"]').click();
+  await page.locator('.d4-liquid-rail [data-action="open-tab"][data-ctx="members"]').click();
   assert.equal(await page.locator('[data-action="modal-add-member"]').count(),0);
   assert.equal(await page.locator('[data-action="remove-member"]').count(),0);
   await page.locator('.d4-liquid-rail [data-ctx="expenses"]').click();
