@@ -30,6 +30,22 @@
     return '<button type="button" class="d4p-tile" data-team="' + action +
       '"><span class="d4p-icon" aria-hidden="true">' + icon + '</span><strong>' + safe(title) + '</strong></button>';
   }
+  function mainSharePanel(t) {
+    if (!t || !(teamId ? window.D4Team?.canEdit?.() : isMain())) return '';
+    const tripId=teamId||t.id;
+    if(!/^[A-Za-z0-9_-]{1,100}$/.test(String(tripId)))return '';
+    const url=new URL(location.pathname,location.origin);
+    url.searchParams.set('team',tripId);
+    const full=url.href;
+    return '<section class="card d4-main-share-panel" aria-label="Main Admin Share Join Link">'+
+      '<h3>🔗 Share Join Link</h3>'+
+      '<p>Send this link to members. They enter their name and request approval.</p>'+
+      '<label for="d4-main-join-link">Your Trip Join Link</label>'+
+      '<input id="d4-main-join-link" class="input d4-main-join-link" type="text" readonly aria-label="Your Trip Join Link" value="'+safe(full)+'">'+
+      '<button type="button" class="btn mint block d4-share-join-button" data-team="share-join-link">📋 Copy Link</button>'+
+      '<p class="tiny">'+(teamId?'Link is for the selected shared trip.':'First copy also publishes a shared copy after Main Admin Firebase sign-in.')+'</p>'+
+      '</section>';
+  }
   function tileRow(t) {
     if (!t || !isTripAdmin(t)) return '';
     const buttons = [
@@ -172,7 +188,8 @@
   // buttons; the Trips page retains normal trip browsing without another CTA.
   home = function () {
     const html=original.home();
-    if(isMain() || teamId)return html;
+    if(isMain())return mainSharePanel(current())+html;
+    if(teamId)return html;
     return html.replace('</div></div>', '</div></div>'+inviteLinkCard());
   };
   tripsPage = function () {
@@ -239,14 +256,9 @@
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
       '<h2>'+(teamId && window.D4Team?.canRemove?.()?'Main Admin':'Trip Admin')+' Panel</h2>'+
       '<p>Approve join requests, manage members and share the trip.</p></div>'+
-      '<section class="card d4-liquid-share"><h3>🔗 Share Trip Link</h3>'+
-      '<p>Send this private trip link to friends. They enter their name and request approval — no password or trip code.</p>'+
-      (teamId
-        ?'<button type="button" class="btn mint block" data-team="copy">📋 Copy Trip Join Link</button>'
-        :'<p class="tiny">Open your shared trip first to copy its invitation link.</p>')+
-      '</section>'+
+      mainSharePanel(current())+
       (window.D4TripJoin?.adminPanel?.() || '<div class="card"><h3>Join Requests</h3><p>Request management is loading.</p></div>')+
-      '<div class="d4p-grid">'+teamButton('🔗','Share Trip Link','copy')+
+      '<div class="d4p-grid">'+
       button('👥','Manage Members','open-tab','data-ctx="members"')+
       (teamId && window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
       '</div></section>';
@@ -271,6 +283,7 @@
       safe(t.destination) + '</h2><p>' + safe(t.name) + ' · ' +
       shortDate(t.start) + ' – ' + shortDate(t.end) + '</p></div>' +
       (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : '') +
+      mainSharePanel(t) +
       '<div class="d4p-stats"><div class="d4p-stat"><small>Members</small><strong>' +
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
       days + '</strong></div><div class="d4p-stat"><small>Remaining</small><strong>' +
@@ -345,10 +358,7 @@
       : '';
     return '<section class="d4p-section"><div class="d4p-hero"><small>⚙️ PROFILE & SETTINGS</small>' +
       '<h2>' + safe(label) + '</h2><p>' + email + '</p></div>' +
-      (isMain()&&t?'<section class="card d4-share-join-card"><h3>🔗 Share Join Link</h3>'+
-       '<p>One tap copies this trip’s invite link. Members open it, enter their name and wait for Main Admin or Trip Admin approval.</p>'+
-       '<button type="button" class="btn mint block d4-share-join-button" data-team="share-join-link">🔗 Share Join Link</button>'+
-       '<p class="tiny">Existing trip records stay unchanged. Only approved members can enter.</p></section>':'')+
+      mainSharePanel(t) +
       (!isMain()&&!isTripAdmin(t)?'<p class="d4p-caption">Your trip spending and trip days are available in view-only mode.</p>':'') +
       '<h3 class="d4p-title">Appearance</h3><div class="card"><p class="d4p-caption">Theme selection</p>' +
       '<div class="d4p-theme-grid">' + modeButtons + '</div></div>' +
