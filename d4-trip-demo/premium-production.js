@@ -103,12 +103,13 @@
   },true);
   entryPage = function () {
     const html = original.entryPage();
+    const appendCard = !html.includes('<div class="d4-new-disclaimer">');
     return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
       .replace('<button data-action="enter-app">Open dashboard</button>', '<button type="button" data-action="nav" data-view="profile">🔐 Sign in / Create account</button>')
       .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
       .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
       .replace('Choose a trip → Collection → Trip Dashboard', 'Open your invitation link, enter your name, and wait for admin approval')
-      .replace('<div class="d4-new-disclaimer">', inviteLinkCard()+'<div class="d4-new-disclaimer">');
+      .replace('<div class="d4-new-disclaimer">', inviteLinkCard()+'<div class="d4-new-disclaimer">') + (appendCard ? inviteLinkCard() : '');
   };
   collectionsPage = function () {
     const html = original.collectionsPage();
