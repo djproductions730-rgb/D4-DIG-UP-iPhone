@@ -41,6 +41,7 @@ const context = {
   tripPage: () => 'legacy-page',tripPlan:()=> 'original-plan',tripExpenses:()=> 'original-expenses',tripMembers:()=> 'original-members',
   profilePage: () => '<section id="real-account-panel">Existing Firebase account UI</section>',
   chatsPage: () => 'legacy-live-chat',
+  URL, location:{origin:'https://d4-trip.web.app',pathname:'/',href:'https://d4-trip.web.app/'},
   localStorage: {getItem:()=>null,setItem:()=>{}},
   document: {
     body: {classList:{add:()=>{},toggle:()=>{}}},
@@ -58,6 +59,11 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(src,context,{filename:'premium-production.js'});
+assert.match(context.entryPage(),/id="d4-main-join-link"/,'Main Admin My Trips displays full link field');
+assert.match(context.entryPage(),/data-team="share-join-link"/,'Main Admin My Trips offers Copy Link');
+assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-id/,'Main Admin sees exact trip invitation URL');
+assert.match(context.home(),/id="d4-main-join-link"/,'Home displays share URL');
+assert.match(context.profilePage(),/id="d4-main-join-link"/,'Settings displays share URL');
 assert.match(context.topBar(),/data-action="d4-back"/);
 assert.match(context.topBar(),/Back to Payments/,'overview back leads to payments');
 assert.match(context.topBar(),/My Trips/);
