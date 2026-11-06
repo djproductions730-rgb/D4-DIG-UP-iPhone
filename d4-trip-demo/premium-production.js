@@ -69,13 +69,14 @@
     return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
   };
   function inviteLinkCard() {
-    return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join by name">'+
-      '<h2>🔗 Join a Trip by Name</h2>'+
-      '<p>Ask Main Admin or Trip Admin to share their trip link. Open it to enter your name and request approval. No email, password or trip code required.</p>'+
-      '<form id="d4-open-trip-link" style="display:grid;gap:10px">'+
-      '<label for="d4-trip-link-input">Paste your trip invitation link</label>'+
-      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" placeholder="https://d4-trip.web.app/?team=..." required>'+
-      '<button type="submit" class="btn mint block">Continue to Name &amp; Approval</button></form>'+
+    return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip with link">'+
+      '<h2>🔗 Join Trip</h2>'+
+      '<p>Paste the trip link sent by Main Admin or Trip Admin. Next, enter your name to request approval.</p>'+
+      '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
+      '<label for="d4-trip-link-input">Paste Trip Link</label>'+
+      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste the link here" required>'+
+      '<button type="submit" class="btn mint block d4-guest-join-button">Join Trip</button></form>'+
+      '<p class="tiny">No trip code, email or password needed.</p>'+
       '</section>';
   }
   document.addEventListener('submit', function(event){
@@ -103,13 +104,19 @@
   },true);
   entryPage = function () {
     const html = original.entryPage();
-    const appendCard = !html.includes('<div class="d4-new-disclaimer">');
-    return html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
-      .replace('<button data-action="enter-app">Open dashboard</button>', isMain() ? '<button data-action="enter-app">Open dashboard</button>' : '<button type="button" data-action="d4-open-invite">🔗 Join by Name</button>')
-      .replace(/<button class="d4-install-help" data-action="install-help">[\s\S]*?<\/button>/, '')
-      .replace(/<button class="d4-install-help" data-action="replay-intro">[\s\S]*?<\/button>/, '')
-      .replace('Choose a trip → Collection → Trip Dashboard', 'Open your invitation link, enter your name, and wait for admin approval')
-      .replace('<div class="d4-new-disclaimer">', inviteLinkCard()+'<div class="d4-new-disclaimer">') + (appendCard ? inviteLinkCard() : '');
+    let result = html.replace('<h1>My Trips</h1>', '<h1>Explore Trips</h1>')
+      .replace(/<button class="d4-install-help" data-action="install-help">[\\s\\S]*?<\\/button>/, '')
+      .replace(/<button class="d4-install-help" data-action="replay-intro">[\\s\\S]*?<\\/button>/, '');
+    if (!isMain()) {
+      // Guest has exactly ONE join control: Paste Trip Link + Join Trip.
+      // Hide duplicate old dashboard/join buttons but preserve existing trip cards/data.
+      result = result.replace(/<div class="d4-new-bottom">[\\s\\S]*?<\\/div>/, '');
+      result = result.replace('<div class="d4-new-card-list">', inviteLinkCard()+'<div class="d4-new-card-list">');
+      if (!result.includes('id="d4-open-trip-link"')) result += inviteLinkCard();
+    } else {
+      result = result.replace('<div class="d4-new-disclaimer">', '<div class="d4-new-disclaimer">');
+    }
+    return result;
   };
   collectionsPage = function () {
     const html = original.collectionsPage();
