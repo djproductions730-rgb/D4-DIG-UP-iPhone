@@ -263,10 +263,13 @@ async function joinByNameLinkFlow(browser) {
   assert.match(await page.locator('#d4-invite-link-card').innerText(),/Paste Trip Link[\s\S]*Join Trip/);
   const url=new URL(BASE);
   url.searchParams.set('team','m3-browser-smoke');
+  await page.locator('#d4-guest-name-input').fill('Visitor Name');
   await page.locator('#d4-trip-link-input').fill(url.href);
   await page.locator('#d4-open-trip-link button[type="submit"]').click();
   await page.waitForURL(/\\?team=m3-browser-smoke/);
   assert.equal(new URL(page.url()).searchParams.get('team'),'m3-browser-smoke');
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('d4_trip_join_name_v1_m3-browser-smoke')),'Visitor Name','The member name is retained only in same-tab session for approval request');
+  assert.equal(new URL(page.url()).searchParams.has('name'),false,'Member name is never exposed in the join URL');
   assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'Existing local trip backup remains intact');
   assert.deepEqual(errors.filter(e=>!/Firebase|Failed to fetch|network/i.test(e)),[],
     'Name-only link entry does not cause unrelated runtime exceptions');
