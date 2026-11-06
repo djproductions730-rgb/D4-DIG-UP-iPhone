@@ -7,6 +7,8 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firebase.invites.json",
+      "team-invites/**",
       "**/.*",
       "**/node_modules/**",
       "**/*.cjs",
