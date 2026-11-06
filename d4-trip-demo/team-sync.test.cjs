@@ -15,12 +15,12 @@ function setup(owner=true){
  return {window,listeners,writes,inviteWrites,shown,messages,snap,api:window.D4Team,signOut(){window.D4TripCloud.auth.currentUser=null;authEvent()},setTransaction:f=>transaction=f};
 }
 test('members can view their granted trip but cannot save',()=>{
- const h=setup(false);h.snap(h.listeners[0],{role:'member'});h.snap(h.listeners[1],{trip:{id:'trip'},revision:1});
+ const h=setup(false);assert.equal(h.listeners[0].ref,'teamTrips/trip/accessUid/member');h.snap(h.listeners[1],{role:'member'});h.snap(h.listeners[2],{trip:{id:'trip'},revision:1});
  assert.equal(h.api.canEdit(),false);assert.equal(h.api.save({id:'trip'}),false);assert.equal(h.writes.length,0);
 });
 test('revoked access clears displayed data and rejects stale callbacks',()=>{
- const h=setup(false);h.snap(h.listeners[0],{role:'admin'});const tripListener=h.listeners[1];h.snap(tripListener,{trip:{id:'trip'},revision:1});
- h.snap(h.listeners[0],null);const count=h.shown.length;h.snap(tripListener,{trip:{id:'trip'},revision:2});
+ const h=setup(false);h.snap(h.listeners[1],{role:'admin'});const tripListener=h.listeners[2];h.snap(tripListener,{trip:{id:'trip'},revision:1});
+ h.snap(h.listeners[1],null);const count=h.shown.length;h.snap(tripListener,{trip:{id:'trip'},revision:2});
  assert.equal(h.shown.at(-1),null);assert.equal(h.shown.length,count);assert.equal(h.api.canEdit(),false);
 });
 test('cached trip cannot replace confirmed server data',()=>{
@@ -40,13 +40,13 @@ test('signed out account cannot save or receive old trip data',()=>{
 
 test('Trip Admin sees one Add Member flow and can invite, but cannot revoke joined users',async()=>{
  const h=setup(false);
- h.snap(h.listeners[0],{role:'admin'});
- h.snap(h.listeners[1],{trip:{id:'trip'},revision:1});
+ h.snap(h.listeners[1],{role:'admin'});
+ h.snap(h.listeners[2],{trip:{id:'trip'},revision:1});
  assert.equal(h.api.canEdit(),true);
  assert.equal(h.api.canRemove(),false);
  const ui=h.api.controls({id:'trip'});
  assert.doesNotMatch(ui,/data-team="revoke"|data-team="invite"/);
- assert.match(ui,/Use Add Member below/);
+ assert.match(ui,/Share the trip link/);
  const invited=await h.api.inviteMember('NEW@EXAMPLE.COM');
  assert.equal(invited,'new@example.com');
  assert.equal(h.inviteWrites[0].ref,'teamTrips/trip/access/new@example.com');
@@ -67,8 +67,8 @@ test('Main Admin retains the exclusive Remove Access control',()=>{
 });
 test('Member cannot add or remove any user',async()=>{
  const h=setup(false);
- h.snap(h.listeners[0],{role:'member'});
- h.snap(h.listeners[1],{trip:{id:'trip'},revision:1});
+ h.snap(h.listeners[1],{role:'member'});
+ h.snap(h.listeners[2],{trip:{id:'trip'},revision:1});
  assert.equal(h.api.canRemove(),false);
  await assert.rejects(h.api.inviteMember('new@example.com'),/Only Main Admin and Trip Admin/);
  assert.equal(h.inviteWrites.length,0);
