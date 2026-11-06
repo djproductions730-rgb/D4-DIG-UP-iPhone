@@ -71,8 +71,10 @@
   function inviteLinkCard() {
     return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip with link">'+
       '<h2>🔗 Join Trip</h2>'+
-      '<p>Paste the trip link sent by Main Admin or Trip Admin. Next, enter your name to request approval.</p>'+
+      '<p>Enter your name and paste the private Trip Link. Tap Join Trip to send an approval request.</p>'+
       '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
+      '<label for="d4-guest-name-input">Your Name</label>'+ 
+      '<input id="d4-guest-name-input" name="name" class="input" type="text" minlength="2" maxlength="50" autocomplete="name" placeholder="Enter your name" required>'+ 
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
       '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste the link here" required>'+
       '<button type="submit" class="btn mint block d4-guest-join-button">Join Trip</button></form>'+
@@ -82,13 +84,18 @@
   document.addEventListener('submit', function(event){
     if(event.target?.id!=='d4-open-trip-link')return;
     event.preventDefault();
-    const value=String(new FormData(event.target).get('tripLink')||'').trim();
+    const form=new FormData(event.target);
+    const value=String(form.get('tripLink')||'').trim();
+    const name=String(form.get('name')||'').trim().replace(/\s+/g,' ');
     try {
+      if(name.length<2||name.length>50)throw Error('Enter your name (2–50 characters).');
       const url=new URL(value);
       const trip=url.searchParams.get('team');
       if(!trip || !/^[A-Za-z0-9_-]{1,100}$/.test(trip))throw Error('Use a valid Trip Share Link from your admin.');
       if(url.origin!==location.origin || url.pathname!==location.pathname)
         throw Error('This link must be for the same D4 Trip app.');
+      // Same-origin session handoff: never place the member name in a shareable URL.
+      sessionStorage.setItem('d4_trip_join_name_v1_'+trip,name);
       location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
     } catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link');}
   });
