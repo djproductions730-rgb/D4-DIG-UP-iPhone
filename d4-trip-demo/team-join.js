@@ -136,7 +136,7 @@ async function decide(uid,status){
    if(!tripSnap.exists())throw Error('Shared trip unavailable');
    if(status==='approved'){
      const oldGrant=await tx.get(gr);
-     if(oldGrant.exists)throw Error('This person already has access');
+     if(oldGrant.exists())throw Error('This person already has access');
      const next=structuredClone(tripSnap.data().trip);
      let joinedName=name,n=2;
      while(next.members.includes(joinedName))joinedName=name+' ('+(n++)+')';
@@ -180,6 +180,6 @@ document.addEventListener('click',async event=>{
  }catch(e){toast('Join approval: '+formatError(e))}
  finally{busy=false;rerender();}
 });
-window.D4TripJoin={guestPanel,adminPanel,notificationBanner,accessChanged};
+window.D4TripJoin={guestPanel,adminPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
 window.addEventListener('d4-auth',watchUser);
 if(cloud()?.ready)watchUser();
