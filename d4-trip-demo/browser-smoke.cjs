@@ -264,6 +264,9 @@ async function joinByNameLinkFlow(browser) {
   const url=new URL(BASE);
   url.searchParams.set('team','m3-browser-smoke');
   await page.locator('#d4-guest-name-input').fill('Visitor Name');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('d4_trip_guest_name_v1')),'Visitor Name','Guest name is saved locally as typed');
+  await page.reload({waitUntil:'domcontentloaded'});
+  assert.equal(await page.locator('#d4-guest-name-input').inputValue(),'Visitor Name','Saved guest name is prefilled after reopening');
   await page.locator('#d4-trip-link-input').fill(url.href);
   await page.locator('#d4-open-trip-link button[type="submit"]').click();
   await page.waitForURL(/\\?team=m3-browser-smoke/);
