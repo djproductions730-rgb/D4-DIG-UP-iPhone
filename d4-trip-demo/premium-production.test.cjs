@@ -68,7 +68,7 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,7,'Right rail shows seven sections for non-admin');
+assert.equal((nav.match(/<button /g)||[]).length,8,'Admin sees seven sections plus Admin shortcut in right rail');
 assert.match(nav,/class="d4-liquid-rail"/,'Navigation is a right-side rail, not a bottom bar');
 for(const label of ['Home','Day Plan','Members','Payments','Expenses','Chat','Settings'])assert.ok(nav.includes(label));
 assert.doesNotMatch(nav,/d4p-bottom|bottom-nav/);
