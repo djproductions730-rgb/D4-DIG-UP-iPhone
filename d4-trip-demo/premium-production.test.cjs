@@ -14,10 +14,10 @@ assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
 for(const asset of ['premium-production.js','premium-production.css','team-sync.js','team-join.js','firebase-sync.js']){
-  assert.ok(html.includes('./'+asset+'?build=26'), 'Versioned asset missing from index: '+asset);
-  assert.ok(sw.includes('./'+asset+'?build=26'), 'Versioned asset missing from offline cache: '+asset);
+  assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=26/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=27/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
