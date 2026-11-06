@@ -92,21 +92,55 @@
       .replace('<button class="cc-open-members"',
         '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
   };
+  // The old bottom navigation is now a compact, fixed RIGHT-side rail.
+  // Keep the existing delegated data-action routing for all buttons.
   bottomNav = function () {
     const t = current();
     if (!t || view === 'entry') return '';
+    const admin = !!(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(t));
+    const pending = admin ? (window.D4TripJoin?.pendingCount?.() || 0) : 0;
     const items = [
-      {icon:'🧾',label:'Expenses',action:'nav',name:'expenses',attr:'data-view="expenses"',active:view==='expenses'||(view==='trip'&&tripTab==='expenses')},
-      {icon:'🗓️',label:'Trip Days',action:'open-tab',name:'plan',attr:'data-ctx="plan"',active:view==='trip'&&tripTab==='plan'},
-      {icon:'⚙️',label:'Settings',action:'nav',name:'profile',attr:'data-view="profile"',active:view==='profile'},
-      {icon:'💬',label:'Chats',action:'nav',name:'chat',attr:'data-view="chat"',active:view==='chat'}
+      { icon:'🏠',label:'Home',action:'open-tab',attr:'data-ctx="overview"',active:view==='trip'&&tripTab==='overview' },
+      { icon:'📅',label:'Day Plan',action:'open-tab',attr:'data-ctx="plan"',active:view==='trip'&&tripTab==='plan' },
+      { icon:'👥',label:'Members',action:'open-tab',attr:'data-ctx="members"',active:view==='trip'&&tripTab==='members' },
+      { icon:'💳',label:'Payments',action:'nav',attr:'data-view="collections"',active:view==='collections' },
+      { icon:'🧾',label:'Expenses',action:'open-tab',attr:'data-ctx="expenses"',active:view==='trip'&&tripTab==='expenses' },
+      { icon:'💬',label:'Chat',action:'nav',attr:'data-view="chat"',active:view==='chat' }
     ];
-    return '<nav class="d4p-bottom" aria-label="Trip sections">' +
-      items.map(i => '<button type="button" data-action="' + i.action + '" ' + i.attr +
-        ' class="' + (i.active ? 'active' : '') + '" aria-label="' + i.label +
-        '" aria-current="' + (i.active ? 'page' : 'false') + '"><span aria-hidden="true">' +
-        i.icon + '</span>' + i.label + '</button>').join('') + '</nav>';
+    if (admin) items.push({icon:'👑',label:'Admin',action:'d4-admin-panel',attr:'',active:false,count:pending});
+    items.push({icon:'⚙️',label:'Settings',action:'nav',attr:'data-view="profile"',active:view==='profile'});
+    return '<nav class="d4-liquid-rail" aria-label="Trip sections (right sidebar)">' +
+      items.map(i=>'<button type="button" data-action="'+i.action+'" '+i.attr+
+        ' class="d4-liquid-rail-item'+(i.active?' active':'')+'" aria-label="'+i.label+
+        (i.count?' ('+i.count+' pending)':'')+'" title="'+i.label+'">'+
+        '<span aria-hidden="true" class="d4-liquid-rail-icon">'+i.icon+'</span>'+
+        '<span class="d4-liquid-rail-label">'+i.label+'</span>'+
+        (i.count?'<span class="d4-liquid-badge">'+i.count+'</span>':'')+'</button>').join('')+'</nav>';
   };
+  function adminSurface(){
+    if (!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current()))) return '';
+    return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
+      '<h2>'+(teamId && window.D4Team?.canRemove?.()?'Main Admin':'Trip Admin')+' Panel</h2>'+
+      '<p>Approve join requests, manage members and share the trip.</p></div>'+
+      (window.D4TripJoin?.adminPanel?.() || '<div class="card"><h3>Join Requests</h3><p>Request management is loading.</p></div>')+
+      '<div class="d4p-grid">'+teamButton('🔗','Share Trip Link','copy')+
+      button('👥','Manage Members','open-tab','data-ctx="members"')+
+      (teamId && window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
+      '</div></section>';
+  }
+  document.addEventListener('click',function(e){
+    if(!e.target.closest('[data-action="d4-admin-panel"]'))return;
+    e.preventDefault();
+    if(!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current())))return;
+    // The existing renderer owns the app; mount a dedicated view on top of its content.
+    tripTab='overview';
+    view='trip';
+    render();
+    const main=document.querySelector('.app-shell .main');
+    if(main){const section=main.querySelector('.d4p-section');if(section)section.outerHTML=adminSurface();}
+    const active=document.querySelector('.d4-liquid-rail [data-action="d4-admin-panel"]');
+    if(active)active.classList.add('active');
+  });
   tripOverview = function (t) {
     const c = collectionTotals(t);
     const days = datesInTrip(t).length;
