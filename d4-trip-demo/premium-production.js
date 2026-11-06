@@ -81,8 +81,9 @@
       '<h2>🔗 Join Trip</h2>'+
       '<p>Enter your name and paste the private Trip Link. Tap Join Trip to send an approval request.</p>'+
       '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
-      '<label for="d4-guest-name-input">Your Name</label>'+ 
-      '<input id="d4-guest-name-input" name="name" class="input" type="text" minlength="2" maxlength="50" autocomplete="name" value="'+safe(savedGuestName())+'" placeholder="Enter your name" required>'+ 
+      '<div class="d4-join-name-field"><label for="d4-guest-name-input">👤 Your Name</label>'+
+      '<input id="d4-guest-name-input" name="name" class="input d4-join-visible-name" type="text" minlength="2" maxlength="50" autocomplete="name" value="'+safe(savedGuestName())+'" placeholder="Type your name here" required>'+
+      '<small>Your name saves automatically on this device.</small></div>'+
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
       '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste the link here" required>'+
       '<button type="submit" class="btn mint block d4-guest-join-button">Join Trip</button></form>'+
