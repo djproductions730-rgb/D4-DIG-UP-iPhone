@@ -114,6 +114,9 @@ context.tripTab='plan';assert.match(context.tripPage(),/original-plan/);context.
 assert.match(dashboard,/Promote Admin/);
 assert.match(dashboard,/Demote Admin/);
 assert.match(dashboard,/Add Expense/);
+assert.match(context.profilePage(),/data-team="share-join-link"/,'Main Admin Settings has one-tap join link copy');
+assert.equal((context.profilePage().match(/data-team="share-join-link"/g)||[]).length,1,'Exactly one Share Join Link button in Main Admin Settings');
+assert.match(css,/bottom:calc\(20px \+ env\(safe-area-inset-bottom\)\)/,'Copied confirmation appears at bottom');
 assert.match(context.profilePage(),/real-account-panel/);
 assert.match(context.profilePage(),/Delete Existing trip name/);
 owner=false;editor=true;
