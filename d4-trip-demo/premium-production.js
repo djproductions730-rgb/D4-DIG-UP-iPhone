@@ -92,6 +92,7 @@
       .replace('<button class="cc-open-members"',
         '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
   };
+  let adminOpen = false;
   // The old bottom navigation is now a compact, fixed RIGHT-side rail.
   // Keep the existing delegated data-action routing for all buttons.
   bottomNav = function () {
@@ -129,18 +130,17 @@
       '</div></section>';
   }
   document.addEventListener('click',function(e){
-    if(!e.target.closest('[data-action="d4-admin-panel"]'))return;
+    const action=e.target.closest('[data-action]');
+    if(!action)return;
+    if(action.dataset.action !== 'd4-admin-panel') {
+      if(['nav','open-tab','trip-tab','select-trip','entry-back','d4-back'].includes(action.dataset.action))adminOpen=false;
+      return;
+    }
     e.preventDefault();
     if(!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current())))return;
-    // The existing renderer owns the app; mount a dedicated view on top of its content.
-    tripTab='overview';
-    view='trip';
-    render();
-    const main=document.querySelector('.app-shell .main');
-    if(main){const section=main.querySelector('.d4p-section');if(section)section.outerHTML=adminSurface();}
-    const active=document.querySelector('.d4-liquid-rail [data-action="d4-admin-panel"]');
-    if(active)active.classList.add('active');
-  });
+    adminOpen=true;
+    tripTab='overview';view='trip';render();
+  },true);
   tripOverview = function (t) {
     const c = collectionTotals(t);
     const days = datesInTrip(t).length;
@@ -165,6 +165,7 @@
       '</nav>' + tileRow(t) + '</section>';
   };
   tripPage = function () {
+    if(adminOpen) return adminSurface();
     const t = current();
     if (!t) return original.tripPage();
     if (tripTab === 'overview') return tripOverview(t);
