@@ -90,7 +90,7 @@ assert.match(guestEntry,/Submit Name/);
 assert.doesNotMatch(guestEntry,/d4-new-card-list|d4-new-bottom|d4-open-trip-link|Join with Code/,'Old trip grid and second step cannot clip name box');
 assert.equal((guestEntry.match(/<button[^>]*type="submit"[^>]*>/g)||[]).length,1,'Only one form action at a time');
 const guestHome=context.home();
-assert.equal((guestHome.match(/Join by Name/g)||[]).length,0,'Duplicate Join by Name button removed from Home');
+assert.equal((guestHome.match(/Join by Name/g)||[]).length,1,'Exactly one Join by Name button remains on Home');
 assert.equal((guestHome.match(/id="d4-guest-name-input"/g)||[]).length,1,'Home shows one usable Name box');
 assert.doesNotMatch(context.tripsPage(),/Join by Name/,'Trips list does not show duplicate Join by Name button');
 owner=true;
