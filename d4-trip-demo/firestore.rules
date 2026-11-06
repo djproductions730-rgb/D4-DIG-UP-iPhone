@@ -50,11 +50,18 @@ service cloud.firestore {
       function hasEmailGrant() {
         return verified() && exists(/databases/$(database)/documents/teamTrips/$(tripId)/access/$(request.auth.token.email.lower()));
       }
-      function editor() { return mainAdmin() || (hasEmailGrant() && access().role == 'admin'); }
+      function uidAccess() {
+        return get(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)).data;
+      }
+      function hasUidGrant() {
+        return signedIn() && exists(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid));
+      }
+      function editor() {
+        return mainAdmin() || (hasEmailGrant() && access().role == 'admin') ||
+          (hasUidGrant() && uidAccess().role == 'admin');
+      }
       function guestMember() {
-        return signedIn() &&
-          exists(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)) &&
-          get(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)).data.role == 'member';
+        return hasUidGrant() && uidAccess().role in ['member','admin'];
       }
       function validTrip() {
         let d = request.resource.data;
@@ -115,7 +122,7 @@ service cloud.firestore {
             d.joinedName is string && d.joinedName.size() <= 70 &&
             d.decidedAt == request.time &&
             d.decidedByUid == request.auth.uid &&
-            d.decidedByEmail == request.auth.token.email &&
+            d.decidedByEmail == request.auth.token.get('email', '') &&
             ( (d.status == 'rejected' && d.joinedName == '') ||
               (d.status == 'approved' && d.joinedName.size() >= 2 &&
                 getAfter(grantPath).data.role == 'member' &&
@@ -159,7 +166,14 @@ service cloud.firestore {
         allow get: if ownGrant() || editor();
         allow list: if mainAdmin();
         allow create: if validApprovedGrant();
-        allow update: if false;
+        // Main Admin may change the role of an existing approved UID member.
+        // The same atomic transaction must update the trip admins roster,
+        // while preserving the UID, name, payment history and grant metadata.
+        allow update: if mainAdmin() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']) &&
+          request.resource.data.role in ['member','admin'] &&
+          getAfter(/databases/$(database)/documents/teamTrips/$(tripId)).data.trip.admins
+            .hasAny([resource.data.name]) == (request.resource.data.role == 'admin');
         // Even Trip Admins cannot reinstate a member after Main Admin removes access.
         allow delete: if mainAdmin();
       }
