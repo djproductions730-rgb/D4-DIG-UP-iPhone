@@ -6,7 +6,7 @@
   'use strict';
   const original = {
     topBar: topBar, home: home, tripsPage: tripsPage, entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
-    tripPage: tripPage, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
+    tripPage: tripPage, tripMembers: tripMembers, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
   };
   const MODE_KEY = 'd4_trip_premium_mode_v2_ocean';
   const modes = ['midnight', 'light', 'sunset'];
@@ -250,6 +250,11 @@
         '<span aria-hidden="true" class="d4-liquid-rail-icon">'+i.icon+'</span>'+
         '<span class="d4-liquid-rail-label">'+i.label+'</span>'+
         (i.count?'<span class="d4-liquid-badge">'+i.count+'</span>':'')+'</button>').join('')+'</nav>';
+  };
+  // The local roster can lag behind a cloud approval. Show the authenticated
+  // shared-trip member list alongside local records, without merging/deleting data.
+  tripMembers = function (t) {
+    return original.tripMembers(t) + (window.D4TripJoin?.approvedMembersPanel?.(t?.id)||'');
   };
   function adminSurface(){
     const t=current();
