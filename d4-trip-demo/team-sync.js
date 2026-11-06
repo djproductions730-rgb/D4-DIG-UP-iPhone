@@ -148,6 +148,32 @@ document.addEventListener('click',async event=>{
   if(url.origin!==location.origin||!tripId||!/^[a-zA-Z0-9_-]{1,100}$/.test(tripId))throw Error('Use a trip link from this app');
   location.assign(link(tripId));return;
  }
+ if(action==='share-join-link'){
+  // Main Admin gets a true one-tap Share Join Link from Settings.
+  // For a private/local trip, publish a shared copy once; never change
+  // the private source or overwrite an existing Firestore trip.
+  if(!user()||!cloud()?.cloudDb)throw Error('Sign in to Firebase as Main Admin first');
+  if(!id&&!cloud()?.isVerifiedOwner?.())throw Error('Main Admin access required');
+  if(id&&!canEdit())throw Error('Only trip admins can share a join link');
+  const trip=id?null:structuredClone(local.currentTrip());
+  const shareId=id||trip?.id;
+  if(!shareId||!/^[a-zA-Z0-9_-]{1,100}$/.test(shareId))throw Error('Select a valid trip first');
+  if(!id){
+   const r=ref(shareId);
+   await runTransaction(cloud().cloudDb,async tx=>{
+    if(!cloud()?.isVerifiedOwner?.()||user()?.uid!==cloud().auth.currentUser?.uid)throw Error('Main Admin account changed');
+    const existing=await tx.get(r);
+    if(!existing.exists()){
+     const shared=structuredClone(trip);
+     shared.chats={group:[],admins:[]};
+     tx.set(r,{trip:shared,revision:1,updatedBy:user().uid,updatedAt:serverTimestamp()});
+    }
+   });
+  }
+  await navigator.clipboard.writeText(link(shareId));
+  say('✅ Link copied! Share it with members.');
+  return;
+ }
  if(action==='publish'){
   if(id||!cloud()?.isVerifiedOwner())return;
   const trip=structuredClone(local.currentTrip());const r=ref(trip.id);
