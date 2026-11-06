@@ -125,7 +125,7 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].collection.payments.length,2,
     label+' Add Member preserves recorded payments');
   // M6 expense entry: note-only and no split controls.
-  await page.locator('.d4p-bottom [data-action="nav"][data-view="expenses"]').click();
+  await page.locator('.d4-liquid-rail [data-action="open-tab"][data-ctx="expenses"]').click();
   assert.match(await page.locator('main.main').innerText(),/Day-wise records/);
   assert.doesNotMatch(await page.locator('main.main').innerText(),/Who owes whom|Smart Split/);
   await page.locator('[data-action="quick-expense"]').first().click();
@@ -146,7 +146,7 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].expenses.length,1);
   assert.equal(data.trips[0].expenses[0].amount,375);
   // Exercise actual itinerary add/edit/save and completion, then member view-only UI.
-  await page.locator('.d4p-bottom [data-ctx="plan"]').click();
+  await page.locator('.d4-liquid-rail [data-ctx="plan"]').click();
   // Regression: Day Planner cards, text and CTA must be reachable on iPhone-sized screens.
   async function assertPlannerFits(selectors) {
     const boxes=await page.evaluate(items=>items.map(selector=>{
@@ -177,22 +177,22 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].plans[0].date,'2026-11-11');
   assert.equal(data.trips[0].plans[0].time,'09:30');
   assert.equal(data.trips[0].plans[0].done,true);
-  await page.locator('.d4p-bottom [data-view="profile"]').click();
+  await page.locator('.d4-liquid-rail [data-view="profile"]').click();
   await page.locator('#profileSelect').selectOption('A');
   await page.locator('.d4p-breadcrumb [data-action="d4-back"]').click();
   assert.equal(await page.locator('[data-action="collection-quick-add"]').count(),0);
   await page.locator('[data-action="open-tab"][data-ctx="members"]').click();
   assert.equal(await page.locator('[data-action="modal-add-member"]').count(),0);
   assert.equal(await page.locator('[data-action="remove-member"]').count(),0);
-  await page.locator('.d4p-bottom [data-view="expenses"]').click();
+  await page.locator('.d4-liquid-rail [data-ctx="expenses"]').click();
   assert.match(await page.locator('main.main').innerText(),/Breakfast note/);
   assert.equal(await page.locator('[data-action="edit-expense"]').count(),0);
   assert.equal(await page.locator('[data-action="delete-expense"]').count(),0);
-  await page.locator('.d4p-bottom [data-ctx="plan"]').click();
+  await page.locator('.d4-liquid-rail [data-ctx="plan"]').click();
   assert.equal(await page.locator('[data-action="plan-edit"]').count(),0);
-  await page.locator('.d4p-bottom [data-view="chat"]').click();
+  await page.locator('.d4-liquid-rail [data-view="chat"]').click();
   assert.match(await page.locator('main.main').innerText(),/Coming Soon/);
-  await page.locator('.d4p-bottom [data-view="profile"]').click();
+  await page.locator('.d4-liquid-rail [data-view="profile"]').click();
   for(const mode of ['light','sunset','midnight']){
     await page.locator('[data-d4-theme="'+mode+'"]').click();
     assert.equal(await page.locator('[data-d4-theme="'+mode+'"]').getAttribute('aria-pressed'),'true');
