@@ -151,9 +151,16 @@
   // the old fixed-height trip-card list, which clips on small phones.
   entryPage = function () {
     if (!isMain() && !teamId) {
+      // Show the name box at the top, but preserve existing selectable trips
+      // beneath it so previous users and smoke-tested local trips still work.
+      const legacy=original.entryPage();
+      const listStart=legacy.indexOf('<div class="d4-new-card-list">');
+      const listEnd=legacy.indexOf('<div class="d4-new-bottom">',listStart);
+      const oldTrips=listStart>=0&&listEnd>listStart&&legacy.includes('data-action="entry-select-trip"')
+        ?'<section class="d4-guest-existing-trips"><h3>My Existing Trips</h3>'+legacy.slice(listStart,listEnd)+'</section>':'';
       return '<main class="d4-single-join-entry">'+
         '<div class="d4-join-entry-brand"><strong>D4 TRIP</strong><span>Travel together</span></div>'+
-        inviteLinkCard()+
+        inviteLinkCard()+oldTrips+
         '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
         '</main>';
     }
