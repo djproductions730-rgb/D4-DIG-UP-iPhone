@@ -96,7 +96,10 @@ function controls(t){
   (invited.length?invited.map(g=>'<div class="list-row" style="gap:10px;display:flex;justify-content:space-between;align-items:center"><span style="overflow-wrap:anywhere"><b>'+htmlSafe(g.email)+'</b><small>'+htmlSafe(g.role)+'</small></span><button type="button" class="btn small negative" data-team="revoke-email" data-email="'+htmlSafe(g.email)+'">Remove</button></div>').join(''):'<p class="tiny">No invited accounts yet.</p>')+'</div>':'';
  if(!id)return cloud()?.isVerifiedOwner()?'<section class="card"><h3>Team access</h3><button class="btn mint" data-team="publish">Open shared copy</button></section>':'';
  if(!canEdit())return '<p class="notice">Team trip · Member view</p>';
- return (window.D4TripJoin?.adminPanel?.()||'')+'<section class="card"><h3>Team access</h3><p>Share the trip link so friends can request access using just their name. Main Admin and Trip Admin can approve or reject requests. Main Admin alone can remove members.</p><div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign trip admin</button><button class="btn" data-team="revoke">Remove access</button>':'')+'<button class="btn" data-team="copy">Copy trip link</button>'+(window.D4TripInvite?.available?'<button class="btn mint" data-team="member-code">Generate Member Code</button>'+(role==='owner'?'<button class="btn" data-team="admin-code">Generate Admin Code</button>':''):'')+'</div>'+(window.D4TripInvite?.available?'':'<p class="tiny">Secure code joining awaits Firebase Functions and App Check activation. For now, invite a verified email and share the trip link.</p>')+accounts+'</section>';
+ return (window.D4TripJoin?.adminPanel?.()||'')+'<section class="card"><h3>🔗 Share Trip Link</h3>'+
+ '<p>Friends open your trip link and enter only their name. Main Admin or Trip Admin reviews and approves each request. Only Main Admin can remove access.</p>'+
+ '<div class="row">'+(canRemove()?'<button class="btn" data-team="admin">Assign Trip Admin</button><button class="btn" data-team="revoke">Remove Access</button>':'')+
+ '<button class="btn mint" data-team="copy">📋 Copy Trip Join Link</button></div>'+accounts+'</section>';
 }
 async function deleteTrip(tripId,expectedName){
  if(!id||tripId!==id||!user()?.emailVerified||!cloud()?.isVerifiedOwner?.())throw Error('Only verified Main Admin can delete a shared trip.');
