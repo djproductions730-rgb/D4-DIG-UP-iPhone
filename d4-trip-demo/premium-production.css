@@ -466,3 +466,8 @@ body.d4-premium .d4-join-entry-brand span{font-size:12px;color:#b0e5fa}
 body.d4-premium .d4-single-join-entry .d4-name-link-card{margin:0!important;width:100%;max-width:560px;align-self:center;overflow:visible!important;min-height:auto!important}
 body.d4-premium .d4-join-entry-note{font-size:12px;color:#c5e4f1;text-align:center}
 body.d4-premium #d4-guest-name-input{display:block!important;opacity:1!important;visibility:visible!important;position:static!important}
+
+body.d4-premium .d4-guest-existing-trips{width:100%;max-width:560px;align-self:center;min-width:0;color:#effbff}
+body.d4-premium .d4-guest-existing-trips h3{font-size:16px;margin:10px 0}
+body.d4-premium .d4-guest-existing-trips .d4-new-card-list{display:grid!important;height:auto!important;min-height:0!important;overflow:visible!important;grid-template-rows:auto!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;padding:0!important}
+body.d4-premium .d4-guest-existing-trips .d4-new-trip-card{min-height:105px!important;max-height:none!important}
