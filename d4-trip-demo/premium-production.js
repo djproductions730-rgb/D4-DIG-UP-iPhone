@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   const original = {
-    topBar: topBar, entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
+    topBar: topBar, home: home, tripsPage: tripsPage, entryPage: entryPage, bottomNav: bottomNav, collectionsPage: collectionsPage,
     tripPage: tripPage, tripOverview: tripOverview, profilePage: profilePage, chatsPage: chatsPage
   };
   const MODE_KEY = 'd4_trip_premium_mode_v2_ocean';
@@ -74,7 +74,7 @@
     try{return String(localStorage.getItem(GUEST_NAME_KEY)||'').slice(0,50)}catch(_){return ''}
   }
   function guestJoinStage(){
-    try{return sessionStorage.getItem(JOIN_STAGE_KEY)==='link'?'link':'name'}catch(_){return 'name'}
+    try{return sessionStorage.getItem(JOIN_STAGE_KEY)==='link' && savedGuestName().trim().length>=2?'link':'name'}catch(_){return 'name'}
   }
   document.addEventListener('input',function(event){
     if(event.target?.id!=='d4-guest-name-input')return;
@@ -141,27 +141,36 @@
     if(!event.target.closest('[data-action="d4-open-invite"]'))return;
     event.preventDefault();
     event.stopPropagation();
+    try{sessionStorage.setItem(JOIN_STAGE_KEY,'name')}catch(_){}
     view='entry';
     render();
     document.querySelector('#d4-invite-link-card')?.scrollIntoView({block:'center',behavior:'smooth'});
     document.querySelector('#d4-guest-name-input, #d4-trip-link-input')?.focus({preventScroll:true});
   },true);
+  // One guest join entry, visible immediately; never bury the Name input inside
+  // the old fixed-height trip-card list, which clips on small phones.
   entryPage = function () {
-    const html=original.entryPage();
-    let result=html.replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
-      .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
-      .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
-    if(!isMain()){
-      // Remove legacy buttons from both the default and older cached entry layouts.
-      result=result.replace(/<div class="d4-new-bottom">.*?<\/div>/s,'');
-      result=result.replace(/<button[^>]*data-action="enter-app"[^>]*>.*?<\/button>/s,'');
-      result=result.replace('<div class="d4-new-card-list">',inviteLinkCard()+'<div class="d4-new-card-list">');
-      if(!result.includes('id="d4-invite-link-card"'))result+=inviteLinkCard();
-    }else if(teamId&&window.D4Team?.canEdit?.()){
-      // Admin's initial Home screen displays requests without opening Members.
-      result=(window.D4TripJoin?.adminPanel?.()||'')+result;
+    if (!isMain() && !teamId) {
+      return '<main class="d4-single-join-entry">'+
+        '<div class="d4-join-entry-brand"><strong>D4 TRIP</strong><span>Travel together</span></div>'+
+        inviteLinkCard()+
+        '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
+        '</main>';
     }
-    return result;
+    return original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>');
+  };
+  // The local Home shows the name form directly, with no duplicate Join by Name
+  // buttons; the Trips page retains normal trip browsing without another CTA.
+  home = function () {
+    const html=original.home();
+    if(isMain() || teamId)return html;
+    return html.replace(/<button[^>]*data-action="d4-open-invite"[^>]*>.*?<\/button>/s,'')
+      .replace('</div></div>', '</div></div>'+inviteLinkCard());
+  };
+  tripsPage = function () {
+    const html=original.tripsPage();
+    if(isMain() || teamId)return html;
+    return html.replace(/<button[^>]*data-action="d4-open-invite"[^>]*>.*?<\/button>/s,'');
   };
   collectionsPage = function () {
     const html = original.collectionsPage();
