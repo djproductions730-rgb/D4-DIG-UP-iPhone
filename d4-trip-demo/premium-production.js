@@ -82,7 +82,7 @@
     const library = view === 'entry' ? '' : teamId
       ? '<a class="d4p-nav-library" href="./">My Trips</a>'
       : '<button type="button" class="d4p-nav-library" data-action="entry-back">My Trips</button>';
-    return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
+    return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'')+(window.D4TripJoin?.mainAdminBanner?.()||'');
   };
   const GUEST_NAME_KEY='d4_trip_guest_name_v1';
   const JOIN_STAGE_KEY='d4_trip_guest_join_stage_v1';
@@ -180,7 +180,7 @@
         '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
         '</main>';
     }
-    return (isMain()?mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
+    return (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
       .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
       .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
   };
@@ -188,7 +188,7 @@
   // buttons; the Trips page retains normal trip browsing without another CTA.
   home = function () {
     const html=original.home();
-    if(isMain())return mainSharePanel(current())+html;
+    if(isMain())return (window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current())+html;
     if(teamId)return html;
     return html.replace('</div></div>', '</div></div>'+inviteLinkCard());
   };
@@ -282,7 +282,7 @@
       '<div class="d4p-hero"><small>✦ D4 TRIP · YOUR JOURNEY</small><h2>' +
       safe(t.destination) + '</h2><p>' + safe(t.name) + ' · ' +
       shortDate(t.start) + ' – ' + shortDate(t.end) + '</p></div>' +
-      (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : '') +
+      (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'') : '')) +
       mainSharePanel(t) +
       '<div class="d4p-stats"><div class="d4p-stat"><small>Members</small><strong>' +
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
