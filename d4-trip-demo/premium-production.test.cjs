@@ -46,7 +46,7 @@ const context = {
   document: {
     body: {classList:{add:()=>{},toggle:()=>{}}},
     documentElement: {style:{}},
-    addEventListener:(name,callback)=>{events[name]=callback}
+    addEventListener:(name,callback)=>{(events[name]??=[]).push(callback)}
   },
   window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
   current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
@@ -67,7 +67,9 @@ assert.match(context.profilePage(),/id="d4-main-join-link"/,'Settings displays s
 context.teamId='';
 context.view='trip';
 context.tripTab='overview';
-vm.runInContext('adminOpen=true',context);
+const openAdmin=events.click.find(fn=>fn.toString().includes("d4-admin-panel"));
+assert.ok(openAdmin,'Control Centre click handler is registered');
+openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
 const baseAdminPanel=context.tripPage();
 assert.match(baseAdminPanel,/Main Admin Panel/,'Verified Main Admin is labeled correctly');
 assert.match(baseAdminPanel,/d4-main-admin-inbox/,'Main Admin Control Centre shows live inbox');
@@ -81,7 +83,7 @@ assert.match(localAdminPanel,/Trip Admin Panel/,'Local Trip Admin role is distin
 assert.match(localAdminPanel,/Firebase Sign In/,'Local admins get an actionable authorization message');
 assert.doesNotMatch(localAdminPanel,/Request management is loading/);
 owner=true;
-vm.runInContext('adminOpen=false',context);
+openAdmin({target:{closest:()=>({dataset:{action:'nav'}})},preventDefault(){} });
 context.teamId='real-team-id';
 
 context.teamId='';
