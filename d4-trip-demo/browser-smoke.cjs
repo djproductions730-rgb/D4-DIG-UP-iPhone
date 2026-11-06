@@ -258,26 +258,28 @@ async function joinByNameLinkFlow(browser) {
     sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
   },seed);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('[data-modal="join-trip"]').count(),0,'Legacy code join hidden');
+  assert.equal(await page.locator('[data-modal="join-trip"]').count(),0,'Old code join is hidden');
+  await page.locator('#d4-save-join-name').waitFor();
+  assert.equal(await page.locator('#d4-open-trip-link').count(),0,'Link step not shown until name submitted');
+  await page.locator('#d4-guest-name-input').fill('Visitor Name');
+  assert.equal(await page.evaluate(()=>localStorage.getItem('d4_trip_guest_name_v1')),'Visitor Name','Name saved locally as typed');
+  await page.reload({waitUntil:'domcontentloaded'});
+  assert.equal(await page.locator('#d4-guest-name-input').inputValue(),'Visitor Name','Name persists across page reload');
+  await page.locator('#d4-save-join-name button[type="submit"]').click();
   await page.locator('#d4-open-trip-link').waitFor();
-  assert.match(await page.locator('#d4-invite-link-card').innerText(),/Paste Trip Link[\s\S]*Join Trip/);
+  assert.match(await page.locator('#d4-invite-link-card').innerText(),/Name saved:[\s\S]*Paste Trip Link[\s\S]*Continue with the Link/);
   const url=new URL(BASE);
   url.searchParams.set('team','m3-browser-smoke');
-  await page.locator('#d4-guest-name-input').fill('Visitor Name');
-  assert.equal(await page.evaluate(()=>localStorage.getItem('d4_trip_guest_name_v1')),'Visitor Name','Guest name is saved locally as typed');
-  await page.reload({waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('#d4-guest-name-input').inputValue(),'Visitor Name','Saved guest name is prefilled after reopening');
   await page.locator('#d4-trip-link-input').fill(url.href);
   await page.locator('#d4-open-trip-link button[type="submit"]').click();
-  await page.waitForURL(/\\?team=m3-browser-smoke/);
+  await page.waitForURL(/\?team=m3-browser-smoke/);
   assert.equal(new URL(page.url()).searchParams.get('team'),'m3-browser-smoke');
-  assert.equal(await page.evaluate(()=>sessionStorage.getItem('d4_trip_join_name_v1_m3-browser-smoke')),'Visitor Name','The member name is retained only in same-tab session for approval request');
-  assert.equal(new URL(page.url()).searchParams.has('name'),false,'Member name is never exposed in the join URL');
-  assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'Existing local trip backup remains intact');
-  assert.deepEqual(errors.filter(e=>!/Firebase|Failed to fetch|network/i.test(e)),[],
-    'Name-only link entry does not cause unrelated runtime exceptions');
+  assert.equal(await page.evaluate(()=>sessionStorage.getItem('d4_trip_join_name_v1_m3-browser-smoke')),'Visitor Name','Name handed to join request within same tab');
+  assert.equal(new URL(page.url()).searchParams.has('name'),false,'Name not exposed in URL');
+  assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'Existing local trip backup preserved');
+  assert.deepEqual(errors.filter(e=>!/Firebase|Failed to fetch|network/i.test(e)),[],'Name/link entry without unrelated runtime error');
   await context.close();
-  console.log('PASS name-only invitation link UI, no code join, safe redirect, existing local data intact');
+  console.log('PASS name submit -> link -> approval handoff without code join or data loss');
 }
 async function firstVisitIntro(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
