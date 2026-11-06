@@ -246,7 +246,7 @@ async function smoke(browser,label,viewport,mobile) {
   await context.close();
   console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
 }
-async function joinCodeFeedback(browser) {
+async function joinByNameLinkFlow(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await context.route('**/*googleapis.com/*',route=>route.abort());
   const page=await context.newPage();
@@ -258,36 +258,20 @@ async function joinCodeFeedback(browser) {
     sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
   },seed);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.locator('[data-action="modal"][data-modal="join-trip"]').first().click();
-  await page.locator('#f_code').fill('D4NOTHERE');
-  await page.locator('#activeForm button[type="submit"]').click();
-  await page.locator('#joinFeedback').waitFor({state:'visible'});
-  assert.match(await page.locator('#joinFeedback').innerText(),/Cloud code joining is not active yet/);
-  const toastZ=await page.locator('#toast').evaluate(el=>Number(getComputedStyle(el).zIndex));
-  const modalZ=await page.locator('.modal-backdrop').evaluate(el=>Number(getComputedStyle(el).zIndex));
-  assert.ok(toastZ>modalZ,'Join error toast must appear above modal');
-  await page.locator('#f_code').fill('D4TEST2026');
-  await page.locator('#activeForm button[type="submit"]').click();
-  await page.locator('.modal-backdrop').waitFor({state:'detached'});
-  const data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].members.includes('Visitor'),true);
-  assert.deepEqual(errors,[],'Join modal must not cause runtime exceptions');
-  await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  await page.evaluate(()=>{
-    // Safe mock: test the secure callable result without contacting a real Firebase project.
-    window.D4TripInvite={available:true,redeem:async code=>{
-      if(code!=='D4-MOCKSECURETOKEN00000')throw Error('Unexpected test invite');
-      return {tripId:'m3-browser-smoke',role:'member'};
-    }};
-  });
-  await page.locator('[data-action="modal"][data-modal="join-trip"]').first().click();
-  await page.locator('#f_code').fill('D4-MOCKSECURETOKEN00000');
-  await page.locator('#activeForm button[type="submit"]').click();
+  assert.equal(await page.locator('[data-modal="join-trip"]').count(),0,'Legacy code join hidden');
+  await page.locator('#d4-open-trip-link').waitFor();
+  assert.match(await page.locator('#d4-invite-link-card').innerText(),/Join a Trip by Name/);
+  const url=new URL(BASE);
+  url.searchParams.set('team','m3-browser-smoke');
+  await page.locator('#d4-trip-link-input').fill(url.href);
+  await page.locator('#d4-open-trip-link button[type="submit"]').click();
   await page.waitForURL(/\\?team=m3-browser-smoke/);
   assert.equal(new URL(page.url()).searchParams.get('team'),'m3-browser-smoke');
-  assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'existing device backup is retained');
+  assert.ok(await page.evaluate(()=>!!localStorage.getItem('d4_trip_offline_v2')),'Existing local trip backup remains intact');
+  assert.deepEqual(errors.filter(e=>!/Firebase|Failed to fetch|network/i.test(e)),[],
+    'Name-only link entry does not cause unrelated runtime exceptions');
   await context.close();
-  console.log('PASS Join Trip error display, local code and mocked secure cross-device redirect');
+  console.log('PASS name-only invitation link UI, no code join, safe redirect, existing local data intact');
 }
 async function firstVisitIntro(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
@@ -321,6 +305,6 @@ async function firstVisitIntro(browser) {
     await smoke(browser,engine+'-mobile',{width:390,height:844},true);
     await smoke(browser,engine+'-small-phone',{width:360,height:780},true);
     await firstVisitIntro(browser);
-    await joinCodeFeedback(browser);
+    await joinByNameLinkFlow(browser);
   }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});
