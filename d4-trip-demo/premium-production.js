@@ -68,13 +68,21 @@
       : '<button type="button" class="d4p-nav-library" data-action="entry-back">My Trips</button>';
     return '<nav class="d4p-breadcrumb" aria-label="Back navigation">' + back + library + '</nav>' + header + (window.D4TripJoin?.notificationBanner?.()||'');
   };
+  const GUEST_NAME_KEY='d4_trip_guest_name_v1';
+  function savedGuestName(){
+    try{return String(localStorage.getItem(GUEST_NAME_KEY)||'').slice(0,50)}catch(_){return ''}
+  }
+  document.addEventListener('input',function(event){
+    if(event.target?.id!=='d4-guest-name-input')return;
+    try{localStorage.setItem(GUEST_NAME_KEY,String(event.target.value||'').slice(0,50))}catch(_){}
+  });
   function inviteLinkCard() {
     return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip with link">'+
       '<h2>🔗 Join Trip</h2>'+
       '<p>Enter your name and paste the private Trip Link. Tap Join Trip to send an approval request.</p>'+
       '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
       '<label for="d4-guest-name-input">Your Name</label>'+ 
-      '<input id="d4-guest-name-input" name="name" class="input" type="text" minlength="2" maxlength="50" autocomplete="name" placeholder="Enter your name" required>'+ 
+      '<input id="d4-guest-name-input" name="name" class="input" type="text" minlength="2" maxlength="50" autocomplete="name" value="'+safe(savedGuestName())+'" placeholder="Enter your name" required>'+ 
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
       '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste the link here" required>'+
       '<button type="submit" class="btn mint block d4-guest-join-button">Join Trip</button></form>'+
@@ -94,6 +102,7 @@
       if(!trip || !/^[A-Za-z0-9_-]{1,100}$/.test(trip))throw Error('Use a valid Trip Share Link from your admin.');
       if(url.origin!==location.origin || url.pathname!==location.pathname)
         throw Error('This link must be for the same D4 Trip app.');
+      try{localStorage.setItem(GUEST_NAME_KEY,name)}catch(_){}
       // Same-origin session handoff: never place the member name in a shareable URL.
       sessionStorage.setItem('d4_trip_join_name_v1_'+trip,name);
       location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
