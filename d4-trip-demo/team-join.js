@@ -216,5 +216,5 @@ document.addEventListener('click',async event=>{
  finally{busy=false;rerender();}
 });
 window.D4TripJoin={guestPanel,adminPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
-window.addEventListener('d4-auth',()=>{watchUser();void sendSavedJoinRequest()});
-if(cloud()?.ready){watchUser();void sendSavedJoinRequest()}
+window.addEventListener('d4-auth',()=>{watchUser();if(!authUser())void sendSavedJoinRequest()});
+if(cloud()?.ready){watchUser();if(!authUser())void sendSavedJoinRequest()}
