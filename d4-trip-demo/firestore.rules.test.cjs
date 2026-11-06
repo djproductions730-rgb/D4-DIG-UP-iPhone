@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const {initializeTestEnvironment,assertFails,assertSucceeds} = require('@firebase/rules-unit-testing');
-const {doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp} = require('firebase/firestore');
+const {doc, getDoc, getDocs, collection, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, runTransaction} = require('firebase/firestore');
 let env;
 const PROJ='demo-d4-trip-rules-qa';
 
@@ -91,6 +91,43 @@ test('only verified Main Admin can enumerate shared trips to receive cross-devic
  await assertSucceeds(getDocs(collection(main,'teamTrips')));
  await assertFails(getDocs(collection(auth('bob').firestore(),'teamTrips')));
  await assertFails(getDocs(collection(unauth().firestore(),'teamTrips')));
+});
+
+
+test('only Main Admin may promote an approved link member, and new anonymous UID admin may edit the trip',{timeout:15000},async()=>{
+ const ownerId='2FYUUnPp1JX8wvv9HSvL6QoyaCq2';
+ const main=env.authenticatedContext(ownerId,{email:'owner@example.test',email_verified:true}).firestore();
+ const guest=env.authenticatedContext('blessy-guest').firestore();
+ const other=env.authenticatedContext('other-guest').firestore();
+ const tr=doc(main,'teamTrips/goa-qa');
+ const gr=doc(main,'teamTrips/goa-qa/accessUid/blessy-guest');
+ await assertSucceeds(setDoc(tr,{trip:{id:'goa-qa',name:'QA Goa',members:['Main','Blessy'],admins:[],expenses:[]},
+  revision:1,updatedBy:ownerId,updatedAt:serverTimestamp()}));
+ await env.withSecurityRulesDisabled(async context=>{
+  const ref=doc(context.firestore(),'teamTrips/goa-qa/accessUid/blessy-guest');
+  await setDoc(ref,{role:'member',name:'Blessy',grantedByUid:ownerId,grantedAt:new Date()});
+ });
+ await assertFails(updateDoc(doc(other,'teamTrips/goa-qa/accessUid/blessy-guest'),{role:'admin'}));
+ await assertFails(updateDoc(gr,{role:'admin'})); // The role and trip roster must change together.
+ await assertSucceeds(runTransaction(main,async tx=>{
+  const snap=await tx.get(tr);
+  tx.update(tr,{trip:{...snap.data().trip,admins:['Blessy']},
+   revision:2,updatedBy:ownerId,updatedAt:serverTimestamp()});
+  tx.update(gr,{role:'admin'});
+ }));
+ const promoted=await assertSucceeds(getDoc(doc(guest,'teamTrips/goa-qa')));
+ assert.deepEqual(promoted.data().trip.admins,['Blessy']);
+ await assertSucceeds(updateDoc(doc(guest,'teamTrips/goa-qa'),
+  {revision:3,updatedBy:'blessy-guest',updatedAt:serverTimestamp()}));
+ await assertFails(deleteDoc(doc(guest,'teamTrips/goa-qa/accessUid/blessy-guest')));
+ await assertSucceeds(runTransaction(main,async tx=>{
+  const snap=await tx.get(tr);
+  tx.update(tr,{trip:{...snap.data().trip,admins:[]},
+   revision:4,updatedBy:ownerId,updatedAt:serverTimestamp()});
+  tx.update(gr,{role:'member'});
+ }));
+ await assertFails(updateDoc(doc(guest,'teamTrips/goa-qa'),
+  {revision:5,updatedBy:'blessy-guest',updatedAt:serverTimestamp()}));
 });
 
 test('two separate clients signed in as the same UID receive live revisions', {timeout:15000}, async()=>{
