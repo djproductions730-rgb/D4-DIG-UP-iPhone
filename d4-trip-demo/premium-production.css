@@ -348,3 +348,67 @@ body.d4-premium .d4-liquid-admin .list-row{padding:14px}
 @media (min-width:850px){body.d4-premium .app-shell{max-width:100%!important;margin-inline:0!important}body.d4-premium .d4-liquid-rail{right:14px;width:76px}}
 @media (max-width:390px){body.d4-premium .app-shell{padding-right:74px!important;padding-left:4px!important}body.d4-premium .d4-liquid-rail{right:5px;width:62px;padding:7px 4px;gap:5px}body.d4-premium .d4-liquid-rail-item{min-height:52px}body.d4-premium .d4-liquid-rail-icon{font-size:20px}}
 @media(prefers-reduced-motion:reduce){body.d4-premium .d4-liquid-rail-item{transition:none}}
+
+
+/* Ocean Blue Liquid Glass — D4 Trip approved 2026-11-06.
+   Layout-only release: all stored trip, member and payment records stay untouched. */
+body.d4-premium:not(.d4-light):not(.d4-sunset){
+ --d4-navy:#03172d;--d4-royal:#072b4b;--d4-purple:#0878de;--d4-pink:#05c3f5;
+ --bg:#04182e;--panel:#092b4b;--panel2:#11385b;--text:#f4fbff;--sub:#c2e0f2;
+ --mint:#49dbf7;--purple:#62c7ff;--orange:#ffbc72;--pink:#5fd4ff;
+ --edge:#7bdfff64;--shadow:0 14px 38px #0012268f;
+ background:radial-gradient(ellipse at 95% 8%,#008bda44,transparent 48%),radial-gradient(ellipse at 5% 85%,#00add42d,transparent 53%),linear-gradient(165deg,#041226,#062644 65%,#031629)!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) :is(.card,.trip-card,.metric,.quick,.feature-card,.admin-tile,.member,.list-row,.d4-new-trip-card,.d4-new-money,.cc-popup,.cc-member-tile,.cc-table-row,.cc-plain-summary,.cc-person,.plan-activity,.plan-toolbar,.activity-copy,.collection-member,.collection-management,.collection-metric,.side,.right,.modal,.report-sheet,.side-bottom,.empty,.notice,.choice,.collection-entry-card,.chat-shell,.chat-head,.chat-compose,.day){
+ background:linear-gradient(130deg,#164269ed,#072a49ed)!important;border-color:#5dcfff63!important;color:#f4fbff!important;
+ box-shadow:inset 0 1px #ffffff24,0 10px 26px #00132f70!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) :is(.btn,.cc-primary,.cc-add,.nav-btn.active,.bottom-btn.active,.d4-new-bottom button:first-child){
+ background:linear-gradient(110deg,#0862c5,#03aef0)!important;border-color:#7ddcff88!important;box-shadow:0 7px 20px #007ee64d!important;color:#fff!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) :is(.btn.ghost,.nav-btn,.icon-btn,.cc-back,.cc-filter,.cc-edit,.cc-open-members,.day,.tab,.bottom-btn){
+ background:#0d3155!important;border-color:#63bfe36d!important;color:#edf8ff!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) :is(input,textarea,select,.input,.select,.textarea){
+ background:#092641!important;color:#f4fbff!important;border-color:#77c9f78a!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4-liquid-rail{
+ background:linear-gradient(145deg,#125080d4,#041c38ed 80%)!important;border-color:#5fdcff93!important;box-shadow:0 16px 42px #001329b0,inset 0 1px #c6f4ff55!important;
+}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4-liquid-rail-item{background:#0b375cbb!important;color:#ecfaff!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4-liquid-rail-item.active{background:linear-gradient(130deg,#075fc1,#04b3f4)!important;box-shadow:0 0 22px #27bfff91!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-hero{background:linear-gradient(120deg,#07436b,#0b74b2 65%,#0ac3de)!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-tile{background:linear-gradient(145deg,#164877e6,#07345ee6)!important;border-color:#80dcff70!important;color:#f3fbff!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-stat{background:#0b3859!important;border-color:#67cfff77!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-title{color:#8feaff!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-nav-grid .d4p-tile{background:linear-gradient(140deg,#125082,#0a365b)!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-nav-grid .d4p-tile[aria-current="page"]{background:linear-gradient(140deg,#075b9a,#0883c8)!important;border-color:#83e8ff!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-ring{background:conic-gradient(#24cef1 var(--progress),#214869 0)!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-ring span{background:#082b4d!important;color:#fff!important}
+body.d4-premium:not(.d4-light):not(.d4-sunset) .d4p-progress{background:#103c5e!important;border-color:#57c9ef75!important}
+body.d4-premium .d4-blue-breakdown{display:grid;gap:0;margin:12px 0;padding:16px;border-radius:20px;border:1px solid #7bdcff7e;background:linear-gradient(145deg,#164c78ed,#072643f2);color:#f8fcff;box-shadow:inset 0 1px #b5f1ff40,0 12px 28px #00173188}
+body.d4-premium .d4-blue-breakdown-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:11px;letter-spacing:.6px;color:#a6e8ff;font-weight:850}
+body.d4-premium .d4-blue-breakdown-head strong{padding:7px 11px;border:1px solid #7bdcff9a;border-radius:99px;background:#0d5487;color:#fff}
+body.d4-premium .d4-blue-breakdown-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid #9ddefc3d;font-size:clamp(12px,3.3vw,15px)}
+body.d4-premium .d4-blue-breakdown-row span{color:#dbf1ff}
+body.d4-premium .d4-blue-breakdown-row strong{color:#fff;text-align:right;overflow-wrap:anywhere;font-size:clamp(14px,3.8vw,19px);font-variant-numeric:tabular-nums}
+body.d4-premium .d4-blue-total{color:#96f8d7;font-weight:850}
+body.d4-premium .d4-blue-total strong{color:#88ffce}
+body.d4-premium .d4-blue-outstanding strong{color:#ffbf98}
+body.d4-premium .d4-blue-breakdown .d4p-caption{padding:12px 0;line-height:1.5}
+body.d4-premium .d4-blue-status{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+body.d4-premium .d4-blue-status span{padding:10px 4px;background:#0e3d60;border:1px solid #75cef15c;border-radius:12px;text-align:center;font-size:11px;font-weight:750}
+body.d4-premium .d4-blue-category-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body.d4-premium .d4-blue-category-row .d4p-tile{min-height:77px;padding:12px 14px}
+body.d4-premium .d4-blue-category-row .d4p-tile strong{font-size:13px;line-height:1.45}
+body.d4-premium{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-size:14px;line-height:1.55}
+body.d4-premium :is(.d4p-title,h1,h2,h3,h4,strong,.d4p-tile strong){letter-spacing:0!important;word-break:normal;overflow-wrap:break-word}
+body.d4-premium :is(.d4p-tile,.d4-new-details,.cc-member-tile,.list-row,.plan-activity){min-width:0}
+body.d4-premium .d4p-nav-grid .d4p-tile strong{font-size:clamp(11px,3.4vw,14px)!important;line-height:1.45!important}
+body.d4-premium .app-shell{min-height:100dvh!important;height:auto!important;overflow:visible!important;padding-bottom:calc(40px + env(safe-area-inset-bottom))!important}
+body.d4-premium .app-shell>.main{height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important;overscroll-behavior:auto!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important}
+body.d4-premium #app,body.d4-premium,body.d4-premium html{overflow-x:hidden!important}
+html:has(body.d4-premium){height:auto!important;overflow-y:auto!important;overscroll-behavior-y:auto}
+body.d4-premium{height:auto!important;min-height:100dvh!important;overflow-y:auto!important;overscroll-behavior-y:auto!important}
+body.d4-premium .d4-liquid-rail{touch-action:pan-y;overscroll-behavior:contain}
+@media(max-width:760px){body.d4-premium .app-shell{padding-left:7px!important;padding-right:clamp(76px,19vw,102px)!important}body.d4-premium .app-shell>.main{padding:9px 3px 28px!important}}
