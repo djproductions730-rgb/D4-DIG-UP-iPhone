@@ -81,6 +81,7 @@ const entry = context.entryPage();
 assert.match(entry, /Explore Trips/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
 owner=false;
+context.teamId='';
 const guestEntry=context.entryPage();
 assert.match(guestEntry,/d4-single-join-entry/,'Guest has standalone scrollable name entry');
 assert.match(guestEntry,/d4-save-join-name/,'Step 1 is visible immediately');
@@ -93,6 +94,7 @@ assert.equal((guestHome.match(/Join by Name/g)||[]).length,0,'Duplicate Join by 
 assert.equal((guestHome.match(/id="d4-guest-name-input"/g)||[]).length,1,'Home shows one usable Name box');
 assert.doesNotMatch(context.tripsPage(),/Join by Name/,'Trips list does not show duplicate Join by Name button');
 owner=true;
+context.teamId='real-team-id';
 const board=context.collectionsPage();
 assert.match(board, /d4p-ring/);
 assert.match(board, /d4-blue-breakdown/);
