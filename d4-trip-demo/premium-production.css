@@ -345,6 +345,6 @@ body.d4-premium .d4p-tile{background:linear-gradient(135deg,#3c4e8c91,#222356b5)
 body.d4-premium .d4p-hero{background:linear-gradient(125deg,#27458ad9,#6b29d1e0 65%,#dc3ecda3)!important}
 body.d4-premium .d4-liquid-admin .d4p-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 body.d4-premium .d4-liquid-admin .list-row{padding:14px}
-@media (min-width:850px){body.d4-premium .app-shell{max-width:850px!important;margin-inline:auto!important}body.d4-premium .d4-liquid-rail{right:max(14px,calc((100vw - 850px)/2 + 14px));width:76px}}
+@media (min-width:850px){body.d4-premium .app-shell{max-width:100%!important;margin-inline:0!important}body.d4-premium .d4-liquid-rail{right:14px;width:76px}}
 @media (max-width:390px){body.d4-premium .app-shell{padding-right:74px!important;padding-left:4px!important}body.d4-premium .d4-liquid-rail{right:5px;width:62px;padding:7px 4px;gap:5px}body.d4-premium .d4-liquid-rail-item{min-height:52px}body.d4-premium .d4-liquid-rail-icon{font-size:20px}}
 @media(prefers-reduced-motion:reduce){body.d4-premium .d4-liquid-rail-item{transition:none}}
