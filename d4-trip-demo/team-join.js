@@ -124,10 +124,11 @@ function guestPanel(){
  * independent of the team-specific listener used on shared links. */
 const mainInbox=new Map();
 const mainInboxStops=new Map();
-let mainInboxUid='',mainInboxWatching=false;
+let mainInboxUid='',mainInboxCatalogStop=null,mainInboxCatalog=new Map();
 function clearMainInbox(){
  for(const unsubscribe of mainInboxStops.values())unsubscribe();
- mainInboxStops.clear();mainInbox.clear();mainInboxUid='';mainInboxWatching=false;
+ mainInboxStops.clear();mainInbox.clear();mainInboxUid='';
+ if(mainInboxCatalogStop)mainInboxCatalogStop();mainInboxCatalogStop=null;mainInboxCatalog.clear();
 }
 function isBaseMainAdmin(){
  return !teamId && cloud()?.ready && !!db() &&
@@ -138,7 +139,11 @@ function watchMainInbox(){
  const uid=authUser()?.uid;
  if(mainInboxUid!==uid){clearMainInbox();mainInboxUid=uid;}
  const trips=window.D4TripLocal?.getData?.()?.trips||[];
- const valid=trips.filter(t=>t&&typeof t.id==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(t.id)).slice(0,75);
+ const byId=new Map();
+ for(const t of [...trips,...mainInboxCatalog.values()]){
+  if(t&&typeof t.id==='string'&&/^[A-Za-z0-9_-]{1,100}$/.test(t.id))byId.set(t.id,t);
+ }
+ const valid=[...byId.values()].slice(0,100);
  const allowed=new Set(valid.map(t=>t.id));
  for(const [trip,unsubscribe] of mainInboxStops){
   if(!allowed.has(trip)){unsubscribe();mainInboxStops.delete(trip);mainInbox.delete(trip);}
@@ -172,6 +177,17 @@ function watchMainInbox(){
    if(!/permission|not.found/i.test(message))toast('Join inbox: '+message);
   });
   mainInboxStops.set(tripId,unsubscribe);
+ }
+ if(!mainInboxCatalogStop){
+  // Main Admin can also discover shared trips missing from this device's
+  // local backup; Firestore rules restrict listing to this verified UID.
+  mainInboxCatalogStop=onSnapshot(collection(db(),'teamTrips'),snap=>{
+   if(!isBaseMainAdmin()||authUser()?.uid!==uid)return;
+   mainInboxCatalog=new Map(snap.docs.map(d=>[d.id,{
+    id:d.id,name:String(d.data()?.trip?.name||'Trip')
+   }]));
+   watchMainInbox();
+  },e=>toast('Cannot monitor all shared trips: '+formatError(e)));
  }
 }
 function mainAdminInbox(){
