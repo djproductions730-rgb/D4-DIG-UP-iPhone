@@ -47,7 +47,10 @@ service cloud.firestore {
       function access() {
         return get(/databases/$(database)/documents/teamTrips/$(tripId)/access/$(request.auth.token.email.lower())).data;
       }
-      function editor() { return mainAdmin() || (verified() && access().role == 'admin'); }
+      function hasEmailGrant() {
+        return verified() && exists(/databases/$(database)/documents/teamTrips/$(tripId)/access/$(request.auth.token.email.lower()));
+      }
+      function editor() { return mainAdmin() || (hasEmailGrant() && access().role == 'admin'); }
       function guestMember() {
         return signedIn() &&
           exists(/databases/$(database)/documents/teamTrips/$(tripId)/accessUid/$(request.auth.uid)) &&
@@ -62,7 +65,7 @@ service cloud.firestore {
           d.trip.expenses is list && d.trip.expenses.size() <= 1000 &&
           d.revision is int && d.updatedBy == request.auth.uid && d.updatedAt == request.time;
       }
-      allow get: if mainAdmin() || (verified() && access().role in ['member','admin']) || guestMember();
+      allow get: if mainAdmin() || (hasEmailGrant() && access().role in ['member','admin']) || guestMember();
       allow create: if mainAdmin() && validTrip() && request.resource.data.revision == 1;
       // Trip Admins can add names, but only Main Admin can remove, rename,
       // archive or restore people and change role-bearing roster entries.
