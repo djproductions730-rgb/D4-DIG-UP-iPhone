@@ -166,8 +166,7 @@
   home = function () {
     const html=original.home();
     if(isMain() || teamId)return html;
-    return html.replace(/<button[^>]*data-action="d4-open-invite"[^>]*>.*?<\/button>/s,'')
-      .replace('</div></div>', '</div></div>'+inviteLinkCard());
+    return html.replace('</div></div>', '</div></div>'+inviteLinkCard());
   };
   tripsPage = function () {
     const html=original.tripsPage();
