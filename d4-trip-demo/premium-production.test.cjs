@@ -81,6 +81,8 @@ assert.doesNotMatch(entry, /install-help|replay-intro/);
 owner=false;
 const guestEntry=context.entryPage();
 assert.match(guestEntry,/d4-open-trip-link/,'Guest entry includes paste-link form');
+assert.match(guestEntry,/Your Name/);
+assert.match(guestEntry,/name="name"/);
 assert.match(guestEntry,/Paste Trip Link/);
 assert.match(guestEntry,/Join Trip/);
 assert.equal((guestEntry.match(/<button[^>]*>/g)||[]).filter(s=>/type="submit"/.test(s)).length,1,'Guest sees only one Join Trip submit button');
