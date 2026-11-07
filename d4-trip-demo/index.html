@@ -225,7 +225,7 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 </style>
 <link rel="stylesheet" href="./night.css" media="screen">
 <link rel="stylesheet" href="./intro.css" media="screen">
-<link rel="stylesheet" href="./premium-production.css?build=27" media="screen">
+<link rel="stylesheet" href="./premium-production.css?build=28" media="screen">
 <script defer src="./intro.js"></script>
 </head>
 <body>
@@ -279,7 +279,7 @@ const catIcon={'Food & Dining':'🍽️','Petrol':'⛽','Stay':'🏨','Travel':'
 const cats=Object.keys(catIcon);
 const planCategories=['Travel','Food','Sightseeing','Stay','Activity','Reminder','Shopping','Photos','Other'];
 const planPalette={
-  Travel:{emoji:'✈️',label:'Travel',tone:'travel'},
+  Travel:{emoji:'🚆',label:'Travel',tone:'travel'},
   Food:{emoji:'🍽️',label:'Food & Drinks',tone:'food'},
   Sightseeing:{emoji:'🏖️',label:'Explore',tone:'explore'},
   Stay:{emoji:'🏨',label:'Hotel / Stay',tone:'stay'},
@@ -611,7 +611,7 @@ case 'expense':case 'expense-edit':{
  break;
 }
 case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. Activities will reorder by their saved time.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time','08:00','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
-case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===context.planId);if(!p)return;const cat=planCategory(p);title='✏️ Edit Day Plan';button='Save Changes';body=`<div class="notice">Editing <b>${esc(p.title)}</b> · Change day, time, category, activity or place.</div>${selectField('date','Move to trip day',dateOptions(t,p.date))}<div class="field-row">${field('time','Activity time',p.time,'time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}" ${cat===c?'selected':''}>${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name',p.title,'text','required maxlength="100"')}${field('place','Location / details',p.place||'','text','maxlength="120"')}<div class="modal-extra"><button type="button" class="btn negative small" data-action="plan-delete" data-id="${esc(p.id)}">🗑 Delete activity</button></div>`;break;}
+case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===context.planId);if(!p)return;const cat=planCategory(p);title='✏️ Edit Day Plan';button='Save Changes';body=`<div class="notice">Editing <b>${esc(p.title)}</b> · Change day, time, category, activity or place.</div>${selectField('date','Move to trip day',dateOptions(t,p.date))}<div class="field-row">${field('time','Activity time',p.time||'','time',p.goaPresetKey?'':'required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}" ${cat===c?'selected':''}>${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name',p.title,'text','required maxlength="100"')}${field('place','Location / details',p.place||'','text','maxlength="120"')}<div class="modal-extra"><button type="button" class="btn negative small" data-action="plan-delete" data-id="${esc(p.id)}">🗑 Delete activity</button></div>`;break;}
 case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;title='📅 Edit Trip Dates';button='Save Trip Dates';body=`<div class="notice">Change the trip start/end date (up to 90 days). Existing activities and expenses must stay within the range. You can move activities individually first.</div><div class="field-row">${field('start','Start date',t.start,'date','required')}${field('end','End date',t.end,'date','required')}</div>`;break;}
 
 case 'reminder':if(!ensurePermission(canSee(t)))return;title='⏰ Local Reminder';button='Save Local Reminder';body=`<div class="notice">Reminds you on this device while D4 Trip is open. Background/closed-app alarms are not guaranteed; no group push is sent.</div><div style="height:12px"></div>${field('title','Reminder message','Wake up! ☀️','text','required maxlength="160"')}${field('date','Reminder date',today(),'date','required')}${field('time','Alarm time',new Date(Date.now()+120000).toTimeString().slice(0,5),'time','required')}`;break;
@@ -692,7 +692,7 @@ case 'expense':case 'expense-edit':{
 case 'plan':case 'plan-edit':{
  if(!isTripAdmin(t))throw Error('Admins only');
  const date=String(fd.get('date')),time=String(fd.get('time')),title=String(fd.get('title')||'').trim(),place=String(fd.get('place')||'').trim(),category=String(fd.get('category')||'Other');
- if(!datesInTrip(t).includes(date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)||!title||!planCategories.includes(category))throw Error('Please enter a valid trip day, time, title and category.');
+ if(!datesInTrip(t).includes(date)||!( /^([01]\d|2[0-3]):[0-5]\d$/.test(time) || (name==='plan-edit' && !time && t.plans.some(p=>p.id===modalContext.planId&&p.goaPresetKey)) )||!title||!planCategories.includes(category))throw Error('Please enter a valid trip day, time (or leave a package stop flexible), title and category.');
  saveTripChange(t,()=>{if(name==='plan-edit'){
    const existing=t.plans.find(p=>p.id===modalContext.planId);if(!existing)throw Error('Activity no longer exists');
    Object.assign(existing,{date,time,title,place,category});
@@ -756,7 +756,8 @@ case 'chat-room':chatRoom=el.dataset.room;if(chatRoom==='admins'&&!isTripAdmin(t
 case 'quick-expense':openModal('expense');break;
 case 'quick-chat':{chatRoom=isTripAdmin(t)?'admins':'group';go('chat');break;}
 case 'quick-report':tripTab='report';go('trip');break;
-case 'quick-plan':openModal('plan');break;
+case 'goa-import':if(t&&window.D4GoaMilestones?.importPlan)window.D4GoaMilestones.importPlan(t);break;
+ case 'quick-plan':openModal('plan');break;
  case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p)openModal('plan-edit',{planId:p.id});break;}
  case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;openModal('plan-dates');break;}
  case 'plan-delete':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p&&confirm('Delete '+p.title+' ('+ampm(p.time)+')?')){saveTripChange(t,()=>{t.plans=t.plans.filter(x=>x.id!==p.id);});closeModal();render();toast('Activity deleted');}break;}
@@ -781,7 +782,7 @@ case 'modal':openModal(el.dataset.modal);break;
 case 'd4-back':{if(view==='trip'&&tripTab!=='overview'){tripTab='overview';go('trip')}else if(view==='trip'){go('collections')}else if(view==='collections'||view==='home'||view==='trips'){go('entry')}else if(current()){tripTab='overview';go('trip')}else{go('entry')}break;}
 case 'close-modal':closeModal();break;
 case 'copy-code':if(!ensurePermission(isMain()))return;navigator.clipboard?.writeText(t.code).then(()=>toast('Trip code copied')).catch(()=>toast('Trip code: '+t.code))||toast('Trip code: '+t.code);break;
-case 'plan-toggle':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p){saveTripChange(t,()=>{p.done=!p.done;});render()}break}
+case 'plan-toggle':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p){const wasDone=!!p.done;saveTripChange(t,()=>{p.done=!p.done;});render();if(!wasDone)window.D4GoaMilestones?.focusNext?.();}break}
 case 'edit-expense':{if(!ensurePermission(isTripAdmin(t)))return;openModal('expense-edit',{expenseId:el.dataset.id});break;}
 case 'delete-expense':{if(!ensurePermission(isTripAdmin(t)))return;const e=t.expenses.find(x=>x.id===el.dataset.id);if(e&&confirm(`Delete ${e.note||e.category} (${money(e.amount)})?`)){saveTripChange(t,()=>{t.expenses=t.expenses.filter(x=>x.id!==e.id);});render();toast('Expense deleted')}break}
 case 'receipt':{let e=t.expenses.find(x=>x.id===el.dataset.id);if(e?.receipt)fileDownload(e.receipt);break}
@@ -812,6 +813,7 @@ render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibili
 
 </script>
 <script src="./premium-production.js?build=27"></script>
+<script src="./goa-milestones.js?build=28"></script>
 <script type="module" src="./firebase-sync.js?build=27"></script>
 <script type="module" src="./team-sync.js?build=27"></script>
 <script type="module" src="./team-join.js?build=27"></script>
