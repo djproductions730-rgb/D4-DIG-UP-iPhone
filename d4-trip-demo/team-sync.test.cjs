@@ -85,7 +85,7 @@ test('Member cannot add or remove any user',async()=>{
 });
 
 
-test('Main Admin base Home receives real-time join requests without a team query parameter',()=>{
+test('Main Admin Requests screen receives real-time join requests without a team query parameter',()=>{
  const listeners=[],messages=[],events={};
  const user={uid:'owner',email:'owner@example.test',emailVerified:true};
  const window={
@@ -128,7 +128,8 @@ test('Main Admin base Home receives real-time join requests without a team query
  listeners[1].next({docs:[{id:'guest1',data:()=>({
   name:'Friend One',role:'member'
  })}]});
- assert.match(window.D4TripJoin.mainAdminInbox(),/Approved Members/);
+ assert.doesNotMatch(window.D4TripJoin.mainAdminInbox(),/Approved Members/,'Request inbox must not duplicate the roster');
+ assert.match(window.D4TripJoin.approvedMembersPanel('goa-trip'),/Approved Members/,'Member roster stays in its own section');
  assert.match(window.D4TripJoin.approvedMembersPanel('goa-trip'),/Friend One/);
  assert.match(window.D4TripJoin.approvedMembersPanel('goa-trip'),/data-join-role="admin"/);
  listeners[2].next({docs:[{id:'another-trip',data:()=>({trip:{name:'Another Trip'}})}]});
