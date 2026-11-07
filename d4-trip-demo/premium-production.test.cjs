@@ -74,7 +74,7 @@ const context = {
     addEventListener:(name,callback)=>{(events[name]??=[]).push(callback)}
   },
   window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section class="d4-shared-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',approvedMembersPanel:()=>'<section class="d4-approved-members-panel">Approved Members</section>',pendingCount:()=>2}},
-  current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
+  profile:'Owner', current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
   get tripTab(){return tab},set tripTab(v){tab=v},
