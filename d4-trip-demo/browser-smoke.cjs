@@ -172,8 +172,8 @@ async function smoke(browser,label,viewport,mobile) {
         label+' planner crop: '+JSON.stringify(box));
     }
   }
-  await assertPlannerFits(['.plan-ui','.plan-hero','.plan-toolbar','.plan-timeline',
-    '.plan-timeline>.empty','.plan-timeline>.empty .btn','.plan-view-note']);
+  await assertPlannerFits(['.plan-ui','.plan-hero','.plan-toolbar','.d4-ms-summary',
+    '.empty.bright-empty','.plan-view-note']);
   await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-day-planner.png'),animations:'disabled'});
   await page.locator('[data-action="quick-plan"]').first().click();
   await page.locator('#f_title').fill('Beach walk');
@@ -183,7 +183,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('#f_time').fill('09:30');
   await page.locator('#activeForm button[type="submit"]').click();
   await page.locator('[data-action="plan-toggle"]').first().click();
-  await assertPlannerFits(['.plan-ui','.plan-timeline','.plan-timeline>.plan-activity']);
+  await assertPlannerFits(['.plan-ui','.d4-ms-summary','.d4-ms-track','.d4-ms-track>.d4-ms-item']);
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].plans[0].date,'2026-11-11');
   assert.equal(data.trips[0].plans[0].time,'09:30');
