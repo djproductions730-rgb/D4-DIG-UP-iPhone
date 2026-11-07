@@ -126,6 +126,13 @@
     return '<div class="ref-entry-heading"><span>✦ D4 TRIP</span><strong>Plan · Track · Share · Enjoy</strong></div>'+
       previous.entryPage();
   };
+  const navPaths={
+    home:'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+    calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M8 14h3m-3 4h3"/>',
+    chat:'<path d="M21 11.5a8.5 8.5 0 0 1-12.5 7.5L3 21l2-5.4A8.5 8.5 0 1 1 21 11.5z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+    more:'<path d="M4 6h16M4 12h16M4 18h16"/>'
+  };
+  const navSvg=key=>'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+navPaths[key]+'</svg>';
   function mobileItem(icon,label,action,attr,active){
     return '<button type="button" class="ref-nav-item'+(active?' active':'')+'" data-action="'+action+'" '+attr+' aria-label="'+label+'"'+
       (active?' aria-current="page"':'')+'><span class="ref-nav-icon" aria-hidden="true">'+icon+'</span><small>'+label+'</small></button>';
@@ -135,11 +142,11 @@
     const t=current();
     const canEdit=isTripAdmin(t);
     const items=[
-      mobileItem('⌂','Home','open-tab','data-ctx="overview"',view==='trip'&&tripTab==='overview'),
-      mobileItem('▣','Day Plan','open-tab','data-ctx="plan"',view==='trip'&&tripTab==='plan'),
+      mobileItem(navSvg('home'),'Home','open-tab','data-ctx="overview"',view==='trip'&&tripTab==='overview'),
+      mobileItem(navSvg('calendar'),'Day Plan','open-tab','data-ctx="plan"',view==='trip'&&tripTab==='plan'),
       '<button type="button" class="ref-nav-plus" data-ref-action="toggle-plus" aria-label="'+(canEdit?'Add trip item':'Explore trip sections')+'" aria-expanded="'+(quickPanel==='plus')+'"><span>＋</span></button>',
-      mobileItem('☏','Chat','nav','data-view="chat"',view==='chat'),
-      '<button type="button" class="ref-nav-item'+(quickPanel==='more'?' active':'')+'" data-ref-action="toggle-more" aria-label="More sections" aria-expanded="'+(quickPanel==='more')+'"><span class="ref-nav-icon">☷</span><small>More</small></button>'
+      mobileItem(navSvg('chat'),'Chat','nav','data-view="chat"',view==='chat'),
+      '<button type="button" class="ref-nav-item'+(quickPanel==='more'?' active':'')+'" data-ref-action="toggle-more" aria-label="More sections" aria-expanded="'+(quickPanel==='more')+'"><span class="ref-nav-icon">'+navSvg('more')+'</span><small>More</small></button>'
     ];
     let overlay='';
     if(quickPanel){
