@@ -91,6 +91,64 @@ async function inviteMember(email){
  await setDoc(grant(id,normalized),{role:'member'});
  return normalized;
 }
+
+function syncInfo(){
+ const ready=!!id && !!latest && Number.isInteger(revision) && role!=='';
+ return {
+   shared:!!id,
+   connected:ready,
+   role:role||'pending',
+   revision:ready?revision:null,
+   saving:!!(writing||queued),
+   status:!id?'Private device copy':!user()?'Sign in or join the shared trip':
+     !role?'Waiting for trip approval':!ready?'Connecting to Firebase…':
+     (writing||queued)?'Saving changes to Firebase…':'Firebase shared trip · live'
+ };
+}
+async function refreshShared(){
+ if(!id||!user()||!role)throw Error('Open your approved trip link and sign in first');
+ if(writing||queued)throw Error('An admin update is still saving. Check again after it finishes.');
+ const token=generation,account=user().uid;
+ const snap=await getDocFromServer(ref(id));
+ if(token!==generation||user()?.uid!==account)throw Error('The signed-in account changed');
+ if(!snap.exists()||!snap.data()?.trip)throw Error('Shared trip is unavailable');
+ if(!latest || Number(snap.data().revision)>=Number(revision)){
+   latest=snap.data();
+   revision=latest.revision;
+   local.showTeam(structuredClone(latest.trip));
+   say('✅ Shared trip refreshed · '+latest.trip.members.length+' members · '+latest.trip.plans.length+' day-plan stops');
+ } else say('A newer trip update is still being saved.');
+}
+async function openSharedTrip(){
+ if(id) return refreshShared();
+ if(!cloud()?.isVerifiedOwner?.()||!user()?.emailVerified)
+   throw Error('Sign in with the verified Main Admin account to open shared trip data');
+ const trip=local.currentTrip();
+ if(!trip?.id || !/^[A-Za-z0-9_-]{1,100}$/.test(trip.id))throw Error('Choose a trip first');
+ const snap=await getDocFromServer(ref(trip.id));
+ if(snap.exists()){
+   const published=snap.data()?.trip;
+   if(!published||published.id!==trip.id)throw Error('Shared trip ID mismatch');
+   const differs=JSON.stringify((published.plans||[]).map(p=>[p.id,p.time,p.title,p.place,p.done]))
+     !==JSON.stringify((trip.plans||[]).map(p=>[p.id,p.time,p.title,p.place,p.done]))
+     || JSON.stringify(published.members||[])!==JSON.stringify(trip.members||[]);
+   if(differs&&!confirm('This device has different Members / Day Plan entries from the Firebase shared trip. Opening the shared copy will NOT copy local edits. Keep both copies safe; edit the shared copy so everyone can see the changes. Open it now?'))return;
+   location.assign(link(trip.id));
+   return;
+ }
+ if(!confirm('This trip has no Firebase shared copy yet. Publish a new shared copy with its current members, plans and expenses, then open it? No existing data will be overwritten.'))return;
+ const sourceUid=user().uid;
+ await runTransaction(cloud().cloudDb,async tx=>{
+   if(user()?.uid!==sourceUid||!cloud()?.isVerifiedOwner?.())throw Error('Main Admin account changed');
+   const r=ref(trip.id),existing=await tx.get(r);
+   if(existing.exists())return;
+   const shared=structuredClone(trip);
+   shared.chats={group:[],admins:[]};
+   tx.set(r,{trip:shared,revision:1,updatedBy:sourceUid,updatedAt:serverTimestamp()});
+ });
+ location.assign(link(trip.id));
+}
+
 function controls(t){
  const accounts=canRemove()?'<div class="card" style="margin-top:12px"><h4>Joined Firebase accounts</h4><p class="tiny">Only Main Admin can remove access. Payment and expense history remains saved.</p>'+
   (invited.length?invited.map(g=>'<div class="list-row" style="gap:10px;display:flex;justify-content:space-between;align-items:center"><span style="overflow-wrap:anywhere"><b>'+htmlSafe(g.email)+'</b><small>'+htmlSafe(g.role)+'</small></span><button type="button" class="btn small negative" data-team="revoke-email" data-email="'+htmlSafe(g.email)+'">Remove</button></div>').join(''):'<p class="tiny">No invited accounts yet.</p>')+'</div>':'';
@@ -142,6 +200,8 @@ function displayCode(result){
 document.addEventListener('click',async event=>{
  const action=event.target.closest('[data-team]')?.dataset.team;if(!action)return;
  try{
+ if(action==='open-shared'){await openSharedTrip();return}
+ if(action==='refresh-shared'){await refreshShared();return}
  if(action==='open'){
   const input=prompt('Paste the trip link your admin shared');if(!input)return;
   const url=new URL(input,location.href),tripId=url.searchParams.get('team');
@@ -223,6 +283,6 @@ document.addEventListener('click',async event=>{
  await setDoc(r,{role:action==='admin'?'admin':'member'});say('Access saved. Copy the trip link to share it.');
  }catch(e){say('Team access: '+e.message)}
 });
-window.D4Team={save,controls,canEdit,canRemove,hasAccess:()=>!!role,inviteMember,library,deleteTrip};
+window.D4Team={save,controls,canEdit,canRemove,hasAccess:()=>!!role,inviteMember,library,deleteTrip,syncInfo,refreshShared,openSharedTrip};
 window.addEventListener('d4-auth',connect);
 if(cloud()?.ready)connect();
