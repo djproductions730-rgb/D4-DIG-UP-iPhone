@@ -234,7 +234,7 @@
     const admin = !!(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(t));
     const pending = admin ? (window.D4TripJoin?.pendingCount?.() || 0) : 0;
     const items = [
-      { icon:'🏠',label:'Home',action:'open-tab',attr:'data-ctx="overview"',active:view==='trip'&&tripTab==='overview' },
+      { icon:'🏠',label:'Home',action:'open-tab',attr:'data-ctx="overview"',active:view==='trip'&&tripTab==='overview'&&!adminOpen&&!requestsOpen },
       { icon:'📅',label:'Day Plan',action:'open-tab',attr:'data-ctx="plan"',active:view==='trip'&&tripTab==='plan' },
       { icon:'👥',label:'Members',action:'open-tab',attr:'data-ctx="members"',active:view==='trip'&&tripTab==='members' },
       { icon:'💳',label:'Payments',action:'nav',attr:'data-view="collections"',active:view==='collections' },
@@ -292,7 +292,7 @@
         :'<section class="card"><p>Sign in with the authorized Firebase admin account to review requests.</p>'+
           '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
     return '<section class="d4p-section d4-requests-page" aria-label="Join Requests">'+
-      '<div class="d4p-hero"><small>🔔 D4 TRIP · ACCESS REQUESTS</small>'+ 
+      '<div class="d4p-hero"><small>🔔 D4 TRIP · ACCESS REQUESTS</small>'+
       '<h2>Join Requests</h2><p>Review pending members and recent decisions in one place.</p></div>'+inbox+'</section>';
   }
   document.addEventListener('click',function(e){
