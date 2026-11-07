@@ -209,3 +209,21 @@ for(const asset of ['premium-production.js','team-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=30'), 'Shared sync version missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=30'), 'Shared sync version missing from offline cache: '+asset);
 }
+
+hasTrip=true;owner=true;editor=true;
+context.teamId='';
+context.view='trip';context.tripTab='plan';
+const privatePlan=context.tripPage();
+assert.match(privatePlan,/Private trip copy/,'Admin local Day Plan warns it is not shared');
+assert.match(privatePlan,/data-team="open-shared"/,'Verified owner can open Firebase team trip');
+assert.match(privatePlan,/private edits are not automatically transferred/i,'Never silently sync local data');
+context.teamId='real-team-id';owner=false;editor=false;
+const memberPlan=context.tripPage();
+assert.match(memberPlan,/Member view only/,'Member can see the shared plan in read-only mode');
+assert.match(memberPlan,/data-team="refresh-shared"/,'Shared trip has a manual refresh');
+assert.doesNotMatch(memberPlan,/data-team="open-shared"/,'Member cannot publish or open another trip via owner action');
+context.tripTab='members';
+const memberRoster=context.tripPage();
+assert.match(memberRoster,/original-members/,'Read-only member can view roster');
+assert.match(memberRoster,/Approved members can view every name/);
+assert.match(css,/d4-team-sync-guide/,'Mode status is styled for mobile');
