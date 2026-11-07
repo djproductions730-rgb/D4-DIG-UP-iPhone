@@ -258,32 +258,9 @@
   let adminOpen = false, requestsOpen = false;
   // The old bottom navigation is now a compact, fixed RIGHT-side rail.
   // Keep the existing delegated data-action routing for all buttons.
-  bottomNav = function () {
-    const t = current();
-    if (!t || view === 'entry') return '';
-    const admin = !!(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(t));
-    const pending = admin ? (window.D4TripJoin?.pendingCount?.() || 0) : 0;
-    const items = [
-      { icon:'🏠',label:'Home',action:'open-tab',attr:'data-ctx="overview"',active:view==='trip'&&tripTab==='overview'&&!adminOpen&&!requestsOpen },
-      { icon:'📅',label:'Day Plan',action:'open-tab',attr:'data-ctx="plan"',active:view==='trip'&&tripTab==='plan' },
-      { icon:'👥',label:'Members',action:'open-tab',attr:'data-ctx="members"',active:view==='trip'&&tripTab==='members' },
-      { icon:'💳',label:'Payments',action:'nav',attr:'data-view="collections"',active:view==='collections' },
-      { icon:'🧾',label:'Expenses',action:'open-tab',attr:'data-ctx="expenses"',active:view==='trip'&&tripTab==='expenses' },
-      { icon:'💬',label:'Chat',action:'nav',attr:'data-view="chat"',active:view==='chat' }
-    ];
-    if (admin) {
-      items.push({icon:'🔔',label:'Requests',action:'d4-requests-panel',attr:'',active:requestsOpen,count:pending});
-      items.push({icon:'👑',label:'Admin',action:'d4-admin-panel',attr:'',active:adminOpen});
-    }
-    items.push({icon:'⚙️',label:'Settings',action:'nav',attr:'data-view="profile"',active:view==='profile'});
-    return '<nav class="d4-liquid-rail" aria-label="Trip sections (right sidebar)">' +
-      items.map(i=>'<button type="button" data-action="'+i.action+'" '+i.attr+
-        ' class="d4-liquid-rail-item'+(i.active?' active':'')+'" aria-label="'+i.label+
-        (i.count?' ('+i.count+' pending)':'')+'" title="'+i.label+'">'+
-        '<span aria-hidden="true" class="d4-liquid-rail-icon">'+i.icon+'</span>'+
-        '<span class="d4-liquid-rail-label">'+i.label+'</span>'+
-        (i.count?'<span class="d4-liquid-badge">'+i.count+'</span>':'')+'</button>').join('')+'</nav>';
-  };
+  // Keep the compact Black & Gold navigation rendered by index.html.
+  // The former liquid-rail override conflicted with the production stylesheet.
+  bottomNav = function () { return original.bottomNav(); };
   // The local roster can lag behind a cloud approval. Show the authenticated
   // shared-trip member list alongside local records, without merging/deleting data.
   tripMembers = function (t) {
