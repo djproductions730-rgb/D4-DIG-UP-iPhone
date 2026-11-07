@@ -248,6 +248,7 @@ assert.match(memberRoster,/original-members/,'Read-only member can view roster')
 assert.match(memberRoster,/Approved members can view every name/);
 assert.match(css,/d4-team-sync-guide/,'Mode status is styled for mobile');
 
+hasTrip=true;owner=true;editor=true;
 assert.match(context.tripMembers(t),/Member A/,'New member cards render existing roster names');
 assert.match(context.expensesPage(),/₹730/,'Expense category totals use underlying data calculations');
 assert.match(refCss,/\.ref-ring/,'Payment progress ring visual styles exist');
