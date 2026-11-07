@@ -230,3 +230,29 @@ body.d4-premium .ref-person-list,body.d4-premium .ref-original-finance,body.d4-p
  body.d4-premium :is(.ref-action,.ref-nav-plus,.ref-menu-link,.ref-primary,.ref-nav-item){transition:transform .18s ease,filter .18s ease}
  @media(hover:hover){body.d4-premium :is(.ref-action,.ref-menu-link,.ref-primary):hover{transform:translateY(-2px);filter:brightness(1.06)}}
 }
+
+/* Layout ownership: remove legacy right-rail gutter, keep full mobile width. */
+body.d4-premium .app-shell{
+ width:100%!important;max-width:100%!important;margin:0!important;
+ padding:0!important;box-sizing:border-box!important;overflow:visible!important;
+}
+body.d4-premium .app-shell>.main{
+ box-sizing:border-box!important;width:100%!important;max-width:700px!important;
+ height:auto!important;max-height:none!important;min-height:100dvh!important;
+ margin:0 auto!important;padding:14px 16px calc(110px + env(safe-area-inset-bottom))!important;
+ overflow:visible!important;
+}
+body.d4-premium .d4-liquid-admin .d4p-hero{
+ padding:29px 15px!important;text-align:center!important;border:1px solid #efcf8e8a!important;
+ border-radius:24px!important;background:radial-gradient(circle at 50% 0%,#d5a15b47,transparent 62%),linear-gradient(140deg,#1e3145,#0c1627)!important;
+}
+body.d4-premium .d4-liquid-admin .d4p-hero::before{content:'♛';display:block;font-size:55px;line-height:1.2;color:#ffe59c;text-shadow:0 0 25px #d3a253}
+body.d4-premium .d4-liquid-admin .d4p-hero h2{color:#ffe3a6!important}
+body.d4-premium .d4-liquid-admin .d4p-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+@media(max-width:768px){
+ body.d4-premium .app-shell{padding:0!important}
+ body.d4-premium .app-shell>.main{
+   width:100%!important;max-width:700px!important;
+   padding:12px 12px calc(112px + env(safe-area-inset-bottom))!important;margin:0 auto!important;
+ }
+}
