@@ -190,7 +190,7 @@
             item.match.goaPresetKey=item.key;
             item.match.goaStep=item.step;
             item.match.goaIcon=item.icon;
-            item.match.goaTimeLabel=item.timeLabel;
+            item.match.goaTimeLabel=(item.timeLabel==='Flexible' && item.match.time) ? ampm(item.match.time) : item.timeLabel;
           }
         });
       });
