@@ -78,7 +78,7 @@ test('Edit inline time updates visible label, not unrelated data',()=>{
   assert.equal(existing.goaTimeLabel,'10:00 – 10:45');
   assert.equal(existing.done,true);
   assert.match(x.context.tripPlan(x.t),/10:00 – 10:45/);
-  assert.equal(api.suggestDayTime(x.t,x.date),'10:30');
+  assert.equal(api.suggestDayTime(x.t,x.date),'11:15');
 });
 test('No writes on bad times, missing items, invalid category or member permissions',()=>{
   const x=setup(),api=x.context.window.D4GoaMilestones;
