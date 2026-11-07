@@ -13,7 +13,7 @@ new vm.Script(src, {filename:'premium-production.js'});
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-for(const asset of ['premium-production.js','team-sync.js','team-join.js','firebase-sync.js']){
+for(const asset of ['team-join.js','firebase-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
@@ -21,7 +21,7 @@ for(const asset of ['premium-production.css','goa-milestones.js']){
   assert.ok(html.includes('./'+asset+'?build=29'), 'New milestone asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=29'), 'New milestone asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=29/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=30/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
@@ -204,3 +204,26 @@ assert.doesNotMatch(context.profilePage(),/data-modal="join-trip"|Join with Code
 assert.match(context.profilePage(),/data-action="entry-back"/,'new user can return to Trips');
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 console.log('PASS: Premium D4 Trip script parses, right rail, scoreboard, role-scoped actions, themes and original account panel.');
+
+for(const asset of ['premium-production.js','team-sync.js']){
+  assert.ok(html.includes('./'+asset+'?build=30'), 'Shared sync version missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=30'), 'Shared sync version missing from offline cache: '+asset);
+}
+
+hasTrip=true;owner=true;editor=true;
+context.teamId='';
+context.view='trip';context.tripTab='plan';
+const privatePlan=context.tripPage();
+assert.match(privatePlan,/Private trip copy/,'Admin local Day Plan warns it is not shared');
+assert.match(privatePlan,/data-team="open-shared"/,'Verified owner can open Firebase team trip');
+assert.match(privatePlan,/private edits are not automatically transferred/i,'Never silently sync local data');
+context.teamId='real-team-id';owner=false;editor=false;
+const memberPlan=context.tripPage();
+assert.match(memberPlan,/Member view only/,'Member can see the shared plan in read-only mode');
+assert.match(memberPlan,/data-team="refresh-shared"/,'Shared trip has a manual refresh');
+assert.doesNotMatch(memberPlan,/data-team="open-shared"/,'Member cannot publish or open another trip via owner action');
+context.tripTab='members';
+const memberRoster=context.tripPage();
+assert.match(memberRoster,/original-members/,'Read-only member can view roster');
+assert.match(memberRoster,/Approved members can view every name/);
+assert.match(css,/d4-team-sync-guide/,'Mode status is styled for mobile');

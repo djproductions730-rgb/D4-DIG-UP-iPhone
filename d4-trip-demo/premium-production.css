@@ -595,3 +595,21 @@ body.d4-premium.d4-light .d4-ms-add-next p{color:#3d737b}
   body .d4-ms-inline-buttons button{padding:7px 8px;font-size:11px}
   body .d4-ms-add-next{margin-left:36px}
 }
+
+/* Private vs Firebase-shared mode: make edit visibility explicit on every trip screen. */
+body .d4-team-sync-guide{box-sizing:border-box;display:grid;gap:10px;min-width:0;margin:7px 0 15px;padding:15px 14px;border-radius:16px;border:1px solid #64b8d680;background:#123652;color:#ecf9ff}
+body .d4-team-sync-guide.private{background:#43321b;border-color:#d7aa52;color:#fff2db}
+body .d4-team-sync-guide strong{display:block;font-size:14px;font-weight:900;line-height:1.4;color:inherit!important}
+body .d4-team-sync-guide p{font-size:12px;line-height:1.5;margin:0;color:inherit!important}
+body .d4-team-sync-guide .d4-team-sync-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+body .d4-team-sync-guide .d4-team-sync-head>span{border:1px solid #9cdbed80;background:#0d4a65;border-radius:50px;padding:5px 8px;font-size:11px;white-space:nowrap;font-weight:850;color:#e6faff}
+body .d4-team-sync-guide .d4-team-sync-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+body .d4-team-sync-guide .d4-team-sync-actions>span{font-size:11px;font-weight:750;color:#cbe8f3}
+body .d4-team-sync-guide button{min-height:44px;padding:10px 14px;border:1px solid #94e0e9;border-radius:11px;background:#0c94a3;color:#fff;font-size:12px;font-weight:900}
+body .d4-team-sync-guide.private button{background:#f7ce7b;color:#29200f;border:0}
+body .d4-team-sync-guide .d4-team-sync-saving{font-weight:850;color:#8ff8d5!important}
+body .d4-team-members-access{padding:10px 12px;margin:0 0 12px;border-radius:12px;background:#0f3952;color:#d8f4ff;font-size:12px;font-weight:800}
+body.d4-premium.d4-light .d4-team-sync-guide.shared{background:#e6f5ff;border-color:#90cddd;color:#11384c}
+body.d4-premium.d4-light .d4-team-sync-guide.shared .d4-team-sync-head>span{color:#064964;background:#d1edf9}
+body.d4-premium.d4-light .d4-team-sync-guide.shared .d4-team-sync-actions>span{color:#305b70}
+body.d4-premium.d4-light .d4-team-members-access{background:#e1f4fc;color:#24516a}

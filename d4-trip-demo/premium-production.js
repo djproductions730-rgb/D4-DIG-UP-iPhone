@@ -46,6 +46,28 @@
       '<p class="tiny">'+(teamId?'Link is for the selected shared trip.':'First copy also publishes a shared copy after Main Admin Firebase sign-in.')+'</p>'+
       '</section>';
   }
+
+  function sharedSyncGuide(t) {
+    if (!t) return '';
+    if (teamId) {
+      const info=window.D4Team?.syncInfo?.()||{};
+      const canUpdate=window.D4Team?.canEdit?.()===true;
+      const role=canUpdate ? '🛡️ Admin editing' : '👁️ Member view only';
+      const state=info.connected?'☁️ Firebase shared trip · live':'⏳ '+(info.status||'Connecting to shared trip');
+      const summary=info.connected ? ' · revision '+Number(info.revision||0) : '';
+      return '<section class="d4-team-sync-guide shared" aria-label="Firebase shared trip status">'+
+        '<div class="d4-team-sync-head"><strong>'+safe(state+summary)+'</strong><span>'+role+'</span></div>'+
+        '<p>Everyone approved for this exact trip link can view the same Members, Day Plans, Payments and Expenses. Only Main Admin / Trip Admin can edit.</p>'+
+        '<div class="d4-team-sync-actions"><span>'+t.members.length+' members · '+(t.plans||[]).length+' day-plan stops</span>'+
+        '<button type="button" data-team="refresh-shared">↻ Refresh Shared Data</button></div>'+
+        (info.saving?'<p class="d4-team-sync-saving">Saving changes for members…</p>':'')+'</section>';
+    }
+    if (!isMain()) return '<section class="d4-team-sync-guide private"><strong>📱 Device-only trip</strong><p>This local copy does not automatically show changes to other devices. Open an approved Firebase shared trip link to view the group trip.</p></section>';
+    return '<section class="d4-team-sync-guide private" aria-label="Device-only trip notice">'+
+      '<strong>⚠️ Private trip copy — other members cannot see edits here</strong>'+
+      '<p>Changes to Members and Day Plan on this screen stay in your private copy. Open the Firebase shared copy before editing the group itinerary. Existing private edits are not automatically transferred.</p>'+
+      '<button type="button" data-team="open-shared">☁️ Open Shared Trip for Everyone</button></section>';
+  }
   function tileRow(t) {
     if (!t || !isTripAdmin(t)) return '';
     const buttons = [
@@ -265,7 +287,7 @@
   // The local roster can lag behind a cloud approval. Show the authenticated
   // shared-trip member list alongside local records, without merging/deleting data.
   tripMembers = function (t) {
-    return original.tripMembers(t) + (window.D4TripJoin?.approvedMembersPanel?.(t?.id)||'');
+    return '<p class="d4-team-members-access">'+(teamId?'☁️ Live shared roster · Approved members can view every name.':'📱 Private roster · Changes here are not shared.')+'</p>' + original.tripMembers(t) + (window.D4TripJoin?.approvedMembersPanel?.(t?.id)||'');
   };
   function adminSurface(){
     const t=current();
@@ -355,14 +377,15 @@
     if(adminOpen) return adminSurface();
     const t = current();
     if (!t) return original.tripPage();
-    if (tripTab === 'overview') return tripOverview(t);
-    if (tripTab === 'plan') return '<section class="d4p-section">' + tripPlan(t) + '</section>';
-    if (tripTab === 'expenses') return '<section class="d4p-section">' + tripExpenses(t) + '</section>';
-    if (tripTab === 'members') return '<section class="d4p-section">' + tripMembers(t) + '</section>';
-    if (tripTab === 'reminders') return '<section class="d4p-section">' + tripReminders(t) + '</section>';
-    if (tripTab === 'memories') return '<section class="d4p-section">' + tripMemories(t) + '</section>';
-    if (tripTab === 'report') return '<section class="d4p-section">' + tripReport(t) + '</section>';
-    if (tripTab === 'collections') return collectionsPage();
+    const sync=sharedSyncGuide(t);
+    if (tripTab === 'overview') return sync+tripOverview(t);
+    if (tripTab === 'plan') return sync+'<section class="d4p-section">' + tripPlan(t) + '</section>';
+    if (tripTab === 'expenses') return sync+'<section class="d4p-section">' + tripExpenses(t) + '</section>';
+    if (tripTab === 'members') return sync+'<section class="d4p-section">' + tripMembers(t) + '</section>';
+    if (tripTab === 'reminders') return sync+'<section class="d4p-section">' + tripReminders(t) + '</section>';
+    if (tripTab === 'memories') return sync+'<section class="d4p-section">' + tripMemories(t) + '</section>';
+    if (tripTab === 'report') return sync+'<section class="d4p-section">' + tripReport(t) + '</section>';
+    if (tripTab === 'collections') return sync+collectionsPage();
     // An old saved Split tab selection is never re-exposed. Financial history stays stored.
     if (tripTab === 'settle') { tripTab = 'overview'; return tripOverview(t); }
     return original.tripPage();
