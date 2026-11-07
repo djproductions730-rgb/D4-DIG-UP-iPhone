@@ -13,7 +13,7 @@ new vm.Script(src, {filename:'premium-production.js'});
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-for(const asset of ['premium-production.js','team-sync.js','team-join.js','firebase-sync.js']){
+for(const asset of ['team-join.js','firebase-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
@@ -204,3 +204,8 @@ assert.doesNotMatch(context.profilePage(),/data-modal="join-trip"|Join with Code
 assert.match(context.profilePage(),/data-action="entry-back"/,'new user can return to Trips');
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 console.log('PASS: Premium D4 Trip script parses, right rail, scoreboard, role-scoped actions, themes and original account panel.');
+
+for(const asset of ['premium-production.js','team-sync.js']){
+  assert.ok(html.includes('./'+asset+'?build=30'), 'Shared sync version missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=30'), 'Shared sync version missing from offline cache: '+asset);
+}
