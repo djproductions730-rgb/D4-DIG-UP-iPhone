@@ -417,5 +417,5 @@
     document.addEventListener('submit',submitInlineForm,true);
   }
   tripPlan=renderMilestones;
-  window.D4GoaMilestones={importPlan:importGoa,focusNext:focusNext,suggestDayTime,appendAfter,editMilestoneTime,orderedForDate};
+  window.D4GoaMilestones={importPlan:importGoa,focusNext:focusNext,suggestDayTime:suggestedDayTime,appendAfter,editMilestoneTime,orderedForDate};
 })();
