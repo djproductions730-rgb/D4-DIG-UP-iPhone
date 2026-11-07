@@ -86,6 +86,9 @@
   };
   const GUEST_NAME_KEY='d4_trip_guest_name_v1';
   const JOIN_STAGE_KEY='d4_trip_guest_join_stage_v1';
+  // A Firebase auth callback can re-render while a guest pastes a link.
+  // Preserve the unsent value in memory so iOS WebKit never loses it.
+  let pendingTripLink='';
   function savedGuestName(){
     try{return String(localStorage.getItem(GUEST_NAME_KEY)||'').slice(0,50)}catch(_){return ''}
   }
@@ -93,6 +96,10 @@
     try{return sessionStorage.getItem(JOIN_STAGE_KEY)==='link' && savedGuestName().trim().length>=2?'link':'name'}catch(_){return 'name'}
   }
   document.addEventListener('input',function(event){
+    if(event.target?.id==='d4-trip-link-input'){
+      pendingTripLink=String(event.target.value||'').slice(0,2048);
+      return;
+    }
     if(event.target?.id!=='d4-guest-name-input')return;
     try{localStorage.setItem(GUEST_NAME_KEY,String(event.target.value||'').slice(0,50))}catch(_){}
   });
@@ -107,7 +114,7 @@
     const second='<p class="d4-join-saved-name">✅ Name saved: <strong>'+safe(name)+'</strong></p>'+
       '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
-      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste your Main Admin link here" required>'+
+      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" value="'+safe(pendingTripLink)+'" placeholder="Paste your Main Admin link here" required>'+
       '<button type="submit" class="btn mint block d4-guest-join-button">Continue with the Link</button></form>'+
       '<button type="button" class="btn small ghost" data-action="d4-edit-join-name">✎ Edit Name</button>';
     return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip by name then link">'+
@@ -143,6 +150,7 @@
         throw Error('This link must be for the same D4 Trip app.');
       // Do not expose member names in URLs. This same-tab handoff creates a request after navigation.
       sessionStorage.setItem('d4_trip_join_name_v1_'+trip,name);
+      pendingTripLink='';
       location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
     }catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link')}
   });
