@@ -483,3 +483,74 @@ body.d4-premium .d4-main-share-panel .tiny{color:#acd8f0}
 
 /* Small release marker so Main Admin can confirm the live build is v26, not cached v24. */
 body.d4-premium .d4-build-version{display:inline-block;font-size:11px;font-weight:700;vertical-align:middle;padding:4px 7px;margin-left:4px;border-radius:8px;border:1px solid #90e5ff70;background:#082d4f99;color:#dcf8ff;letter-spacing:0}
+
+
+/* Goa journey milestone timeline: clear, touch-friendly progress on phone. */
+body.d4-premium .d4-ms-import,body .d4-ms-import{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;
+  padding:12px 13px;margin:8px 0 12px;background:linear-gradient(120deg,#063e5b,#075279);
+  border:1px solid #47b5dd88;border-radius:15px;color:#effaff;font-size:12px;font-weight:850
+}
+body .d4-ms-import button{min-height:44px;padding:10px 13px;border:1px solid #6bdbeb;border-radius:12px;background:#08b7db;color:#041f30;font-size:12px;font-weight:900}
+body .d4-ms-summary{border-radius:20px;border:1px solid #3585b5;background:linear-gradient(145deg,#103958,#0a203c);padding:15px;margin:8px 0 18px;color:#f7fdff;box-shadow:0 10px 26px #00172b44}
+body .d4-ms-summary-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+body .d4-ms-summary-head>div{display:grid;gap:5px}
+body .d4-ms-eyebrow{font-size:10px;letter-spacing:1.3px;font-weight:900;color:#71e5f8}
+body .d4-ms-summary-head strong{font-size:14px;color:#fff!important}
+body .d4-ms-summary-head>b{font-size:24px;color:#67f1c7}
+body .d4-ms-progress{height:9px;background:#294f68;border-radius:10px;overflow:hidden;margin:13px 0}
+body .d4-ms-progress>span{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,#23dfa9,#64dff8);transition:width .25s}
+body .d4-ms-next{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:11px;padding:10px 12px;border:1px solid #36b7f3a0;border-radius:13px;background:#09537b}
+body .d4-ms-next span{color:#beecff;font-size:9px;letter-spacing:1px;font-weight:900}
+body .d4-ms-next b{font-size:13px;color:#fff!important;overflow-wrap:anywhere;flex:1 1 160px}
+body .d4-ms-next small{color:#e0f6ff}
+body .d4-ms-finished{color:#9dffd5;font-weight:850;font-size:12px}
+body .d4-ms-track{position:relative;display:grid;gap:3px;margin:0 0 18px}
+body .d4-ms-item{display:grid;grid-template-columns:38px minmax(0,1fr);gap:7px;min-width:0}
+body .d4-ms-rail{display:flex;flex-direction:column;align-items:center;gap:0}
+body .d4-ms-num{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;border:2px solid #587ba0;background:#132b4d;color:#d7e5f7;font-size:13px;font-weight:950;box-shadow:0 2px 10px #0005}
+body .d4-ms-rail i{width:3px;min-height:14px;flex:1;background:#315e81;border-radius:3px}
+body .d4-ms-item:last-child .d4-ms-rail i{opacity:0}
+body .d4-ms-card{min-width:0;margin:0 0 10px;background:linear-gradient(125deg,#133558,#0b2646);border:1px solid #346995;border-radius:17px;padding:12px;box-shadow:0 5px 14px #0002}
+body .d4-ms-top{display:flex;gap:11px;align-items:flex-start}
+body .d4-ms-symbol{width:52px;height:52px;flex:none;position:relative;display:grid;place-items:center;overflow:hidden;border-radius:13px;border:1px solid #668aac;background:linear-gradient(135deg,#294f7c,#0d3d6e);box-shadow:inset 0 1px #ffffff28}
+body .d4-ms-symbol>img{position:absolute;width:100%;height:100%;object-fit:cover;opacity:.45;inset:0}
+body .d4-ms-symbol>span{position:relative;z-index:1;font-size:26px;text-shadow:0 1px 5px #03192f}
+body .d4-ms-copy{min-width:0;flex:1}
+body .d4-ms-time{display:inline-block;color:#9cddff!important;font-size:11px;font-weight:900}
+body .d4-ms-card h3{font-size:15px;line-height:1.35;margin:5px 0 4px;color:#f9fcff!important;overflow-wrap:anywhere}
+body .d4-ms-copy p{font-size:11px;line-height:1.45;color:#c5dced!important;margin:0;overflow-wrap:anywhere}
+body .d4-ms-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:10px}
+body .d4-ms-status{font-size:10px;font-weight:850;color:#b9cfe2}
+body .d4-ms-actions{display:flex;align-items:center;gap:7px;margin-left:auto}
+body .d4-ms-actions button{border:1px solid #6c96b8;min-height:44px;border-radius:11px;padding:8px 11px;background:#194466;color:#f5fcff;font-size:11px;font-weight:850}
+body .d4-ms-actions .d4-ms-check{background:#d8fff2;border-color:#b5ffec;color:#075844;font-weight:950}
+body .d4-ms-item.next .d4-ms-card{border:2px solid #38cfff;background:linear-gradient(120deg,#104d78,#103959);box-shadow:0 0 0 2px #1ccaff22,0 10px 26px #025c9a38}
+body .d4-ms-item.next .d4-ms-num{background:#06b7e3;border-color:#69e8ff;color:#032f45;box-shadow:0 0 0 4px #23d9ff22}
+body .d4-ms-item.next .d4-ms-status{color:#70e8ff}
+body .d4-ms-item.done .d4-ms-num{background:#0f9d71;border-color:#6df6bd;color:#fff}
+body .d4-ms-item.done .d4-ms-rail i{background:#209b82}
+body .d4-ms-item.done .d4-ms-card{background:#0a2e35;border-color:#25866d;opacity:.88}
+body .d4-ms-item.done .d4-ms-status{color:#9dffd4}
+body.d4-premium.d4-light .d4-ms-summary{background:linear-gradient(135deg,#e4f7ff,#e0f9f2);border-color:#81b7ce;color:#11374b}
+body.d4-premium.d4-light .d4-ms-eyebrow{color:#086984}
+body.d4-premium.d4-light .d4-ms-summary-head strong,body.d4-premium.d4-light .d4-ms-next b{color:#103a4c!important}
+body.d4-premium.d4-light .d4-ms-next{background:#f2fcff;border-color:#8bcbe0}
+body.d4-premium.d4-light .d4-ms-next span,body.d4-premium.d4-light .d4-ms-next small{color:#265c74}
+body.d4-premium.d4-light .d4-ms-card{background:#f2f9fd;border-color:#b1d4e4}
+body.d4-premium.d4-light .d4-ms-card h3{color:#102f47!important}
+body.d4-premium.d4-light .d4-ms-copy p{color:#4d6277!important}
+body.d4-premium.d4-light .d4-ms-time{color:#096d89!important}
+body.d4-premium.d4-light .d4-ms-status{color:#406778}
+body.d4-premium.d4-light .d4-ms-item.next .d4-ms-card{background:#ddf5ff;border-color:#11b2e4}
+body.d4-premium.d4-light .d4-ms-item.done .d4-ms-card{background:#e0f6ec;border-color:#82cbaa}
+body.d4-premium.d4-light .d4-ms-item.done .d4-ms-status{color:#0a774c}
+@media(max-width:420px){
+ body .d4-ms-card{padding:11px 9px}
+ body .d4-ms-item{grid-template-columns:34px minmax(0,1fr);gap:5px}
+ body .d4-ms-num{height:33px;width:33px}
+ body .d4-ms-symbol{width:43px;height:43px;border-radius:10px}
+ body .d4-ms-symbol>span{font-size:23px}
+ body .d4-ms-card h3{font-size:13px}
+ body .d4-ms-actions button{padding:8px 9px}
+}

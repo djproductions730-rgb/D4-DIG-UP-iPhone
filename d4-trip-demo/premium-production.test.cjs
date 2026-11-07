@@ -13,9 +13,13 @@ new vm.Script(src, {filename:'premium-production.js'});
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-for(const asset of ['premium-production.js','premium-production.css','team-sync.js','team-join.js','firebase-sync.js']){
+for(const asset of ['premium-production.js','team-sync.js','team-join.js','firebase-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
+}
+for(const asset of ['premium-production.css','goa-milestones.js']){
+  assert.ok(html.includes('./'+asset+'?build=28'), 'New milestone asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=28'), 'New milestone asset missing from offline cache: '+asset);
 }
 assert.match(html, /sw\.js\?build=27/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
