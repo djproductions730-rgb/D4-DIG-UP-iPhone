@@ -49,7 +49,7 @@ test('All milestones have Add Below and Edit Time and the day ends with Add Next
   x.events.click({target:{closest:()=>({dataset:{goaAction:'add',id:'start'}})},preventDefault(){},stopPropagation(){}});
   const expanded=x.context.tripPlan(x.t);
   assert.match(expanded,/data-goa-editor-form="add"/);
-  for(const label of ['Fort','Beach','Lunch','Dinner','Breakfast','Scuba','Hotel']) {
+  for(const label of ['Fort','Beach','Lunch','Dinner','Breakfast','Water Sports','Hotel']) {
     assert.ok(expanded.includes('>'+label+'</span>')||expanded.includes('>'+label+'</button>'),label+' category missing');
   }
   assert.match(expanded,/data-visual="fort"/);
@@ -78,7 +78,7 @@ test('Edit inline time updates visible label, not unrelated data',()=>{
   assert.equal(existing.goaTimeLabel,'10:00 – 10:45');
   assert.equal(existing.done,true);
   assert.match(x.context.tripPlan(x.t),/10:00 – 10:45/);
-  assert.equal(api.suggestDayTime(x.t,x.date),'10:00');
+  assert.equal(api.suggestDayTime(x.t,x.date),'10:30');
 });
 test('No writes on bad times, missing items, invalid category or member permissions',()=>{
   const x=setup(),api=x.context.window.D4GoaMilestones;
