@@ -101,7 +101,9 @@ assert.match(context.tripPage(),/d4-approved-members-panel/,'Back to Admin shows
 owner=false;
 const localAdminPanel=context.tripPage();
 assert.match(localAdminPanel,/Trip Admin Panel/,'Local Trip Admin role is distinguishable');
-assert.match(localAdminPanel,/Firebase Sign In/,'Local admins get an actionable authorization message');
+assert.match(localAdminPanel,/data-action="d4-requests-panel"/,'Local Trip Admin has a Requests shortcut');
+openRequests({target:{closest:()=>({dataset:{action:'d4-requests-panel'}})},preventDefault(){}});
+assert.match(context.tripPage(),/Firebase Sign In/,'Unauthenticated local Trip Admin receives sign-in instructions in Requests');
 assert.doesNotMatch(localAdminPanel,/Request management is loading/);
 owner=true;
 openAdmin({target:{closest:()=>({dataset:{action:'nav'}})},preventDefault(){} });
