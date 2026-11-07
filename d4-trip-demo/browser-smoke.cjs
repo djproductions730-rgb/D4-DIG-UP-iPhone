@@ -178,6 +178,8 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('[data-action="quick-plan"]').first().click();
   await page.locator('#f_title').fill('Beach walk');
   await page.locator('#f_date').selectOption('2026-11-11');
+  // No hidden 8 AM default on a new/empty day: choose the actual first time.
+  await page.locator('#f_time').fill('09:00');
   await page.locator('#activeForm button[type="submit"]').click();
   await page.locator('[data-action="plan-edit"]').first().click();
   await page.locator('#f_time').fill('09:30');
