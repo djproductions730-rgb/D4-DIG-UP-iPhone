@@ -271,6 +271,10 @@ async function joinByNameLinkFlow(browser) {
   const url=new URL(BASE);
   url.searchParams.set('team','m3-browser-smoke');
   await page.locator('#d4-trip-link-input').fill(url.href);
+  // Simulate an asynchronous Firebase listener refresh on iOS Safari.
+  await page.evaluate(()=>window.D4TripLocal.render());
+  assert.equal(await page.locator('#d4-trip-link-input').inputValue(),url.href,
+    'Pasted trip link must survive an app re-render before submission');
   // Register navigation detection before the click to avoid WebKit event races.
   try {
     await Promise.all([
