@@ -1,0 +1,49 @@
+# Read-only check before any D4 Trip production release.
+# This workflow NEVER deploys and NEVER mutates Firebase data or Hosting.
+name: D4 Trip Firebase OIDC authorization check
+on:
+  push:
+    branches:
+      - dev/d4-trip-join-requests-section-20261107
+    paths:
+      - '.github/workflows/d4-trip-oidc-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify-deployment-identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout current commit
+        uses: actions/checkout@v4
+      - name: Verify configured GitHub variables
+        env:
+          PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+        run: |
+          test -n "$PROVIDER" || { echo "GCP_WORKLOAD_IDENTITY_PROVIDER is missing"; exit 1; }
+          test -n "$SERVICE_ACCOUNT" || { echo "GCP_SERVICE_ACCOUNT is missing"; exit 1; }
+          case "$PROVIDER" in projects/734858180381/locations/global/workloadIdentityPools/d4-trip-github/providers/d4-trip-github-actions) ;; *) echo "Unexpected provider"; exit 1;; esac
+          test "$SERVICE_ACCOUNT" = "d4-trip-github-deployer@d4-trip.iam.gserviceaccount.com" || { echo "Unexpected service account"; exit 1; }
+      - name: Authenticate through keyless Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: d4-trip
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+      - name: Install Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+      - name: Verify short-lived Google credentials (read only)
+        run: |
+          gcloud auth print-access-token > /dev/null
+          echo "OIDC service account impersonation succeeded"
+      - name: Verify Firebase Hosting site access (read only)
+        run: |
+          npm install --no-save --ignore-scripts firebase-tools@15.34.2
+          npx firebase hosting:sites:get d4-trip --project d4-trip --non-interactive
+          echo "Read-only Hosting authorization check succeeded; NO DEPLOYMENT performed."
