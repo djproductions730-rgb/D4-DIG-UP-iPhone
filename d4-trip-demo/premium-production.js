@@ -73,7 +73,7 @@
     const header = original.topBar();
     const t = current();
     const isTripDetail = view === 'trip' && tripTab !== 'overview';
-    const destination = isTripDetail ? 'Trip Dashboard' :
+    const destination = requestsOpen || adminOpen || isTripDetail ? 'Trip Dashboard' :
       view === 'trip' ? 'Payments' :
       view === 'collections' || view === 'home' || view === 'trips' ? 'My Trips' :
       t ? 'Trip Dashboard' : 'My Trips';
@@ -180,7 +180,7 @@
         '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
         '</main>';
     }
-    return (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
+    return (isMain()?mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
       .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
       .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
   };
@@ -188,7 +188,7 @@
   // buttons; the Trips page retains normal trip browsing without another CTA.
   home = function () {
     const html=original.home();
-    if(isMain())return (window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current())+html;
+    if(isMain())return mainSharePanel(current())+html;
     if(teamId)return html;
     return html.replace('</div></div>', '</div></div>'+inviteLinkCard());
   };
@@ -225,7 +225,7 @@
       .replace('<button class="cc-open-members"',
         '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
   };
-  let adminOpen = false;
+  let adminOpen = false, requestsOpen = false;
   // The old bottom navigation is now a compact, fixed RIGHT-side rail.
   // Keep the existing delegated data-action routing for all buttons.
   bottomNav = function () {
@@ -241,7 +241,10 @@
       { icon:'🧾',label:'Expenses',action:'open-tab',attr:'data-ctx="expenses"',active:view==='trip'&&tripTab==='expenses' },
       { icon:'💬',label:'Chat',action:'nav',attr:'data-view="chat"',active:view==='chat' }
     ];
-    if (admin) items.push({icon:'👑',label:'Admin',action:'d4-admin-panel',attr:'',active:false,count:pending});
+    if (admin) {
+      items.push({icon:'🔔',label:'Requests',action:'d4-requests-panel',attr:'',active:requestsOpen,count:pending});
+      items.push({icon:'👑',label:'Admin',action:'d4-admin-panel',attr:'',active:adminOpen});
+    }
     items.push({icon:'⚙️',label:'Settings',action:'nav',attr:'data-view="profile"',active:view==='profile'});
     return '<nav class="d4-liquid-rail" aria-label="Trip sections (right sidebar)">' +
       items.map(i=>'<button type="button" data-action="'+i.action+'" '+i.attr+
@@ -263,36 +266,49 @@
     const verifiedMain=isMain();
     if(!t||!(shared?sharedEditor:isTripAdmin(t)))return '';
     const role=verifiedMain||(shared&&window.D4Team?.canRemove?.()===true)?'Main Admin':'Trip Admin';
-    const requests=shared
-      ?(window.D4TripJoin?.adminPanel?.()||
-        '<section class="card"><h3>🔔 Join Requests</h3><p>Loading shared trip approvals…</p></section>')
-      :verifiedMain
-       ?(window.D4TripJoin?.mainAdminInbox?.()||
-         '<section class="card"><h3>🔔 Join Requests</h3><p>Connecting to Firebase join requests…</p></section>')
-       :'<section class="card d4-admin-role-help"><h3>🔔 Join Requests</h3>'+
-        '<p>This device is using a local Trip Admin profile. To see pending requests, sign in with the authorized Firebase admin account and open the shared trip.</p>'+
-        '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
       '<h2>'+role+' Panel <small class="d4-build-version">v27</small></h2>'+
-      '<p>Review join requests, manage members and share the trip.</p></div>'+
-      requests+
+      '<p>Manage approved members, admin access and trip sharing.</p></div>'+
+      (window.D4TripJoin?.approvedMembersPanel?.()||'')+
       mainSharePanel(t)+
       (shared||verifiedMain?'':'<section class="card"><h3>🔗 Share Trip Link</h3><p>Sign in as Main Admin to publish and copy this trip’s invitation link.</p></section>')+
       '<div class="d4p-grid">'+
       button('👥','Manage Members','open-tab','data-ctx="members"')+
+      button('🔔','Join Requests','d4-requests-panel')+
       (shared&&window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
       '</div></section>';
+  }
+  // A dedicated Requests screen: reuse the existing Firebase listeners and
+  // permission-checked Accept/Reject handlers; never clone or migrate trip data.
+  function requestsSurface(){
+    const t=current();
+    const shared=!!teamId;
+    const allowed=t && (shared ? window.D4Team?.canEdit?.()===true : isTripAdmin(t));
+    if(!allowed)return '<section class="card"><h3>Access restricted</h3><p>Only Main Admin and Trip Admin may review join requests.</p></section>';
+    const inbox=shared
+      ?(window.D4TripJoin?.adminPanel?.()||'<section class="card"><p>Connecting to shared trip requests…</p></section>')
+      :isMain()
+        ?(window.D4TripJoin?.mainAdminInbox?.()||'<section class="card"><p>Connecting to Firebase join requests…</p></section>')
+        :'<section class="card"><p>Sign in with the authorized Firebase admin account to review requests.</p>'+
+          '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
+    return '<section class="d4p-section d4-requests-page" aria-label="Join Requests">'+
+      '<div class="d4p-hero"><small>🔔 D4 TRIP · ACCESS REQUESTS</small>'+ 
+      '<h2>Join Requests</h2><p>Review pending members and recent decisions in one place.</p></div>'+inbox+'</section>';
   }
   document.addEventListener('click',function(e){
     const action=e.target.closest('[data-action]');
     if(!action)return;
-    if(action.dataset.action !== 'd4-admin-panel') {
-      if(['nav','open-tab','trip-tab','select-trip','entry-back','d4-back'].includes(action.dataset.action))adminOpen=false;
+    const name=action.dataset.action;
+    if(name!=='d4-admin-panel'&&name!=='d4-requests-panel'){
+      if(['nav','open-tab','trip-tab','select-trip','entry-back','d4-back'].includes(name)){
+        adminOpen=false;requestsOpen=false;
+      }
       return;
     }
     e.preventDefault();
     if(!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current())))return;
-    adminOpen=true;
+    adminOpen=name==='d4-admin-panel';
+    requestsOpen=name==='d4-requests-panel';
     tripTab='overview';view='trip';render();
   },true);
   tripOverview = function (t) {
@@ -302,7 +318,6 @@
       '<div class="d4p-hero"><small>✦ D4 TRIP · YOUR JOURNEY</small><h2>' +
       safe(t.destination) + '</h2><p>' + safe(t.name) + ' · ' +
       shortDate(t.start) + ' – ' + shortDate(t.end) + '</p></div>' +
-      (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'') : '')) +
       mainSharePanel(t) +
       '<div class="d4p-stats"><div class="d4p-stat"><small>Members</small><strong>' +
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
@@ -328,6 +343,7 @@
       '</nav>' + tileRow(t) + '</section>';
   };
   tripPage = function () {
+    if(requestsOpen) return requestsSurface();
     if(adminOpen) return adminSurface();
     const t = current();
     if (!t) return original.tripPage();
