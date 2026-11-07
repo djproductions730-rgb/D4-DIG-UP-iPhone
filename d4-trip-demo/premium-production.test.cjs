@@ -57,7 +57,7 @@ const context = {
     documentElement: {style:{}},
     addEventListener:(name,callback)=>{(events[name]??=[]).push(callback)}
   },
-  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
+  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section class="d4-shared-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',approvedMembersPanel:()=>'<section class="d4-approved-members-panel">Approved Members</section>',pendingCount:()=>2}},
   current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
@@ -81,11 +81,23 @@ assert.ok(openAdmin,'Control Centre click handler is registered');
 openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
 const baseAdminPanel=context.tripPage();
 assert.match(baseAdminPanel,/Main Admin Panel/,'Verified Main Admin is labeled correctly');
-assert.match(baseAdminPanel,/d4-main-admin-inbox/,'Main Admin Control Centre shows live inbox');
-assert.match(baseAdminPanel,/data-join-decision="approved"/,'Direct accept action is available');
-assert.match(baseAdminPanel,/data-join-decision="rejected"/,'Direct reject action is available');
+assert.match(baseAdminPanel,/d4-approved-members-panel/,'Approved members remain in Control Centre');
+assert.match(baseAdminPanel,/data-action="d4-requests-panel"/,'Control Centre links to dedicated Requests screen');
+assert.doesNotMatch(baseAdminPanel,/d4-main-admin-inbox|data-join-decision/,'Approvals no longer clutter Control Centre');
 assert.match(baseAdminPanel,/d4-main-join-link/,'Full trip link is displayed in Control Centre');
 assert.doesNotMatch(baseAdminPanel,/Request management is loading|Open your shared trip first/,'Old misleading placeholders removed');
+const openRequests=events.click.find(fn=>fn.toString().includes("name==='d4-requests-panel'"));
+assert.ok(openRequests,'Dedicated Requests click handler exists');
+openRequests({target:{closest:()=>({dataset:{action:'d4-requests-panel'}})},preventDefault(){}});
+const requestsPage=context.tripPage();
+assert.match(requestsPage,/d4-requests-page/,'Requests has its own page');
+assert.match(requestsPage,/d4-main-admin-inbox/,'Main Admin inbox appears only on Requests page');
+assert.match(requestsPage,/data-join-decision="approved"/,'Main Admin can accept in Requests');
+assert.match(requestsPage,/data-join-decision="rejected"/,'Main Admin can reject in Requests');
+assert.doesNotMatch(requestsPage,/d4-approved-members-panel/,'Approved roster is a separate section');
+assert.match(context.bottomNav(),/Requests.*?2<\/span>/,'Requests tab displays live pending count');
+openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
+assert.match(context.tripPage(),/d4-approved-members-panel/,'Back to Admin shows approved members');
 owner=false;
 const localAdminPanel=context.tripPage();
 assert.match(localAdminPanel,/Trip Admin Panel/,'Local Trip Admin role is distinguishable');
@@ -96,10 +108,8 @@ openAdmin({target:{closest:()=>({dataset:{action:'nav'}})},preventDefault(){} })
 context.teamId='real-team-id';
 
 context.teamId='';
-assert.match(context.home(),/d4-main-admin-inbox/,'Base Main Admin Home shows incoming requests without ?team=');
-assert.match(context.entryPage(),/d4-main-admin-inbox/,'My Trips shows Main Admin requests');
-assert.match(context.home(),/data-join-decision="approved"/,'Base Home allows direct approve');
-assert.match(context.home(),/data-join-decision="rejected"/,'Base Home allows direct reject');
+assert.doesNotMatch(context.home(),/d4-main-admin-inbox|data-join-decision/,'Home no longer mixes in request decisions');
+assert.doesNotMatch(context.entryPage(),/d4-main-admin-inbox|data-join-decision/,'Trip library no longer mixes in request decisions');
 context.teamId='real-team-id';
 assert.match(context.topBar(),/data-action="d4-back"/);
 assert.match(context.topBar(),/Back to Payments/,'overview back leads to payments');
@@ -113,9 +123,9 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,8,'Admin sees seven sections plus Admin shortcut in right rail');
+assert.equal((nav.match(/<button /g)||[]).length,9,'Admin sees a dedicated Requests shortcut in right rail');
 assert.match(nav,/class="d4-liquid-rail"/,'Navigation is a right-side rail, not a bottom bar');
-for(const label of ['Home','Day Plan','Members','Payments','Expenses','Chat','Settings'])assert.ok(nav.includes(label));
+for(const label of ['Home','Day Plan','Members','Payments','Expenses','Chat','Requests','Admin','Settings'])assert.ok(nav.includes(label));
 assert.doesNotMatch(nav,/d4p-bottom|bottom-nav/);
 assert.equal(nav.includes('Memories'),false);
 assert.match(css,/d4-liquid-rail\{position:fixed/);
@@ -151,9 +161,7 @@ assert.match(context.chatsPage(), /Coming Soon/);
 assert.doesNotMatch(context.chatsPage(),/legacy-live-chat/);
 const dashboard=context.tripOverview(t);
 assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock names');
-assert.match(dashboard,/d4-home-join-requests/,'Shared trip admin home displays pending approvals');
-assert.match(dashboard,/data-join-decision="approved"/,'Home has Accept action');
-assert.match(dashboard,/data-join-decision="rejected"/,'Home has Reject action');
+assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashboard keeps requests in their dedicated section');
 assert.match(dashboard,/Paid \/ Pending/);
 assert.match(dashboard,/d4p-nav-grid/);
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
@@ -181,6 +189,7 @@ assert.match(context.tripOverview(t),/Admin Quick Actions/);
 assert.doesNotMatch(context.tripOverview(t),/Promote Admin/);
 owner=false;editor=false;
 assert.doesNotMatch(context.tripOverview(t),/Admin Quick Actions|Promote Admin/);
+assert.doesNotMatch(context.bottomNav(),/Requests|data-action="d4-requests-panel"/,'Members cannot open admin requests');
 assert.match(context.profilePage(),/view-only mode/);
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 hasTrip=false;
