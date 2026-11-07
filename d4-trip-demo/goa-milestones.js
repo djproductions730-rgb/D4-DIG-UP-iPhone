@@ -95,7 +95,7 @@
     {id:'other',label:'Other',icon:'📍',category:'Other',photo:''}
   ];
   const visualById=Object.fromEntries(visualCategories.map(v=>[v.id,v]));
-  const validClock=v=>/^([01]\\d|2[0-3]):[0-5]\\d$/.test(v||'');
+  const validClock=v=>/^([01]\d|2[0-3]):[0-5]\d$/.test(v||'');
   let inlineEditor=null;
   const htmlSafe = s => esc(s);
   const textKey = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -164,7 +164,7 @@
   function packageEndClock(p) {
     if(validClock(p.goaEndTime))return p.goaEndTime;
     const label=String(p.goaTimeLabel||'');
-    const m=label.match(/(\\d{1,2}):(\\d{2})[–-](\\d{1,2}):(\\d{2})\\s*(AM|PM)/i);
+    const m=label.match(/(\d{1,2}):(\d{2})[–-](\d{1,2}):(\d{2})\s*(AM|PM)/i);
     if(!m)return '';
     const hour=Number(m[3])%12+(m[5].toUpperCase()==='PM'?12:0);
     return String(hour).padStart(2,'0')+':'+m[4];
