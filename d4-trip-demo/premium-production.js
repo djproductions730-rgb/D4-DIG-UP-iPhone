@@ -58,7 +58,7 @@
       return '<section class="d4-team-sync-guide shared" aria-label="Firebase shared trip status">'+
         '<div class="d4-team-sync-head"><strong>'+safe(state+summary)+'</strong><span>'+role+'</span></div>'+
         '<p>Everyone approved for this exact trip link can view the same Members, Day Plans, Payments and Expenses. Only Main Admin / Trip Admin can edit.</p>'+
-        '<div class="d4-team-sync-actions"><span>'+t.members.length+' members · '+t.plans.length+' day-plan stops</span>'+
+        '<div class="d4-team-sync-actions"><span>'+t.members.length+' members · '+(t.plans||[]).length+' day-plan stops</span>'+
         '<button type="button" data-team="refresh-shared">↻ Refresh Shared Data</button></div>'+
         (info.saving?'<p class="d4-team-sync-saving">Saving changes for members…</p>':'')+'</section>';
     }
