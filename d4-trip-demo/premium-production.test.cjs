@@ -8,7 +8,10 @@ const root = __dirname;
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'premium-production.css'), 'utf8');
 const src = fs.readFileSync(path.join(root, 'premium-production.js'), 'utf8');
+const refSrc = fs.readFileSync(path.join(root, 'reference-premium.js'), 'utf8');
+const refCss = fs.readFileSync(path.join(root, 'reference-premium.css'), 'utf8');
 new vm.Script(src, {filename:'premium-production.js'});
+new vm.Script(refSrc, {filename:'reference-premium.js'});
 
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
@@ -17,11 +20,17 @@ for(const asset of ['team-join.js','firebase-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
-for(const asset of ['premium-production.css','goa-milestones.js']){
-  assert.ok(html.includes('./'+asset+'?build=29'), 'New milestone asset missing from index: '+asset);
-  assert.ok(sw.includes('./'+asset+'?build=29'), 'New milestone asset missing from offline cache: '+asset);
+for(const [asset,version] of [
+  ['premium-production.css',33],
+  ['goa-milestones.js',29],
+  ['obsidian-luxe.css',34],
+  ['reference-premium.css',35],
+  ['reference-premium.js',35]
+]){
+  assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=30/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=35/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
@@ -54,6 +63,9 @@ const context = {
   tripPage: () => 'legacy-page',tripPlan:()=> 'original-plan',tripExpenses:()=> 'original-expenses',tripMembers:()=> 'original-members',
   profilePage: () => '<section id="real-account-panel">Existing Firebase account UI</section>',
   chatsPage: () => 'legacy-live-chat',
+  expensesPage: () => '<section>original-expenses-page</section>',
+  adminPage: () => '<section>original-admin-page</section>',
+  calculations: () => ({total:730,categories:{Travel:730}}),
   URL, location:{origin:'https://d4-trip.web.app',pathname:'/',href:'https://d4-trip.web.app/'},
   localStorage: {getItem:()=>null,setItem:()=>{}},
   document: {
@@ -72,6 +84,7 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(src,context,{filename:'premium-production.js'});
+vm.runInContext(refSrc,context,{filename:'reference-premium.js'});
 assert.match(context.entryPage(),/id="d4-main-join-link"/,'Main Admin My Trips displays full link field');
 assert.match(context.entryPage(),/data-team="share-join-link"/,'Main Admin My Trips offers Copy Link');
 assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-id/,'Main Admin sees exact trip invitation URL');
@@ -99,7 +112,7 @@ assert.match(requestsPage,/d4-main-admin-inbox/,'Main Admin inbox appears only o
 assert.match(requestsPage,/data-join-decision="approved"/,'Main Admin can accept in Requests');
 assert.match(requestsPage,/data-join-decision="rejected"/,'Main Admin can reject in Requests');
 assert.doesNotMatch(requestsPage,/d4-approved-members-panel/,'Approved roster is a separate section');
-assert.match(context.bottomNav(),/Requests.*?2<\/span>/,'Requests tab displays live pending count');
+assert.match(context.bottomNav(),/aria-label="More sections"/,'Five-button navigation includes More sections');
 openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
 assert.match(context.tripPage(),/d4-approved-members-panel/,'Back to Admin shows approved members');
 owner=false;
@@ -129,13 +142,19 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,9,'Admin sees a dedicated Requests shortcut in right rail');
-assert.match(nav,/class="d4-liquid-rail"/,'Navigation is a right-side rail, not a bottom bar');
-for(const label of ['Home','Day Plan','Members','Payments','Expenses','Chat','Requests','Admin','Settings'])assert.ok(nav.includes(label));
-assert.doesNotMatch(nav,/d4p-bottom|bottom-nav/);
-assert.equal(nav.includes('Memories'),false);
-assert.match(css,/d4-liquid-rail\{position:fixed/);
-assert.match(css,/right:8px/);
+assert.equal((nav.match(/<button /g)||[]).length,5,'Reference layout displays five mobile navigation buttons');
+assert.match(nav,/class="bottom-nav ref-bottom-nav"/,'Navigation uses the approved bottom bar');
+for(const label of ['Home','Day Plan','Chat','More'])assert.ok(nav.includes(label),label+' missing');
+assert.match(nav,/data-ref-action="toggle-plus"/,'Gold central plus button must open actions');
+assert.doesNotMatch(nav,/class="d4-liquid-rail"/,'Outdated right rail must not reappear');
+const moreHandler=events.click.find(fn=>fn.toString().includes('dataset.refAction'));
+assert.ok(moreHandler,'Reference navigation toggle click handler registered');
+moreHandler({target:{closest:selector=>selector==='[data-ref-action]'?{dataset:{refAction:'toggle-more'}}:null},preventDefault(){},stopImmediatePropagation(){}});
+const moreNav=context.bottomNav();
+for(const label of ['Members','Payments','Expenses','Reports','Memories','Alerts','Settings','Main Admin'])assert.ok(moreNav.includes(label),label+' missing from More menu');
+assert.match(refCss,/bottom-nav\.ref-bottom-nav/,'Approved bottom navigation has styles');
+assert.match(refCss,/ref-nav-plus/,'Premium plus-button styles present');
+assert.match(refCss,/safe-area-inset-bottom/,'iPhone safe area protected');
 const entry = context.entryPage();
 assert.match(entry, /Explore Trips/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
@@ -203,11 +222,12 @@ assert.match(context.profilePage(),/data-action="d4-open-invite"/,'new user can 
 assert.doesNotMatch(context.profilePage(),/data-modal="join-trip"|Join with Code/);
 assert.match(context.profilePage(),/data-action="entry-back"/,'new user can return to Trips');
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
-console.log('PASS: Premium D4 Trip script parses, right rail, scoreboard, role-scoped actions, themes and original account panel.');
+console.log('PASS: Premium D4 Trip scripts parse, reference bottom navigation, real-data scoreboard, role permissions and account panel.');
 
 for(const asset of ['premium-production.js','team-sync.js']){
-  assert.ok(html.includes('./'+asset+'?build=30'), 'Shared sync version missing from index: '+asset);
-  assert.ok(sw.includes('./'+asset+'?build=30'), 'Shared sync version missing from offline cache: '+asset);
+  const version=asset==='premium-production.js'?33:30;
+  assert.ok(html.includes('./'+asset+'?build='+version), 'Shared sync version missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build='+version), 'Shared sync version missing from offline cache: '+asset);
 }
 
 hasTrip=true;owner=true;editor=true;
@@ -227,3 +247,13 @@ const memberRoster=context.tripPage();
 assert.match(memberRoster,/original-members/,'Read-only member can view roster');
 assert.match(memberRoster,/Approved members can view every name/);
 assert.match(css,/d4-team-sync-guide/,'Mode status is styled for mobile');
+
+assert.match(context.tripMembers(t),/Member A/,'New member cards render existing roster names');
+assert.match(context.expensesPage(),/₹730/,'Expense category totals use underlying data calculations');
+assert.match(refCss,/\.ref-ring/,'Payment progress ring visual styles exist');
+assert.match(refCss,/\.ref-person/,'Member cards are styled');
+assert.match(refCss,/\.ref-expense-row/,'Expense cards are styled');
+assert.match(refCss,/\.ref-trip-hero/,'Travel hero graphic styles exist');
+assert.match(refCss,/\.ref-admin-hero/,'Admin hero styles exist');
+assert.doesNotMatch(refSrc,/firebase\.firestore\(|setDoc\(|updateDoc\(|deleteDoc\(/,'Reference layer must not write cloud data');
+console.log('PASS: Reference UI v35, real trip data and original permissions retained.');
