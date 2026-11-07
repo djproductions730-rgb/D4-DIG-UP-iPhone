@@ -155,7 +155,7 @@
     const title=textKey(p.title),target=textKey(s[1]);
     if(title===target)return true;
     if(dayNo!==1)return false;
-    if(s[6]==='rail-pickup')return /madga|magao/.test(title)&&/pick|station/.test(title);
+    if(s[6]==='rail-pickup')return /madg[ao]|magao|margao/.test(title)&&/pick|station/.test(title);
     if(s[6]==='vehicle-collection')return /bike/.test(title)&&/car|collection/.test(title);
     if(s[6]==='hotel-start')return /tripstarted|startfromhotel/.test(title);
     if(s[6]==='hotel-reception')return /hotelluanova|hotelreached/.test(title);
