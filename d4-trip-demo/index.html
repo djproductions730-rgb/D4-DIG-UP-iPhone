@@ -225,7 +225,7 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 </style>
 <link rel="stylesheet" href="./night.css" media="screen">
 <link rel="stylesheet" href="./intro.css" media="screen">
-<link rel="stylesheet" href="./premium-production.css?build=28" media="screen">
+<link rel="stylesheet" href="./premium-production.css?build=29" media="screen">
 <script defer src="./intro.js"></script>
 </head>
 <body>
@@ -610,7 +610,7 @@ case 'expense':case 'expense-edit':{
   (e?.receipt?'<p class="notice">Current receipt is kept unless replaced.</p>':'');
  break;
 }
-case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. Activities will reorder by their saved time.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time','08:00','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
+case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. The next time is suggested from this day's latest stop. Adjust it before saving; the inline ＋ Add below button keeps the journey order.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time',window.D4GoaMilestones?.suggestDayTime?.(t,daySelected)||'','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
 case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===context.planId);if(!p)return;const cat=planCategory(p);title='✏️ Edit Day Plan';button='Save Changes';body=`<div class="notice">Editing <b>${esc(p.title)}</b> · Change day, time, category, activity or place.</div>${selectField('date','Move to trip day',dateOptions(t,p.date))}<div class="field-row">${field('time','Activity time',p.time||'','time',p.goaPresetKey?'':'required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}" ${cat===c?'selected':''}>${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name',p.title,'text','required maxlength="100"')}${field('place','Location / details',p.place||'','text','maxlength="120"')}<div class="modal-extra"><button type="button" class="btn negative small" data-action="plan-delete" data-id="${esc(p.id)}">🗑 Delete activity</button></div>`;break;}
 case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;title='📅 Edit Trip Dates';button='Save Trip Dates';body=`<div class="notice">Change the trip start/end date (up to 90 days). Existing activities and expenses must stay within the range. You can move activities individually first.</div><div class="field-row">${field('start','Start date',t.start,'date','required')}${field('end','End date',t.end,'date','required')}</div>`;break;}
 
@@ -695,7 +695,11 @@ case 'plan':case 'plan-edit':{
  if(!datesInTrip(t).includes(date)||!( /^([01]\d|2[0-3]):[0-5]\d$/.test(time) || (name==='plan-edit' && !time && t.plans.some(p=>p.id===modalContext.planId&&p.goaPresetKey)) )||!title||!planCategories.includes(category))throw Error('Please enter a valid trip day, time (or leave a package stop flexible), title and category.');
  saveTripChange(t,()=>{if(name==='plan-edit'){
    const existing=t.plans.find(p=>p.id===modalContext.planId);if(!existing)throw Error('Activity no longer exists');
-   Object.assign(existing,{date,time,title,place,category});
+   if(existing.time!==time && existing.goaTimeLabel){
+      existing.goaTimeLabel=time?ampm(time):'Flexible';
+      existing.goaEndTime='';
+    }
+    Object.assign(existing,{date,time,title,place,category});
  }else t.plans.push({id:uid(),date,time,title,place,category,done:false});});
  daySelected=date;closeModal();tripTab='plan';go('trip');toast(name==='plan-edit'?'Activity updated ✅':'New activity saved ✅');return;
 }
@@ -807,13 +811,13 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
 if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;db=value;persist();activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=27',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=29',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 window.D4TripLocal={teamId,showTeam(t){db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?"trip":"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>
 <script src="./premium-production.js?build=27"></script>
-<script src="./goa-milestones.js?build=28"></script>
+<script src="./goa-milestones.js?build=29"></script>
 <script type="module" src="./firebase-sync.js?build=27"></script>
 <script type="module" src="./team-sync.js?build=27"></script>
 <script type="module" src="./team-join.js?build=27"></script>

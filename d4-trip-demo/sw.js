@@ -1,5 +1,5 @@
-const CACHE='d4-trip-app-v29-goa-milestones';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192-v28.png','./icon-512-v28.png','./icon-maskable-v28.png','./apple-touch-icon-v28.png','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js?build=27','./team-sync.js?build=27','./team-join.js?build=27','./team-invite-runtime.js?build=27','./premium-production.css?build=28','./goa-milestones.js?build=28','./premium-production.js?build=27','./shared-beta.js','./shared-runtime.js?build=27','./intro.css','./trip-intro.js','./intro-logo.svg'];
+const CACHE='d4-trip-app-v30-inline-times';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192-v28.png','./icon-512-v28.png','./icon-maskable-v28.png','./apple-touch-icon-v28.png','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js?build=27','./team-sync.js?build=27','./team-join.js?build=27','./team-invite-runtime.js?build=27','./premium-production.css?build=29','./goa-milestones.js?build=29','./premium-production.js?build=27','./shared-beta.js','./shared-runtime.js?build=27','./intro.css','./trip-intro.js','./intro-logo.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
   self.skipWaiting();

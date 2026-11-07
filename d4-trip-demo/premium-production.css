@@ -554,3 +554,44 @@ body.d4-premium.d4-light .d4-ms-item.done .d4-ms-status{color:#0a774c}
  body .d4-ms-card h3{font-size:13px}
  body .d4-ms-actions button{padding:8px 9px}
 }
+
+
+/* Day Plan inline milestone add/edit: no trip backtracking or 8 AM reset. */
+body .d4-ms-inline-buttons{display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-top:1px solid #76adcd33;margin-top:12px;padding-top:10px}
+body .d4-ms-inline-buttons button{min-height:44px;border-radius:11px;padding:9px 12px;font-size:12px;font-weight:850;background:#123b5d;color:#d6eeff;border:1px solid #5584ad}
+body .d4-ms-inline-buttons button[data-goa-action="add"]{background:#0e797d;color:#fff;border:1px solid #39c9c0}
+body .d4-ms-add-next{padding:16px 12px;margin:5px 0 18px 44px;border:1px dashed #63c5d6;border-radius:16px;text-align:center;background:#0a324b}
+body .d4-ms-add-next>button{width:100%;min-height:52px;border:0;border-radius:12px;background:linear-gradient(100deg,#09bfc3,#028b9e);color:#fff;font-weight:950;font-size:14px;box-shadow:0 6px 15px #03495844}
+body .d4-ms-add-next>p{font-size:11px;color:#a6d9ea;margin:8px 0 0;line-height:1.45}
+body .d4-ms-inline-editor{display:grid;gap:10px;border:1px solid #47c5ca80;background:linear-gradient(130deg,#103e56,#09283e);padding:13px;margin-top:13px;border-radius:15px;color:#f5fbff!important}
+body .d4-ms-inline-editor h4{font-size:15px;margin:0;color:#fff!important}
+body .d4-ms-inline-editor p{font-size:11px;color:#bde2f1!important;line-height:1.5;margin:0}
+body .d4-ms-inline-editor .d4-ms-visual-list{display:flex;gap:8px;overflow-x:auto;padding:3px 1px 8px;scrollbar-width:thin;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+body .d4-ms-inline-editor .d4-ms-visual{display:flex;flex:0 0 78px;min-width:78px;min-height:92px;flex-direction:column;align-items:center;gap:5px;border:1px solid #497e9d;border-radius:12px;padding:5px;background:#163c56;color:#e5f8ff;font-weight:900;font-size:10px;text-align:center;white-space:normal}
+body .d4-ms-inline-editor .d4-ms-visual.chosen{background:#0b6868;border:2px solid #61ffe1;color:#fff}
+body .d4-ms-inline-editor .d4-ms-visual-photo{display:grid;place-items:center;position:relative;width:64px;height:52px;overflow:hidden;border-radius:9px;background:linear-gradient(130deg,#366f86,#16465e)}
+body .d4-ms-inline-editor .d4-ms-visual-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8}
+body .d4-ms-inline-editor .d4-ms-visual-photo b{z-index:1;position:relative;font-size:22px;text-shadow:0 2px 6px #0009}
+body .d4-ms-inline-editor .d4-ms-field{display:flex;flex-direction:column;gap:6px;min-width:0;color:#c3ebf7!important;font-size:11px;font-weight:850}
+body .d4-ms-inline-editor .d4-ms-input{display:block;box-sizing:border-box;min-width:0;width:100%;min-height:46px;border-radius:10px;padding:9px 11px;font-family:inherit;font-size:15px;font-weight:750;border:1px solid #6fadc4!important;background:#092438!important;color:#fff!important;opacity:1!important}
+body .d4-ms-inline-editor .d4-ms-input::placeholder{color:#9cc6d9!important;opacity:1}
+body .d4-ms-inline-editor .d4-ms-time-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+body .d4-ms-inline-editor .d4-ms-time-hint{font-size:11px;color:#91e6cc!important}
+body .d4-ms-inline-editor .d4-ms-form-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+body .d4-ms-inline-editor .d4-ms-form-actions button{min-height:46px;border-radius:11px;border:1px solid #7394b2;padding:10px 14px;background:#20445b;color:#fff;font-size:12px;font-weight:900}
+body .d4-ms-inline-editor .d4-ms-form-actions button.d4-ms-save{background:#19c4a7;color:#052e37;border-color:#5cead4;flex:1}
+body.d4-premium.d4-light .d4-ms-inline-editor{background:#eaf8ff;border-color:#81c9cc;color:#143e53!important}
+body.d4-premium.d4-light .d4-ms-inline-editor h4{color:#113f52!important}
+body.d4-premium.d4-light .d4-ms-inline-editor p,body.d4-premium.d4-light .d4-ms-inline-editor .d4-ms-field{color:#345a6f!important}
+body.d4-premium.d4-light .d4-ms-inline-editor .d4-ms-input{background:#fff!important;color:#153d50!important;border-color:#91bdcd!important}
+body.d4-premium.d4-light .d4-ms-inline-editor .d4-ms-input::placeholder{color:#688395!important}
+body.d4-premium.d4-light .d4-ms-add-next{background:#e2f7f7}
+body.d4-premium.d4-light .d4-ms-add-next p{color:#3d737b}
+@media(max-width:380px){
+  body .d4-ms-inline-editor{padding:10px}
+  body .d4-ms-inline-editor .d4-ms-time-fields{gap:6px}
+  body .d4-ms-inline-editor .d4-ms-input{padding:8px 6px;font-size:14px}
+  body .d4-ms-inline-buttons{gap:5px}
+  body .d4-ms-inline-buttons button{padding:7px 8px;font-size:11px}
+  body .d4-ms-add-next{margin-left:36px}
+}

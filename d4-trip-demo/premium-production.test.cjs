@@ -18,10 +18,10 @@ for(const asset of ['premium-production.js','team-sync.js','team-join.js','fireb
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
 for(const asset of ['premium-production.css','goa-milestones.js']){
-  assert.ok(html.includes('./'+asset+'?build=28'), 'New milestone asset missing from index: '+asset);
-  assert.ok(sw.includes('./'+asset+'?build=28'), 'New milestone asset missing from offline cache: '+asset);
+  assert.ok(html.includes('./'+asset+'?build=29'), 'New milestone asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build=29'), 'New milestone asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=27/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=29/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
