@@ -257,4 +257,4 @@ assert.match(refCss,/\.ref-expense-row/,'Expense cards are styled');
 assert.match(refCss,/\.ref-trip-hero/,'Travel hero graphic styles exist');
 assert.match(refCss,/\.ref-admin-hero/,'Admin hero styles exist');
 assert.doesNotMatch(refSrc,/firebase\.firestore\(|setDoc\(|updateDoc\(|deleteDoc\(/,'Reference layer must not write cloud data');
-console.log('PASS: Reference UI v35, real trip data and original permissions retained.');
+console.log('PASS: Reference UI v36, real trip data and original permissions retained.');
