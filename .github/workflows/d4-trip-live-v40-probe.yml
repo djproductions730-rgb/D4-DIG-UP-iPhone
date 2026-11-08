@@ -1,4 +1,4 @@
-name: D4 Trip live v40 read-only UI diagnosis
+name: D4 Trip live v40 read-only UI verified smoke
 on:
   push:
     branches: [dev/d4-trip-join-requests-section-20261107]
