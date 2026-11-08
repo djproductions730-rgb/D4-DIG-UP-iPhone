@@ -1,4 +1,4 @@
-name: D4 Trip v40 Hosting-only release
+name: D4 Trip v40 Gold Circular Dial Hosting release
 on:
   push:
     branches:
@@ -39,7 +39,7 @@ jobs:
           assert.equal(cfg.hosting.site,'d4-trip');
           assert.equal(cfg.hosting.public,'.');
           const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
-          for(const asset of ['install-app.js?build=38','payment-roster.css?build=40','trip-day-controls.js?build=40','trip-day-controls.css?build=40']){
+          for(const asset of ['install-app.js?build=38','payment-roster.css?build=40','trip-day-controls.js?build=40','trip-day-controls.css?build=40','home-circular-luxe.css?build=42','reference-premium.js?build=42']){
             assert.ok(html.includes('./'+asset),'Missing approved asset '+asset);
           }
           console.log('Hosting-only release assets and target verified.');
@@ -81,7 +81,7 @@ jobs:
               continue
             fi
             ok=1
-            for file in reference-premium.js reference-premium.css goa-milestones.js payment-roster.css trip-day-controls.js install-app.js; do
+            for file in reference-premium.js reference-premium.css home-circular-luxe.css goa-milestones.js payment-roster.css trip-day-controls.js install-app.js; do
               curl -fsSL --max-time 20 -D "/tmp/d4-${file}.headers" \
                 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" \
                 -o "/tmp/d4-${file}" || { ok=0; break; }
@@ -100,9 +100,10 @@ jobs:
             done
             if [ "$ok" -eq 1 ]; then
               grep -q 'v40-premium-live-repaired-20261108' /tmp/d4-live-index.html
-              grep -q 'reference-premium.js?build=41' /tmp/d4-live-index.html
+              grep -q 'reference-premium.js?build=42' /tmp/d4-live-index.html
+              grep -q 'home-circular-luxe.css?build=42' /tmp/d4-live-index.html
               grep -q 'reference-premium.css?build=41' /tmp/d4-live-index.html
-              echo "PASS: Production root HTML and all six premium assets exactly match GitHub, v40 live is verified"
+              echo "PASS: Production root HTML and all seven premium assets exactly match GitHub, v40 live is verified"
               exit 0
             fi
             sleep 5
