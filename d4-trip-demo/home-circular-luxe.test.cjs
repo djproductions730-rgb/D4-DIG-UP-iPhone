@@ -73,7 +73,7 @@ test('four 3D SVG buttons preserve existing trip navigation actions',()=>{
   for(const action of ['data-ctx="plan"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
     assert.ok(actions.includes(action),'Action missing: '+action);
   }
-  for(const title of ['Day Plan','Members','Payments','Expenses'])assert.ok(actions.includes(title));
+  for(const title of ['Memories','Members','Payments','Expenses'])assert.ok(actions.includes(title));
   assert.match(actions,/<linearGradient/);
   assert.match(actions,/<feDropShadow/);
 });
@@ -97,8 +97,8 @@ test('responsive gold card layout loaded and PWA caches fresh JS and CSS',()=>{
   assert.match(css,/@media\(max-width:340px\)/);
   assert.match(css,/ref-luxe-actions \.ref-action-ico/);
   assert.match(css,/focus-visible|ref-action/);
-  assert.match(html,/reference-premium\.js\?build=42/);
+  assert.match(html,/reference-premium\.js\?build=44/);
   assert.match(html,/home-circular-luxe\.css\?build=42/);
-  assert.match(worker,/reference-premium\.js\?build=42/);
+  assert.match(worker,/reference-premium\.js\?build=44/);
   assert.match(worker,/home-circular-luxe\.css\?build=42/);
 });
