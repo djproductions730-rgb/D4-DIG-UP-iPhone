@@ -61,11 +61,57 @@
     const t=current(),legacy=previous.home();
     return t?memberAmountPanel(t)+legacy:legacy;
   };
+  // Keep all nine destinations visible by default; Hide only collapses the grid.
+  // This preference lives locally and never writes to a trip or Firebase.
+  const SECTIONS_KEY='d4_trip_section_tiles_open_v37';
+  let sectionsOpen=true;
+  try{sectionsOpen=localStorage.getItem(SECTIONS_KEY)!=='closed'}catch(_){}
+  const sectionIconPaths={
+    'Overview':'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/>',
+    'Day Plan':'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18M8 14h3m-3 4h7"/>',
+    'Expenses':'<path d="M5 3h14v18l-3-2-4 2-4-2-3 2V3z"/><path d="M8 8h8M8 12h7M8 16h5"/>',
+    'Paid / Pending':'<rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20M6 15h5"/>',
+    'Members':'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2zM17 5a3 3 0 0 1 0 6m1.5 3a5 5 0 0 1 2.5 4v2"/>',
+    'Alerts':'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 10h18c0-3-3-3-3-10zM10 21h4"/>',
+    'Memories':'<path d="M4 7h4l2-3h4l2 3h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="14" r="4"/>',
+    'Reports':'<path d="M4 3h16v18H4zM8 17v-5m4 5V8m4 9v-7"/>',
+    'Settings':'<circle cx="12" cy="12" r="3"/><path d="M10 2h4l.8 3 2 1 2.8-1.4 2.4 3.4-2.2 2.3v3.4l2.2 2.3-2.4 3.4-2.8-1.4-2 1-.8 3h-4l-.8-3-2-1-2.8 1.4L2 16l2.2-2.3v-3.4L2 8l2.4-3.4L7.2 6l2-1z"/>'
+  };
+  const sectionDefs=[
+    ['Overview','open-tab','data-ctx="overview"',0],
+    ['Day Plan','open-tab','data-ctx="plan"',1],
+    ['Expenses','open-tab','data-ctx="expenses"',2],
+    ['Paid / Pending','nav','data-view="collections"',3],
+    ['Members','open-tab','data-ctx="members"',4],
+    ['Alerts','open-tab','data-ctx="reminders"',5],
+    ['Memories','open-tab','data-ctx="memories"',6],
+    ['Reports','open-tab','data-ctx="report"',7],
+    ['Settings','nav','data-view="profile"',8]
+  ];
+  function tripSections(){
+    const tiles=sectionDefs.map(([name,action,attrs,i])=>{
+      const svg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+sectionIconPaths[name]+'</svg>';
+      const selected=view==='trip'&&((i===0&&tripTab==='overview')||(i===1&&tripTab==='plan')||(i===2&&tripTab==='expenses')||(i===4&&tripTab==='members'));
+      return '<button type="button" class="d4p-tile" data-action="'+action+'" '+attrs+' aria-label="'+html(name)+'"'+(selected?' aria-current="page"':'')+'>'+
+        '<span class="ref-section-icon">'+svg+'</span><strong>'+html(name)+'</strong><span class="ref-section-glint" aria-hidden="true">✦</span></button>';
+    }).join('');
+    return '<details class="ref-trip-sections" '+(sectionsOpen?'open':'')+'>'+
+      '<summary class="ref-sections-head" aria-label="Show or hide Trip Sections">'+
+      '<span class="ref-sections-head-copy"><small>EXPLORE THE JOURNEY</small><strong>Trip Sections</strong><span>All 9 sections · premium quick access</span></span>'+
+      '<span class="ref-sections-visibility"><span class="ref-visible-hide">Hide</span><span class="ref-visible-show">Show</span><span aria-hidden="true">⌄</span></span></summary>'+
+      '<nav class="d4p-grid d4p-nav-grid ref-sections-grid" aria-label="Trip section navigation">'+tiles+'</nav></details>';
+  }
+  document.addEventListener('toggle',function(e){
+    if(!e.target?.classList?.contains('ref-trip-sections'))return;
+    sectionsOpen=e.target.open;
+    try{localStorage.setItem(SECTIONS_KEY,sectionsOpen?'open':'closed')}catch(_){}
+  },true);
   tripOverview=function(t){
     if(!t)return previous.tripOverview(t);
-    return tripHero(t)+memberAmountPanel(t)+
+    const legacy=previous.tripOverview(t).replace(/<h3 class="d4p-title">Trip Sections<\/h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">[\s\S]*?<\/nav>/,'');
+    return tripHero(t)+memberAmountPanel(t)+tripSections()+
       '<details class="ref-expand-tools"><summary>✨ More Trip Tools &amp; Admin Options <span>⌄</span></summary>'+
-      '<div class="ref-tool-body">'+previous.tripOverview(t)+'</div></details>';
+      '<div class="ref-tool-body">'+legacy+'</div></details>';
   };
   collectionsPage=function(){
     const t=current();
