@@ -27,12 +27,15 @@ for(const [asset,version] of [
   ['reference-premium.css',37],
   ['reference-premium.js',37],
   ['install-app.js',38],
-  ['install-app.css',38]
+  ['install-app.css',38],
+  ['payment-roster.css',40],
+  ['trip-day-controls.js',40],
+  ['trip-day-controls.css',40]
 ]){
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=38/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=40/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
