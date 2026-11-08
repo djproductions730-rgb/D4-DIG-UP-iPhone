@@ -45,8 +45,18 @@ async function smoke(browser,label,viewport,mobile) {
   assert.match(await page.locator('#d4-payment-roster').innerText(),/\bA\b/);
   assert.equal(await page.locator('#d4-payment-roster [data-roster-group="unpaid"] [data-roster-card]').count(),17,
     label+' every member initially unpaid');
-  const scroll=await page.locator('#d4-payment-roster [data-roster-scroll]').evaluate(el=>{
-    const style=getComputedStyle(el);return {overflow:style.overflowY,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight};
+  // WebKit may briefly detach/rebuild a roster after Firebase/local state hydration.
+  // Wait for a connected, measurable scroll container rather than sampling a stale node.
+  await page.waitForFunction(()=>{
+    const root=document.querySelector('#d4-payment-roster');
+    const el=root?.querySelector('[data-roster-scroll]');
+    if(!root?.isConnected||!el?.isConnected)return false;
+    const style=getComputedStyle(el);
+    return ['auto','scroll'].includes(style.overflowY)&&el.clientHeight>0&&el.scrollHeight>el.clientHeight+100;
+  },null,{timeout:15000});
+  const scroll=await page.evaluate(()=>{
+    const el=document.querySelector('#d4-payment-roster [data-roster-scroll]');
+    return {overflow:getComputedStyle(el).overflowY,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight};
   });
   assert.ok(['auto','scroll'].includes(scroll.overflow),label+' member list must scroll independently, found '+JSON.stringify(scroll));
   assert.ok(scroll.scrollHeight>scroll.clientHeight+100,label+' 17-member roster must genuinely overflow vertically');
