@@ -70,7 +70,7 @@ test('four 3D SVG buttons preserve existing trip navigation actions',()=>{
   assert.ok(actions,'Premium four-card navigation must exist');
   assert.equal((actions.match(/class="ref-action"/g)||[]).length,4);
   assert.equal((actions.match(/class="ref-luxe-svg"/g)||[]).length,4);
-  for(const action of ['data-ctx="plan"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
+  for(const action of ['data-ctx="memories"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
     assert.ok(actions.includes(action),'Action missing: '+action);
   }
   for(const title of ['Memories','Members','Payments','Expenses'])assert.ok(actions.includes(title));
