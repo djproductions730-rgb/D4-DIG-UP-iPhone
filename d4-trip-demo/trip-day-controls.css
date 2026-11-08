@@ -48,3 +48,5 @@ body.d4-premium .ref-day-date-edit input:focus-visible{outline:3px solid #ffe5a2
  body.d4-premium .ref-day-buttons button{font-size:12px!important;padding:8px 5px!important}
  body.d4-premium .ref-day-buttons button span{font-size:11px!important}
 }
+
+body.d4-premium .ref-day-button-help{margin:8px 2px 0!important;font-size:11px!important;line-height:1.45!important;color:#bfdbdf!important}
