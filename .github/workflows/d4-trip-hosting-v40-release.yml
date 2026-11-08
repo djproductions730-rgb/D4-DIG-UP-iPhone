@@ -97,8 +97,8 @@ jobs:
               fi
             done
             if [ "$status" -eq 0 ]; then
-              grep -q 'journey-completion.js?build=43' /tmp/d4-live-index.html
-              grep -q 'journey-completion.css?build=43' /tmp/d4-live-index.html
+              grep -Fq 'journey-completion.js?build=45' /tmp/d4-live-index.html
+              grep -Fq 'journey-completion.css?build=43' /tmp/d4-live-index.html
               echo "PASS: v45 AI trip milestone/finish flow is LIVE, exact content verified."
               exit 0
             fi
