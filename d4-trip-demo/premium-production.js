@@ -50,17 +50,8 @@
   function sharedSyncGuide(t) {
     if (!t) return '';
     if (teamId) {
-      const info=window.D4Team?.syncInfo?.()||{};
-      const canUpdate=window.D4Team?.canEdit?.()===true;
-      const role=canUpdate ? '🛡️ Admin editing' : '👁️ Member view only';
-      const state=info.connected?'☁️ Firebase shared trip · live':'⏳ '+(info.status||'Connecting to shared trip');
-      const summary=info.connected ? ' · revision '+Number(info.revision||0) : '';
-      return '<section class="d4-team-sync-guide shared" aria-label="Firebase shared trip status">'+
-        '<div class="d4-team-sync-head"><strong>'+safe(state+summary)+'</strong><span>'+role+'</span></div>'+
-        '<p>Everyone approved for this exact trip link can view the same Members, Day Plans, Payments and Expenses. Only Main Admin / Trip Admin can edit.</p>'+
-        '<div class="d4-team-sync-actions"><span>'+t.members.length+' members · '+(t.plans||[]).length+' day-plan stops</span>'+
-        '<button type="button" class="d4-refresh-mini" data-team="refresh-shared" aria-label="Refresh shared trip data" title="Refresh shared trip data">↻</button></div>'+
-        (info.saving?'<p class="d4-team-sync-saving">Saving changes for members…</p>':'')+'</section>';
+      return '<section class="d4-team-sync-guide shared d4-sync-minimal" aria-label="Refresh shared trip data">'+
+        '<button type="button" class="d4-refresh-mini" data-team="refresh-shared" aria-label="Refresh shared trip data" title="Refresh shared trip data">↻</button></section>';
     }
     if (!isMain()) return '<section class="d4-team-sync-guide private"><strong>📱 Device-only trip</strong><p>This local copy does not automatically show changes to other devices. Open an approved Firebase shared trip link to view the group trip.</p></section>';
     return '<section class="d4-team-sync-guide private" aria-label="Device-only trip notice">'+
