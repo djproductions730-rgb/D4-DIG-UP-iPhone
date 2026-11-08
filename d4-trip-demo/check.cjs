@@ -37,6 +37,8 @@ const inviteSyntax = spawnSync(process.execPath,['--input-type=module','--check'
 if(inviteSyntax.status!==0)throw Error(inviteSyntax.stderr);
 const inviteTests=spawnSync(process.execPath,['--test',path.join(dir,'team-invites/service.test.cjs')],{stdio:'inherit'});
 if(inviteTests.status!==0)process.exit(inviteTests.status||1);
+const journeyTests = spawnSync(process.execPath, ['--test',path.join(dir,'journey-completion.test.cjs')],{stdio:'inherit'});
+if (journeyTests.status !== 0) process.exit(journeyTests.status || 1);
 const inlineMilestoneTests = spawnSync(process.execPath, ['--test', path.join(dir,'goa-milestones-inline.test.cjs')], {stdio:'inherit'});
 if (inlineMilestoneTests.status !== 0) process.exit(inlineMilestoneTests.status || 1);
 const goaMilestoneTests = spawnSync(process.execPath, ['--test', path.join(dir,'goa-milestones.test.cjs')], {stdio:'inherit'});
