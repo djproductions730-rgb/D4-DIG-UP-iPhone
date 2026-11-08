@@ -1,4 +1,4 @@
-/* D4 Trip — Reference UI v35. Presentation and existing delegated actions only.
+/* D4 Trip — Reference UI v36. Presentation and existing delegated actions only.
    All monetary figures come from current trip records; no Firebase writes. */
 (function(){
   'use strict';
