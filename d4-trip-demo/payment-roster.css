@@ -165,3 +165,15 @@ body.d4-premium .ref-payment-roster button:focus-visible,body.d4-premium .ref-ro
 @media(prefers-reduced-motion:reduce){
  body.d4-premium .ref-roster-card,body.d4-premium .ref-roster-filter{transition:none!important}
 }
+
+/* Universal fallback for compact iPhone WebKit layouts:
+   scrolling remains available even when body theme classes differ. */
+#d4-payment-roster [data-roster-scroll]{
+ display:block!important;
+ overflow-x:hidden!important;
+ overflow-y:auto!important;
+ max-height:min(57dvh,620px)!important;
+ -webkit-overflow-scrolling:touch;
+ overscroll-behavior:contain!important;
+ touch-action:pan-y;
+}
