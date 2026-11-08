@@ -22,24 +22,93 @@
     return '<span class="ref-role '+(role==='Main Admin'?'owner':role==='Admin'?'admin':'member')+'">'+
       (role==='Main Admin'?'👑 ':role==='Admin'?'🛡️ ':'')+role+'</span>';
   }
+  // High-fidelity, theme-matched inline vector artwork. No third-party images
+  // or emoji assets, so icons remain sharp on Android/iPhone Retina displays.
+  function luxeIcon(key){
+    const gold='lg-g-'+key,blue='lg-b-'+key,paper='lg-p-'+key,shade='lg-s-'+key;
+    const symbols={
+      calendar:'<g filter="url(#'+shade+')">'+
+        '<rect x="22" y="18" width="56" height="60" rx="10" fill="url(#'+paper+')" stroke="#fff1bf" stroke-width="1.5"/>'+
+        '<path d="M22 29Q22 18 33 18H67Q78 18 78 29V39H22Z" fill="#c63c38"/>'+
+        '<path d="M33 11v16M65 11v16" stroke="url(#'+gold+')" stroke-width="6" stroke-linecap="round"/>'+
+        '<path d="M37 49H45M53 49H63M37 58H44M56 59H65" stroke="#91aac0" stroke-width="3.5" stroke-linecap="round"/>'+
+        '<text x="35" y="73" font-size="19" font-weight="900" font-family="Arial,sans-serif" fill="#17324b">31</text></g>'+
+        '<path d="M17 83C35 89 66 88 86 63" stroke="url(#'+gold+')" stroke-width="2.7" fill="none" stroke-linecap="round"/>'+
+        '<path d="m66 55 18-6-7 17-6-5-11 5-3-3 10-8Z" fill="url(#'+paper+')" stroke="#d9ab57" stroke-width="1.6"/>',
+      members:'<g filter="url(#'+shade+')">'+
+        '<circle cx="25" cy="35" r="12" fill="url(#'+paper+')" stroke="#cce7fa"/>'+
+        '<path d="M5 69c0-14 8-22 20-22s20 8 20 22v7H5Z" fill="url(#'+blue+')" stroke="#a1cbed"/>'+
+        '<circle cx="72" cy="35" r="12" fill="url(#'+paper+')" stroke="#cce7fa"/>'+
+        '<path d="M52 69c0-14 8-22 20-22s20 8 20 22v7H52Z" fill="url(#'+blue+')" stroke="#a1cbed"/>'+
+        '<circle cx="49" cy="29" r="16" fill="url(#'+gold+')" stroke="#ffefbb" stroke-width="2"/>'+
+        '<path d="M22 76c0-20 11-30 27-30s27 10 27 30v9H22Z" fill="url(#'+gold+')" stroke="#ffe4a1" stroke-width="1.5"/></g>',
+      wallet:'<g filter="url(#'+shade+')">'+
+        '<rect x="24" y="17" width="53" height="56" rx="7" transform="rotate(-12 24 17)" fill="#194f7c" stroke="#5dc6ee" stroke-width="2"/>'+
+        '<rect x="18" y="23" width="58" height="53" rx="8" transform="rotate(-5 18 23)" fill="url(#'+blue+')" stroke="#8cd3ff" stroke-width="1.4"/>'+
+        '<rect x="14" y="31" width="69" height="52" rx="11" fill="#0e1e32" stroke="url(#'+gold+')" stroke-width="2.8"/>'+
+        '<path d="M17 42h61" stroke="#d8a34d" stroke-dasharray="3 3" opacity=".8"/>'+
+        '<rect x="59" y="47" width="29" height="23" rx="6" fill="url(#'+gold+')" stroke="#fff2c4" stroke-width="1.8"/>'+
+        '<circle cx="70" cy="59" r="5" fill="#663d17"/>'+
+        '<text x="28" y="72" font-size="33" font-weight="900" font-family="Arial,sans-serif" fill="url(#'+gold+')">₹</text></g>',
+      expenses:'<g filter="url(#'+shade+')">'+
+        '<path d="M25 15H70Q77 15 77 24V84l-8-5-8 5-8-5-8 5-8-5-8 5-8-5V24Q21 15 25 15Z" fill="url(#'+paper+')" stroke="#ffffff" stroke-width="1.7"/>'+
+        '<path d="M33 31h21m-21 12h34m-34 9h34m-34 9h19" stroke="#7691a9" stroke-width="3.6" stroke-linecap="round"/>'+
+        '<text x="55" y="73" font-size="20" font-family="Arial,sans-serif" font-weight="900" fill="#153b59">₹</text></g>',
+      check:'<g filter="url(#'+shade+')"><rect x="18" y="18" width="60" height="60" rx="16" fill="#1a5a43" stroke="#72e7a2" stroke-width="3"/>'+
+        '<path d="M31 47l12 12 24-28" fill="none" stroke="#a6ffc8" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/></g>',
+      hourglass:'<g filter="url(#'+shade+')"><path d="M27 15H69M27 81H69" stroke="url(#'+gold+')" stroke-width="6" stroke-linecap="round"/>'+
+        '<path d="M31 20Q31 40 49 49Q31 59 31 76H65Q65 58 49 49Q65 40 65 20Z" fill="#542e0e" stroke="url(#'+gold+')" stroke-width="3"/>'+
+        '<path d="M38 26H58Q57 36 48 43Q39 36 38 26ZM38 69Q43 59 48 58Q53 59 58 69Z" fill="#ffce63"/></g>',
+      coins:'<g filter="url(#'+shade+')"><ellipse cx="49" cy="70" rx="31" ry="11" fill="url(#'+gold+')" stroke="#fff0ba" stroke-width="2"/>'+
+        '<path d="M18 61v10c0 12 62 12 62 0V61" fill="#ae6d24" stroke="#ffd781" stroke-width="2"/>'+
+        '<ellipse cx="49" cy="61" rx="31" ry="11" fill="url(#'+gold+')" stroke="#fff0ba" stroke-width="2"/>'+
+        '<path d="M28 44v10c0 11 50 11 50 0V44" fill="#ad6a1f" stroke="#ffe3a0" stroke-width="2"/>'+
+        '<ellipse cx="53" cy="43" rx="25" ry="9" fill="url(#'+gold+')" stroke="#fff0ba" stroke-width="2"/>'+
+        '<path d="M24 30v10c0 10 40 10 40 0V30" fill="#a86a23" stroke="#ffe0a0" stroke-width="2"/>'+
+        '<ellipse cx="44" cy="29" rx="20" ry="8" fill="url(#'+gold+')" stroke="#fff0ba" stroke-width="2"/></g>',
+      target:'<circle cx="48" cy="50" r="33" fill="#103b4f" stroke="url(#'+gold+')" stroke-width="5"/>'+
+        '<circle cx="48" cy="50" r="21" fill="#092739" stroke="#b5e4da" stroke-width="4"/>'+
+        '<circle cx="48" cy="50" r="8" fill="#f8d98a"/>'+
+        '<path d="m47 49 28-30m-8 3 12-8-3 12" stroke="#ffdb8b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>'
+    };
+    if(!Object.prototype.hasOwnProperty.call(symbols,key))return '';
+    return '<svg class="ref-luxe-svg" width="88" height="88" viewBox="0 0 96 96" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">'+
+      '<defs>'+
+      '<linearGradient id="'+gold+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff6cd"/><stop offset=".24" stop-color="#ffdc88"/><stop offset=".56" stop-color="#c8862c"/><stop offset=".78" stop-color="#ffdd93"/><stop offset="1" stop-color="#8d531f"/></linearGradient>'+
+      '<linearGradient id="'+blue+'" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#d7ecff"/><stop offset=".36" stop-color="#4f97d0"/><stop offset=".75" stop-color="#175086"/><stop offset="1" stop-color="#091f3a"/></linearGradient>'+
+      '<linearGradient id="'+paper+'" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffffff"/><stop offset=".68" stop-color="#e8edf1"/><stop offset="1" stop-color="#99aec4"/></linearGradient>'+
+      '<filter id="'+shade+'" x="-35%" y="-35%" width="170%" height="180%"><feDropShadow dx="0" dy="5" stdDeviation="3.5" flood-opacity=".6"/></filter>'+
+      '</defs>'+symbols[key]+'</svg>';
+  }
   function tripHero(t){
     const c=collectionTotals(t);
     const days=datesInTrip(t).length;
-    return '<section class="ref-trip-hero" aria-label="Trip overview">'+travelCover+
+    // Dynamic from the current collection ledger, never hard-code the preview money.
+    const amount=Number(c.progress);
+    const p=Number.isFinite(amount)?Math.max(0,Math.min(100,amount)):0;
+    const pc=Math.round(p);
+    return '<section class="ref-trip-hero ref-luxe-home" aria-label="Trip overview">'+travelCover+
       '<div class="ref-hero-brand">✦ D4 Trip <span>YOUR ADVENTURE</span></div>'+
       '<h2>'+html(t.name)+'</h2><p>📍 '+html(t.destination)+' · '+html(shortDate(t.start))+' — '+html(shortDate(t.end))+'</p>'+
-      '<div class="ref-hero-stats">'+
-      '<div><span>👥</span><b>'+t.members.length+'</b><small>Members</small></div>'+
-      '<div><span>✅</span><b>'+money(c.paid)+'</b><small>Received</small></div>'+
-      '<div><span>⏳</span><b>'+money(c.pending)+'</b><small>Pending</small></div></div>'+
-      '<div class="ref-hero-actions">'+
-      iconButton('🗓️','Day Plan','open-tab','data-ctx="plan"')+
-      iconButton('👥','Members','open-tab','data-ctx="members"')+
-      iconButton('💳','Payments','nav','data-view="collections"')+
-      iconButton('🧾','Expenses','nav','data-view="expenses"')+'</div>'+
-      '<div class="ref-progress-label"><span>Trip payments</span><strong>'+c.progress+'%</strong></div>'+
-      '<div class="ref-progress-track" role="progressbar" aria-label="Trip contributions" aria-valuenow="'+c.progress+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+c.progress+'%"></span></div>'+
-      '<p class="ref-hero-foot">'+money(c.paid)+' of '+money(c.target)+' collected · '+days+' trip days</p></section>';
+      '<div class="ref-hero-stats ref-luxe-stats">'+
+        '<div><span class="ref-luxe-stat-icon">'+luxeIcon('members')+'</span><b>'+t.members.length+'</b><small>Members</small></div>'+
+        '<div><span class="ref-luxe-stat-icon">'+luxeIcon('check')+'</span><b>'+money(c.paid)+'</b><small>Received</small></div>'+
+        '<div><span class="ref-luxe-stat-icon">'+luxeIcon('hourglass')+'</span><b>'+money(c.pending)+'</b><small>Pending</small></div></div>'+
+      '<nav class="ref-hero-actions ref-luxe-actions" aria-label="Main trip sections">'+
+        iconButton(luxeIcon('calendar'),'Day Plan','open-tab','data-ctx="plan"')+
+        iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
+        iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
+        iconButton(luxeIcon('expenses'),'Expenses','nav','data-view="expenses"')+'</nav>'+
+      '<section class="ref-luxe-tracker" aria-label="Trip payments circular tracker">'+
+        '<div class="ref-luxe-tracker-title"><span class="ref-luxe-coins">'+luxeIcon('coins')+'</span><h3>Trip Payments</h3><span class="ref-luxe-tracker-tag">'+pc+'%</span></div>'+
+        '<div class="ref-luxe-money-grid">'+
+          '<div class="ref-luxe-money-side"><span class="ref-luxe-mini-icon">'+luxeIcon('check')+'</span><small>Received</small><strong>'+money(c.paid)+'</strong></div>'+
+          '<div class="ref-luxe-dial" style="--luxe-percent:'+p+'%" role="progressbar" aria-label="Trip payment collection" aria-valuenow="'+pc+'" aria-valuemin="0" aria-valuemax="100">'+
+            '<div class="ref-luxe-dial-inner"><strong>'+pc+'%</strong><span>COLLECTED</span><span class="ref-luxe-dial-art" aria-hidden="true">✦</span></div></div>'+
+          '<div class="ref-luxe-money-side"><span class="ref-luxe-mini-icon">'+luxeIcon('hourglass')+'</span><small>Pending</small><strong>'+money(c.pending)+'</strong></div></div>'+
+        '<div class="ref-luxe-target">'+luxeIcon('target')+'<span>Trip Target <b>'+money(c.target)+'</b></span></div>'+
+        '<p class="ref-hero-foot">'+days+' trip days · Amounts update from your saved member payments</p>'+
+      '</section></section>';
   }
   function memberAmountPanel(t){
     const c=collectionTotals(t),canEdit=isTripAdmin(t);
