@@ -170,6 +170,11 @@ assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock na
 assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashboard keeps requests in their dedicated section');
 assert.match(dashboard,/Paid \/ Pending/);
 assert.match(dashboard,/d4p-nav-grid/);
+assert.match(dashboard,/d4-trip-payments-donut/,'Overview payment tracker uses donut');
+assert.match(dashboard,/40%/,'Donut computes percentage from ledger');
+for(const amount of ['₹5000','₹7500','₹12500'])assert.ok(dashboard.includes(amount),'Displays current ledger amount: '+amount);
+assert.match(dashboard,/4 trip days/,'Tracker displays current trip duration');
+assert.match(css,/d4-trip-payments-card/,'Responsive tracker CSS present');
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
 assert.equal((dashboard.match(/class="d4p-tile"/g)||[]).length >= 9,true,'All nine navigation cards exist');
 for(const section of ['Overview','Day Plan','Expenses','Paid / Pending','Members','Alerts','Memories','Reports','Settings'])assert.ok(dashboard.includes(section),section+' missing');

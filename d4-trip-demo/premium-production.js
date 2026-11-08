@@ -341,6 +341,27 @@
     requestsOpen=name==='d4-requests-panel';
     tripTab='overview';view='trip';render();
   },true);
+  // The Overview amount tracker always reflects the current trip payment ledger.
+  function tripPaymentDonut(c, days) {
+    const target = Math.max(0, Number(c.target) || 0);
+    const received = Math.max(0, Number(c.paid) || 0);
+    const remaining = Math.max(0, Number(c.pending) || 0);
+    const percent = target ? Math.min(100, Math.round(received / target * 100)) : 0;
+    return '<section class="d4-trip-payments-card" aria-label="Trip payment collection tracker">' +
+      '<div class="d4-trip-payments-heading"><h3>Trip payments</h3>' +
+      '<span>📅 ' + days + ' trip days</span></div>' +
+      '<div class="d4-trip-payments-content">' +
+      '<div class="d4-trip-payments-donut" role="img" aria-label="' + percent +
+      ' percent collected" style="--paid-pct:' + percent + '">' +
+      '<span>' + percent + '%</span></div>' +
+      '<div class="d4-trip-payments-figures">' +
+      '<div><small>Collected</small><strong>' + money(received) + '</strong></div>' +
+      '<div><small>Remaining</small><strong>' + money(remaining) + '</strong></div>' +
+      '<div><small>Total</small><strong>' + money(target) + '</strong></div>' +
+      '</div></div>' +
+      (target ? '' : '<p class="d4-trip-payments-hint">Set a trip amount in Payments to start tracking.</p>') +
+      '</section>';
+  }
   tripOverview = function (t) {
     const c = collectionTotals(t);
     const days = datesInTrip(t).length;
@@ -370,7 +391,7 @@
       button('📸','Memories','open-tab','data-ctx="memories"') +
       button('📑','Reports','open-tab','data-ctx="report"') +
       button('⚙️','Settings','nav','data-view="profile"') +
-      '</nav>' + tileRow(t) + '</section>';
+      '</nav>' + tripPaymentDonut(c, days) + tileRow(t) + '</section>';
   };
   tripPage = function () {
     if(requestsOpen) return requestsSurface();

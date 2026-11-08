@@ -613,3 +613,75 @@ body.d4-premium.d4-light .d4-team-sync-guide.shared{background:#e6f5ff;border-co
 body.d4-premium.d4-light .d4-team-sync-guide.shared .d4-team-sync-head>span{color:#064964;background:#d1edf9}
 body.d4-premium.d4-light .d4-team-sync-guide.shared .d4-team-sync-actions>span{color:#305b70}
 body.d4-premium.d4-light .d4-team-members-access{background:#e1f4fc;color:#24516a}
+
+
+/* Trip dashboard: responsive circular payment tracker (uses existing ledger totals). */
+body.d4-premium .d4-trip-payments-card{
+  padding:20px 22px;
+  border:1px solid #c8ad6a91;
+  border-radius:25px;
+  background:linear-gradient(145deg,#173650,#082238)!important;
+  box-shadow:inset 0 1px #ffffff16,0 14px 28px #00142677;
+  color:#f8fbff;
+  min-width:0;
+}
+body.d4-premium .d4-trip-payments-heading{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  margin-bottom:14px;
+}
+body.d4-premium .d4-trip-payments-heading h3{
+  margin:0;font-size:clamp(19px,3.5vw,25px);color:#fff!important;font-weight:800;
+}
+body.d4-premium .d4-trip-payments-heading span{
+  color:#ffe4a2;border:1px solid #c8ad6a77;border-radius:999px;
+  padding:6px 10px;font-size:12px;font-weight:700;
+}
+body.d4-premium .d4-trip-payments-content{
+  display:grid;grid-template-columns:minmax(112px,150px) minmax(0,1fr);
+  justify-content:center;align-items:center;gap:24px;
+}
+body.d4-premium .d4-trip-payments-donut{
+  --paid-pct:0;
+  width:min(100%,150px);aspect-ratio:1;border-radius:50%;padding:18px;
+  box-sizing:border-box;display:grid;place-items:center;
+  background:conic-gradient(from -90deg,
+    #35dfc6 0%,#ffe293 calc(var(--paid-pct) * 1%),
+    #254865 calc(var(--paid-pct) * 1%) 100%);
+  box-shadow:0 6px 20px #0004;
+}
+body.d4-premium .d4-trip-payments-donut span{
+  width:100%;height:100%;display:grid;place-items:center;border-radius:50%;
+  background:#09263d;color:#ffe29a!important;
+  font-size:clamp(22px,4.2vw,34px);font-weight:900;
+}
+body.d4-premium .d4-trip-payments-figures{
+  display:grid;min-width:0;
+}
+body.d4-premium .d4-trip-payments-figures>div{
+  display:flex;justify-content:space-between;align-items:baseline;gap:9px;
+  padding:9px 0;border-bottom:1px solid #99b3c546;min-width:0;
+}
+body.d4-premium .d4-trip-payments-figures>div:last-child{border-bottom:0}
+body.d4-premium .d4-trip-payments-figures small{
+  color:#f4d18b;font-weight:750;font-size:clamp(12px,2.4vw,15px);
+}
+body.d4-premium .d4-trip-payments-figures strong{
+  color:#fff!important;font-size:clamp(14px,3.2vw,21px);
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right;
+}
+body.d4-premium .d4-trip-payments-hint{margin:12px 0 0;color:#d1e6f0;font-size:12px}
+body.d4-premium.d4-light .d4-trip-payments-card{
+  background:#fff!important;color:#172b49!important;border-color:#d2b77a;
+}
+body.d4-premium.d4-light .d4-trip-payments-heading h3,
+body.d4-premium.d4-light .d4-trip-payments-figures strong{color:#17324d!important}
+body.d4-premium.d4-light .d4-trip-payments-figures small{color:#6e4c11!important}
+body.d4-premium.d4-light .d4-trip-payments-heading span{color:#745114}
+body.d4-premium.d4-light .d4-trip-payments-hint{color:#445b76}
+@media(max-width:420px){
+  body.d4-premium .d4-trip-payments-card{padding:16px 14px;border-radius:21px}
+  body.d4-premium .d4-trip-payments-content{grid-template-columns:112px minmax(0,1fr);gap:12px}
+  body.d4-premium .d4-trip-payments-donut{padding:14px}
+  body.d4-premium .d4-trip-payments-figures>div{display:block;padding:6px 0}
+  body.d4-premium .d4-trip-payments-figures strong{display:block;text-align:left;font-size:17px}
+}
