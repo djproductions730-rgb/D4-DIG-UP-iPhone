@@ -31,12 +31,8 @@ assert.equal(api.statsFor(base).progress,50);
 assert.equal(api.statsFor(base).complete,false);
 assert.equal(api.daily(base,'2026-11-10').percent,50);
 let overview=env.tripOverview(base);
-assert.match(overview,/Goa Trip/);
-assert.match(overview,/2 of 4 completed/);
-assert.match(overview,/milestone-day1\.svg/);
-assert.match(overview,/milestone-day2\.svg/);
-assert.match(overview,/milestone-day3\.svg/);
 assert.match(overview,/Original tools/);
+assert.doesNotMatch(overview,/Trip Milestones|milestone-day[123]|journey-cover-metrics|journey-cta-note/);
 assert.doesNotMatch(overview,/₹1,00,200|10,000\+|15 Milestones/);
 function click(action,date){
  let prevented=false;
