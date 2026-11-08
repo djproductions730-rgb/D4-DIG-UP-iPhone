@@ -295,3 +295,16 @@ body.d4-premium .ref-edit-preview strong{font-size:16px;color:#ffe3a4!important}
  body.d4-premium .ref-receipt .ref-edit-receipt{margin-left:45px}
  body.d4-premium :is(.ref-edit-paid,.ref-edit-receipt){padding:8px 9px}
 }
+
+body.d4-premium .ref-full-payment-history{
+ margin:12px 0 22px;border:1px solid #bb9b647d;border-radius:18px;
+ background:linear-gradient(140deg,#183046,#0b1b2c);overflow:hidden;
+}
+body.d4-premium .ref-full-payment-history>summary{
+ display:flex;align-items:center;justify-content:space-between;gap:8px;
+ padding:14px 15px;cursor:pointer;list-style:none;color:#ffe0a1;font-size:13px;font-weight:850;
+}
+body.d4-premium .ref-full-payment-history>summary::-webkit-details-marker{display:none}
+body.d4-premium .ref-history-inner{padding:4px 13px 13px;max-height:min(58dvh,540px);overflow-y:auto;overscroll-behavior:contain}
+body.d4-premium .ref-history-count{font-size:10px;color:#c7d8e3}
+body.d4-premium .ref-amount-actions{min-width:0}
