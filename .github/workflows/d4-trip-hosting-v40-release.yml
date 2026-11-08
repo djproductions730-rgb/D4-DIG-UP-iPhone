@@ -68,17 +68,44 @@ jobs:
         working-directory: d4-trip-demo
         run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
 
-      - name: Verify the public Hosting response contains the approved v40 assets
+      - name: Verify LIVE files match this exact GitHub commit (not an old HTML fallback)
         run: |
-          for attempt in 1 2 3 4 5 6; do
-            curl -fsSL --max-time 20 -H "Cache-Control: no-cache" "https://d4-trip.web.app/?release=v40&check=${GITHUB_SHA}" -o /tmp/d4-trip-v40-live.html || true
-            if grep -qF 'trip-day-controls.js?build=40' /tmp/d4-trip-v40-live.html &&
-               grep -qF 'payment-roster.css?build=40' /tmp/d4-trip-v40-live.html &&
-               grep -qF 'install-app.js?build=38' /tmp/d4-trip-v40-live.html; then
-              echo "PASS: Public D4 Trip Hosting is serving v40 approved UI"
+          set -euo pipefail
+          URL="https://d4-trip.web.app"
+          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
+            echo "Public verification attempt ${attempt}"
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}&v=40" -o /tmp/d4-live-index.html || true
+            if ! cmp -s d4-trip-demo/index.html /tmp/d4-live-index.html; then
+              echo 'Live HTML is not yet the GitHub v40 HTML'
+              sleep 5
+              continue
+            fi
+            ok=1
+            for file in reference-premium.js reference-premium.css goa-milestones.js payment-roster.css trip-day-controls.js install-app.js; do
+              curl -fsSL --max-time 20 -D "/tmp/d4-${file}.headers" \
+                -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" \
+                -o "/tmp/d4-${file}" || { ok=0; break; }
+              if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-${file}"; then
+                echo "WRONG CONTENT: $file (old HTML fallback, stale asset or mismatched deploy)"
+                head -c 80 "/tmp/d4-${file}" || true
+                ok=0
+                break
+              fi
+              if grep -qi '^content-type:.*text/html' "/tmp/d4-${file}.headers"; then
+                echo "WRONG MIME: $file is being returned as HTML"
+                ok=0
+                break
+              fi
+              echo "PASS exact LIVE file $file ($(wc -c < "/tmp/d4-${file}") bytes)"
+            done
+            if [ "$ok" -eq 1 ]; then
+              grep -q 'v40-premium-live-repaired-20261108' /tmp/d4-live-index.html
+              grep -q 'reference-premium.js?build=41' /tmp/d4-live-index.html
+              grep -q 'reference-premium.css?build=41' /tmp/d4-live-index.html
+              echo "PASS: Production root HTML and all six premium assets exactly match GitHub, v40 live is verified"
               exit 0
             fi
             sleep 5
           done
-          echo "Hosting response did not yet contain all approved v40 assets"
+          echo "FAIL: live site does not match approved v40 code; do NOT report deployment as verified"
           exit 1
