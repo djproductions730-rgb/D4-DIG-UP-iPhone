@@ -25,17 +25,18 @@ for(const [asset,version] of [
   ['goa-milestones.js',29],
   ['obsidian-luxe.css',34],
   ['reference-premium.css',41],
-  ['reference-premium.js',41],
+  ['reference-premium.js',42],
   ['install-app.js',38],
   ['install-app.css',38],
   ['payment-roster.css',40],
   ['trip-day-controls.js',40],
-  ['trip-day-controls.css',40]
+  ['trip-day-controls.css',40],
+  ['home-circular-luxe.css',42]
 ]){
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=41/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=42/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
