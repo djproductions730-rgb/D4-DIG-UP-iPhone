@@ -1,4 +1,4 @@
-name: D4 Trip v44 AI Journey Completion Hosting release
+name: D4 Trip v45 AI Journey Completion Hosting release
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: d4-trip-v44-hosting-release
+  group: d4-trip-v45-hosting-release
   cancel-in-progress: false
 
 jobs:
@@ -39,18 +39,18 @@ jobs:
           assert.equal(cfg.hosting.site,'d4-trip');
           assert.equal(cfg.hosting.public,'.');
           const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
-          assert.ok(html.includes('./premium-production.js?build=44'));
-          assert.ok(html.includes('./premium-production.css?build=44'));
+          assert.ok(html.includes('./premium-production.js?build=45'));
+          assert.ok(html.includes('./premium-production.css?build=45'));
           for(const asset of [
             'reference-premium.js?build=44','goa-milestones.js?build=29',
-            'trip-day-controls.js?build=40','journey-completion.js?build=43',
+            'trip-day-controls.js?build=40','journey-completion.js?build=45',
             'journey-completion.css?build=43'
           ]) assert.ok(html.includes('./'+asset),'Missing release asset '+asset);
           for (const file of ['journey-completion.js','journey-completion.css',
             'milestone-day1.svg','milestone-day2.svg','milestone-day3.svg']){
             assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
           }
-          console.log('PASS: v44 Hosting-only build and AI milestone illustrations');
+          console.log('PASS: v45 Hosting-only build and AI milestone illustrations');
           NODE
 
       - name: Verify approved keyless GitHub deployment identity
@@ -81,7 +81,7 @@ jobs:
           set -euo pipefail
           URL="https://d4-trip.web.app"
           for attempt in {1..12}; do
-            echo "Verify LIVE v44 attempt: $attempt"
+            echo "Verify LIVE v45 attempt: $attempt"
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}" -o /tmp/d4-live-index.html || true
             if ! cmp -s d4-trip-demo/index.html /tmp/d4-live-index.html; then
               sleep 5
@@ -99,7 +99,7 @@ jobs:
             if [ "$status" -eq 0 ]; then
               grep -q 'journey-completion.js?build=43' /tmp/d4-live-index.html
               grep -q 'journey-completion.css?build=43' /tmp/d4-live-index.html
-              echo "PASS: v44 AI trip milestone/finish flow is LIVE, exact content verified."
+              echo "PASS: v45 AI trip milestone/finish flow is LIVE, exact content verified."
               exit 0
             fi
             sleep 5
