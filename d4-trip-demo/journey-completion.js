@@ -79,7 +79,7 @@
     if(!t)return oldOverview(t);
     const s=statsFor(t);
     return '<div class="journey-overview">'+header(t,s)+dayCards(t,s)+actions(t,s)+
-      '<details class="journey-extra"><summary>More Trip Tools & Details</summary><div>'+oldOverview(t)+'</div></details></div>';
+      '<details class="journey-extra" open><summary>More Trip Tools & Details</summary><div>'+oldOverview(t)+'</div></details></div>';
   };
   tripPlan = function (t) {
     if(!t)return oldPlan(t);
