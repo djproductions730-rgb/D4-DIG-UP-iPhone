@@ -75,6 +75,7 @@
           '<button type="button" class="ref-day-plus" data-trip-day-action="add"'+(days.length>=90?' disabled':'')+' aria-label="Add one trip day">＋ <span>Day</span></button>'+
           '<button type="button" class="ref-day-edit" data-action="plan-dates" aria-label="Edit trip start and end dates">✎ Edit Dates</button>'+
         '</div>'+
+        '<p class="ref-day-button-help">＋ adds a day at the end. − removes the last empty day only.</p>'+
         '<div class="ref-day-date-edit"><label for="ref-selected-day-date">Change Day '+(idx+1)+' date</label>'+
         '<div><input type="date" id="ref-selected-day-date" value="'+selected+'" aria-describedby="ref-day-edit-note">'+
         '<button type="button" data-trip-day-action="shift" aria-label="Save selected day date and move itinerary">Save Date</button></div>'+
