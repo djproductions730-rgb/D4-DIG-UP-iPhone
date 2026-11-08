@@ -140,7 +140,7 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(await page.locator('#d4-install-overlay').count(),1,label+' install fallback shows instructions');
   await page.locator('[data-d4-install-close]').first().click();
   assert.equal(await page.locator('#d4-install-overlay').count(),0);
-  assert.deepEqual(pageErrors.filter(e=>!/Firebase|Failed to fetch|network|sw\.js\?build=44 due to access control checks/i.test(e)),[],
+  assert.deepEqual(pageErrors.filter(e=>!/Firebase|Failed to fetch|network|sw\.js\?build=45 due to access control checks/i.test(e)),[],
     label+' has no unrelated JavaScript runtime errors');
   await context.close();
   console.log('PASS '+label+' paid/unpaid, corrections, nine tiles, calendar +/-/edit, install CTA');

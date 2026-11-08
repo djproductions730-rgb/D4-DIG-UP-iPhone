@@ -716,3 +716,7 @@ body.d4-premium .app-shell,body.d4-premium .main,body.d4-premium main{min-width:
 body.d4-premium .main{padding-right:74px!important}
 body.d4-premium :is(.cc-popup,.cc-table,.cc-members,.collection-management,.collection-member-list,.cc-member-list){max-height:none!important;overflow:visible!important}
 @media(max-width:768px){body.d4-premium .app-shell,body.d4-premium .main,body.d4-premium main{width:100%!important;max-width:100%!important;box-sizing:border-box!important}body.d4-premium .main{padding-right:74px!important;padding-left:10px!important}}
+
+/* v45: refresh icon only, without status paragraphs or surrounding copy */
+body .d4-team-sync-guide.shared.d4-sync-minimal{display:flex;justify-content:flex-end;align-items:center;width:auto;max-width:100%;margin:4px 0 6px auto;padding:0;border:0;background:transparent;box-shadow:none;min-height:0}
+body .d4-team-sync-guide.shared.d4-sync-minimal .d4-refresh-mini{width:32px;height:32px;min-width:32px;min-height:32px;padding:0;border-radius:50%;font-size:19px;line-height:1}
