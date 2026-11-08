@@ -1,0 +1,84 @@
+name: D4 Trip v40 Hosting-only release
+on:
+  push:
+    branches:
+      - dev/d4-trip-join-requests-section-20261107
+    paths:
+      - '.github/workflows/d4-trip-hosting-v40-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: d4-trip-v40-hosting-release
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy-hosting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout approved premium app source
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Run full app integrity, payment, date and PWA regression suite
+        run: node d4-trip-demo/check.cjs
+
+      - name: Check target project and version assets
+        run: |
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const cfg=JSON.parse(fs.readFileSync('d4-trip-demo/firebase.json','utf8'));
+          assert.equal(cfg.hosting.site,'d4-trip');
+          assert.equal(cfg.hosting.public,'.');
+          const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
+          for(const asset of ['install-app.js?build=38','payment-roster.css?build=40','trip-day-controls.js?build=40','trip-day-controls.css?build=40']){
+            assert.ok(html.includes('./'+asset),'Missing approved asset '+asset);
+          }
+          console.log('Hosting-only release assets and target verified.');
+          NODE
+
+      - name: Verify the approved keyless GitHub deployment identity
+        env:
+          PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+        run: |
+          test "$PROVIDER" = "projects/734858180381/locations/global/workloadIdentityPools/d4-trip-github/providers/d4-trip-github-actions" || { echo "Unapproved GCP identity provider"; exit 1; }
+          test "$SERVICE_ACCOUNT" = "d4-trip-github-deployer@d4-trip.iam.gserviceaccount.com" || { echo "Unapproved service account"; exit 1; }
+
+      - name: Authenticate securely without a service account key
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: d4-trip
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - name: Install Firebase CLI
+        run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
+
+      - name: Deploy Firebase Hosting only (never Firestore)
+        working-directory: d4-trip-demo
+        run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
+
+      - name: Verify the public Hosting response contains the approved v40 assets
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            curl -fsSL --max-time 20 -H "Cache-Control: no-cache" "https://d4-trip.web.app/?release=v40&check=${GITHUB_SHA}" -o /tmp/d4-trip-v40-live.html || true
+            if grep -qF 'trip-day-controls.js?build=40' /tmp/d4-trip-v40-live.html &&
+               grep -qF 'payment-roster.css?build=40' /tmp/d4-trip-v40-live.html &&
+               grep -qF 'install-app.js?build=38' /tmp/d4-trip-v40-live.html; then
+              echo "PASS: Public D4 Trip Hosting is serving v40 approved UI"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Hosting response did not yet contain all approved v40 assets"
+          exit 1
