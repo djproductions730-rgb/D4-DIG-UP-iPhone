@@ -3,7 +3,7 @@
 (function(){
   'use strict';
   const previous = {
-    bottomNav:bottomNav, tripOverview:tripOverview, collectionsPage:collectionsPage,
+    bottomNav:bottomNav, tripOverview:tripOverview, collectionsPage:collectionsPage, home:home,
     tripMembers:tripMembers, expensesPage:expensesPage, entryPage:entryPage,
     tripPage:tripPage, adminPage:adminPage
   };
@@ -41,9 +41,29 @@
       '<div class="ref-progress-track" role="progressbar" aria-label="Trip contributions" aria-valuenow="'+c.progress+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+c.progress+'%"></span></div>'+
       '<p class="ref-hero-foot">'+money(c.paid)+' of '+money(c.target)+' collected · '+days+' trip days</p></section>';
   }
+  function memberAmountPanel(t){
+    const c=collectionTotals(t),canEdit=isTripAdmin(t);
+    const entry=row=>'<article class="ref-balance-person">'+
+      '<span class="ref-balance-initial" aria-hidden="true">'+html(String(row.member).slice(0,1).toUpperCase())+'</span>'+
+      '<div class="ref-balance-details"><b>'+html(row.member)+'</b><small class="ref-balance-status">'+html(row.status)+'</small>'+
+      '<div><span>Paid <strong>'+money(row.paid)+'</strong></span><span>Due <strong>'+money(row.pending)+'</strong></span></div></div>'+
+      (canEdit?'<button type="button" class="ref-edit-paid" data-action="collection-member-total" data-member="'+html(row.member)+'" aria-label="Edit paid amount for '+html(row.member)+'">✎ Edit</button>':'')+'</article>';
+    const first=c.rows.slice(0,4).map(entry).join('');
+    const rest=c.rows.slice(4).map(entry).join('');
+    return '<section class="ref-home-balances" aria-label="Live member payment balances">'+
+      '<div class="ref-section-title"><h3>👥 Member Amounts</h3><button type="button" data-action="nav" data-view="collections">Payments ›</button></div>'+
+      '<div class="ref-home-balances-total"><span>Received <b>'+money(c.paid)+'</b></span><span>Remaining <b>'+money(c.pending)+'</b></span></div>'+
+      (first||'<p class="ref-empty">No members in this trip yet.</p>')+
+      (rest?'<details class="ref-all-balances"><summary>Show all '+c.rows.length+' members <span>⌄</span></summary>'+rest+'</details>':'')+
+      '</section>';
+  }
+  home=function(){
+    const t=current(),legacy=previous.home();
+    return t?memberAmountPanel(t)+legacy:legacy;
+  };
   tripOverview=function(t){
     if(!t)return previous.tripOverview(t);
-    return tripHero(t)+
+    return tripHero(t)+memberAmountPanel(t)+
       '<details class="ref-expand-tools"><summary>✨ More Trip Tools &amp; Admin Options <span>⌄</span></summary>'+
       '<div class="ref-tool-body">'+previous.tripOverview(t)+'</div></details>';
   };
@@ -51,10 +71,12 @@
     const t=current();
     if(!t)return previous.collectionsPage();
     const c=collectionTotals(t),canEdit=isTripAdmin(t);
-    const recent=(t.collection?.payments||[]).slice(-4).reverse();
+    const recent=(t.collection?.payments||[]).slice(-6).reverse();
     const history=recent.map(item=>'<div class="ref-receipt"><span class="ref-receipt-avatar">'+html(String(item.member||'?').slice(0,1).toUpperCase())+'</span>'+
-      '<div><strong>'+html(item.member)+'</strong><small>'+html(item.date||'')+' · '+html(item.method||'Manual')+'</small></div>'+
-      '<b>'+money(item.amount)+'</b></div>').join('');
+      '<div><strong>'+html(item.member)+'</strong><small>'+(item.adjustment?'Balance correction · ':'')+html(item.date||'')+' · '+html(item.method||'Manual')+'</small></div>'+
+      '<b>'+money(item.amount)+'</b>'+
+      (canEdit&&!item.adjustment?'<button type="button" class="ref-edit-receipt" data-action="collection-edit-payment" data-id="'+html(item.id)+'" aria-label="Edit payment for '+html(item.member)+'">✎ Edit</button>':'')+
+      '</div>').join('');
     return '<section class="ref-finance-cover"><span class="ref-overline">✦ TRIP COLLECTIONS</span><h2>Payments</h2>'+
       '<p>'+html(t.name)+' · '+t.members.length+' members</p>'+
       '<div class="ref-finance-grid"><div class="ref-ring" style="--pct:'+c.progress+'"><span><strong>'+c.progress+'%</strong><small>Collected</small></span></div>'+
@@ -64,6 +86,7 @@
       '<div class="ref-status-grid"><span>✅ Paid <b>'+c.full+'</b></span><span>◐ Partial <b>'+c.partial+'</b></span><span>⏳ Pending <b>'+c.unpaid+'</b></span></div>'+
       '<div class="ref-finance-buttons"><button class="ref-primary" data-action="collection-members">👥 View Member Payments</button>'+
       (canEdit?'<button class="ref-secondary" data-action="collection-quick-add" data-id="'+html(t.id)+'">＋ Add Payment</button>':'<span class="ref-readonly">🔒 View only</span>')+'</div></section>'+
+      memberAmountPanel(t)+
       '<section class="ref-card ref-recent"><div class="ref-section-title"><h3>Recent Payments</h3><button data-action="collection-members">View all ›</button></div>'+
       (history||'<p class="ref-empty">No payments recorded yet.</p>')+'</section>'+
       '<section class="ref-original-finance" aria-label="Complete payment details">'+previous.collectionsPage()+'</section>';
