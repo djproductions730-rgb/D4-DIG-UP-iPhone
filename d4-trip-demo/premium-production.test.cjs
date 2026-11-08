@@ -231,7 +231,7 @@ assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 console.log('PASS: Premium D4 Trip scripts parse, reference bottom navigation, real-data scoreboard, role permissions and account panel.');
 
 for(const asset of ['premium-production.js','team-sync.js']){
-  const version=asset==='premium-production.js'?33:30;
+  const version=asset==='premium-production.js'?44:30;
   assert.ok(html.includes('./'+asset+'?build='+version), 'Shared sync version missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Shared sync version missing from offline cache: '+asset);
 }
