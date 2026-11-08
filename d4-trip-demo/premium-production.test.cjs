@@ -245,7 +245,7 @@ assert.match(privatePlan,/data-team="open-shared"/,'Verified owner can open Fire
 assert.match(privatePlan,/private edits are not automatically transferred/i,'Never silently sync local data');
 context.teamId='real-team-id';owner=false;editor=false;
 const memberPlan=context.tripPage();
-assert.match(memberPlan,/Member view only/,'Member can see the shared plan in read-only mode');
+assert.doesNotMatch(memberPlan,/Member view only|Everyone approved for this exact trip link|day-plan stops/,'Shared refresh guide is icon-only');
 assert.match(memberPlan,/data-team="refresh-shared"/,'Shared trip has a manual refresh');
 assert.doesNotMatch(memberPlan,/data-team="open-shared"/,'Member cannot publish or open another trip via owner action');
 context.tripTab='members';
