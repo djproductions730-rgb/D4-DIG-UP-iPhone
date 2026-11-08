@@ -1,0 +1,37 @@
+/* PDF preview is always a readable paper surface, independent of app theme. */
+body.d4-premium .report-sheet,
+body.d4-premium.d4-light .report-sheet,
+body.d4-premium:not(.d4-light):not(.d4-sunset) .report-sheet{
+ background:#ffffff!important;color:#192b45!important;border:1px solid #d7dfeb!important;
+ box-shadow:0 8px 25px #00000022!important;
+}
+body.d4-premium .report-sheet :is(h1,h2,h3,h4,strong,b,label,.number,.name),
+body.d4-premium.d4-light .report-sheet :is(h1,h2,h3,h4,strong,b,label,.number,.name){
+ color:#172b46!important;text-shadow:none!important;
+}
+body.d4-premium .report-sheet :is(p,small,span,td,th,.report-small){color:#263b53!important;text-shadow:none!important;opacity:1!important}
+body.d4-premium .report-sheet th{background:#dcecf3!important;color:#102a3f!important;font-weight:800!important}
+body.d4-premium .report-sheet td{background:#fff!important;color:#172b46!important;border-color:#b8c9d8!important}
+body.d4-premium .report-sheet tr:nth-child(even) td{background:#f3f8fc!important}
+body.d4-premium .report-sheet .report-numbers div{background:#eaf2fa!important;color:#122c46!important}
+body.d4-premium .report-sheet table{width:100%;border-collapse:collapse;font-size:clamp(11px,2.7vw,14px);line-height:1.45}
+body.d4-premium .report-sheet th,body.d4-premium .report-sheet td{padding:9px 7px;overflow-wrap:anywhere}
+@media(max-width:760px){
+ body.d4-premium .report-sheet{padding:14px!important;overflow-x:auto}
+ body.d4-premium .report-sheet table{min-width:490px}
+}
+@media print{
+ html,body,body.d4-premium{background:#fff!important;color:#172b46!important}
+ body.d4-premium #printMount,body.d4-premium #printMount .print-report{background:#fff!important;color:#172b46!important}
+ body.d4-premium #printMount .mc-report :is(h1,h2,h3,h4,strong,b){color:#33185e!important;text-shadow:none!important}
+ body.d4-premium #printMount .mc-report :is(p,td,small){color:#24354b!important;opacity:1!important;text-shadow:none!important}
+ body.d4-premium #printMount .mc-report th{background:#e7d7fa!important;color:#27133f!important;opacity:1!important}
+ body.d4-premium #printMount .mc-report td{background:#fff!important;color:#24354b!important}
+ body.d4-premium #printMount .mc-report .mc-head,body.d4-premium #printMount .mc-report .mc-head b,body.d4-premium #printMount .mc-report .mc-head strong{color:#fff!important}
+ body.d4-premium #printMount .mc-report .mc-head b span{color:#ffdc74!important}
+ body.d4-premium #printMount .mc-report .mc-stat{background:#f3ebfd!important}
+ body.d4-premium #printMount .mc-report .mc-stat strong{color:#361568!important}
+ body.d4-premium #printMount .mc-report .mc-cover{background:#f4eafd!important}
+ body.d4-premium #printMount .mc-report .mc-cover h1{color:#361568!important}
+ body.d4-premium #printMount .mc-report .mc-finale{background:#f4eafd!important}
+}
