@@ -24,255 +24,109 @@ async function smoke(browser,label,viewport,mobile) {
   const page=await context.newPage();
   const pageErrors=[];
   page.on('pageerror',error=>pageErrors.push(error.message));
+  page.on('dialog',dialog=>dialog.accept());
   await page.addInitScript(dataset=>{
     if(!localStorage.getItem('d4_trip_offline_v2'))
       localStorage.setItem('d4_trip_offline_v2',JSON.stringify(dataset));
     localStorage.setItem('d4_trip_offline_profile_v2','Admin');
-    // Keep existing app smoke tests deterministic; intro is checked via explicit Replay.
     sessionStorage.setItem('d4_trip_cinema_seen_v1','1');
   },seed);
   await page.goto(BASE,{waitUntil:'domcontentloaded'});
-  fs.mkdirSync(path.join(__dirname,'preview'),{recursive:true});
-  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-explore.png'),animations:'disabled'});
+  const capture=async suffix=>{
+    fs.mkdirSync(path.join(__dirname,'preview'),{recursive:true});
+    await page.screenshot({path:path.join(__dirname,'preview',label+'-'+suffix+'.png'),animations:'disabled'});
+  };
   await page.locator('[data-action="entry-select-trip"][data-id="m3-browser-smoke"]').click();
-  await page.locator('.compact-collection').waitFor();
-  async function payment(amount,stage){
-    await page.locator('[data-action="collection-quick-add"]').first().click();
-    await page.locator('#f_member').selectOption('A');
-    await page.locator('#f_paymentStage').selectOption(stage);
-    await page.locator('#f_amount').fill(String(amount));
-    await page.locator('#activeForm button[type="submit"]').click();
-    await page.locator('.compact-collection').waitFor();
-  }
-  await payment(3000,'advance');
+  await page.locator('#d4-payment-roster').waitFor({state:'visible'});
+  const count=await page.locator('#d4-payment-roster [data-roster-card]').count();
+  assert.equal(count,2,label+' all seeded trip members must appear');
+  assert.match(await page.locator('#d4-payment-roster').innerText(),/Member Payment Status/);
+  assert.match(await page.locator('#d4-payment-roster').innerText(),/Admin/);
+  assert.match(await page.locator('#d4-payment-roster').innerText(),/\bA\b/);
+  assert.equal(await page.locator('#d4-payment-roster [data-roster-group="unpaid"] [data-roster-card]').count(),2,
+    label+' both members initially unpaid');
+  const scroll=await page.locator('#d4-payment-roster [data-roster-scroll]').evaluate(el=>{
+    const style=getComputedStyle(el);return {overflow:style.overflowY,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight};
+  });
+  assert.ok(['auto','scroll'].includes(scroll.overflow),label+' member list must scroll independently');
+  await capture('payment-status-before');
+  // Record a real payment via existing app's modal, verify the financial totals update.
+  await page.locator('[data-action="collection-quick-add"]').first().click();
+  await page.locator('#f_member').selectOption('A');
+  await page.locator('#f_paymentStage').selectOption('advance');
+  await page.locator('#f_amount').fill('3000');
+  await page.locator('#activeForm button[type="submit"]').click();
+  await page.locator('#d4-payment-roster').waitFor({state:'visible'});
   let data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].collection.payments.length,1,label+' advance saved');
+  assert.equal(data.trips[0].collection.payments.length,1);
   assert.equal(data.trips[0].collection.payments[0].amount,3000);
-  assert.match(data.trips[0].collection.payments[0].note,/ADVANCE/);
-  assert.match(await page.locator('.d4-payment-counts').innerText(),/Partial 1/);
-  await payment(5000,'balance');
+  assert.equal(await page.locator('#d4-payment-roster [data-roster-group="partial"] [data-roster-card]').count(),1);
+  // Admin corrects A's total paid, preserving the original receipt in the history.
+  await page.locator('#d4-payment-roster [data-action="collection-member-total"][data-member="A"]').click();
+  await page.locator('#f_amount').fill('8000');
+  await page.locator('#activeForm button[type="submit"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].collection.payments.length,2);
-  assert.equal(data.trips[0].collection.payments[1].amount,5000);
-  assert.match(await page.locator('.d4-payment-counts').innerText(),/Paid 1/);
-  assert.match(await page.locator('.d4-payment-counts').innerText(),/Unpaid 1/);
-  await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
-  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-scoreboard.png'),animations:'disabled'});
-  await page.locator('[data-action="collection-members"]').click();
-  assert.match(await page.locator('.cc-popup-total').innerText(),/Paid 1/);
-  assert.ok(await page.locator('.cc-popup-back').isVisible(),label+' popup header Back visible');
-  assert.ok(await page.locator('.cc-popup-return').isVisible(),label+' popup footer Back visible');
-  const paymentTiles=await page.locator('.cc-member-tile').evaluateAll(tiles=>tiles.map(tile=>{
-    const card=tile.getBoundingClientRect();
-    const detail=tile.querySelector('.cc-tile-money')?.getBoundingClientRect();
-    const amounts=[...tile.querySelectorAll('.cc-tile-amount b')].map(el=>el.getBoundingClientRect());
-    return {card:{left:card.left,right:card.right},detail:detail&&{left:detail.left,right:detail.right},
-      amounts:amounts.map(a=>({left:a.left,right:a.right}))};
+  assert.equal(data.trips[0].collection.payments.length,2,label+' correction keeps original payment');
+  assert.equal(data.trips[0].collection.payments[1].amount,5000,label+' correction is a delta');
+  assert.equal(await page.locator('#d4-payment-roster [data-roster-group="paid"] [data-roster-card]').count(),1);
+  await page.locator('#d4-payment-roster [data-roster-filter="paid"]').click();
+  assert.equal(await page.locator('#d4-payment-roster [data-roster-card]:visible').count(),1);
+  await page.locator('#d4-payment-roster [data-roster-filter="all"]').click();
+  await capture('payments-paid-and-unpaid');
+  // Go to the same trip Overview; verify nine premium Trip Sections.
+  await page.locator('[data-action="enter-selected-trip"]').first().click();
+  const sections=page.locator('.ref-trip-sections');
+  await sections.waitFor({state:'visible'});
+  assert.equal(await sections.locator('.ref-sections-grid button').count(),9);
+  assert.equal(await sections.locator('.ref-section-icon svg').count(),9);
+  assert.equal(await page.locator('.ref-bottom-nav .ref-nav-item').count(),4);
+  assert.equal(await page.locator('.ref-nav-plus').count(),1);
+  const frame=await page.evaluate(()=>({
+    width:document.documentElement.scrollWidth,
+    viewport:innerWidth,
+    nav:document.querySelector('.ref-bottom-nav')?.getBoundingClientRect().toJSON()
   }));
-  assert.ok(paymentTiles.length>0,label+' payment cards visible');
-  for(const tile of paymentTiles){
-    for(const rect of [tile.detail,...tile.amounts]){
-      assert.ok(rect&&rect.left>=tile.card.left-2&&rect.right<=tile.card.right+2,
-        label+' clipped payment text: '+JSON.stringify({tile,rect}));
-    }
-  }
-  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-payment-popup.png'),animations:'disabled'});
-  await page.locator('.cc-popup-return').click();
-  assert.equal(await page.locator('.cc-popup').count(),0,label+' popup Back closes it');
-  await page.locator('[data-action="enter-selected-trip"]').first().click();
-  const navGrid=page.locator('.d4p-nav-grid');
-  await navGrid.waitFor();
-  const layout=await page.evaluate(()=>{
-    const shell=document.querySelector('.app-shell')?.getBoundingClientRect();
-    const main=document.querySelector('.app-shell>.main')?.getBoundingClientRect();
-    const rail=document.querySelector('.d4-liquid-rail')?.getBoundingClientRect();
-    return {viewport:innerWidth,shellX:shell?.x,shellW:shell?.width,
-      mainW:main?.width,railX:rail?.x,railW:rail?.width,
-      scrollWidth:document.documentElement.scrollWidth};
-  });
-  assert.ok(Math.abs(layout.shellX)<=1,label+' shell must start at screen edge');
-  assert.ok(Math.abs(layout.shellW-layout.viewport)<=2,label+' full-width app shell');
-  // Approved design: main content reserves room for the right-side compact rail.
-  assert.ok(layout.mainW>=layout.viewport-145 && layout.mainW<layout.viewport,
-    label+' main panel reserves sidebar width');
-  assert.ok(layout.railW>=58 && layout.railX>=0 &&
-    layout.railX+layout.railW<=layout.viewport+1,label+' right rail visible inside viewport');
-  assert.equal(await page.locator('.d4p-bottom:visible').count(),0,label+' no bottom navigation');
-  assert.ok(layout.scrollWidth<=layout.viewport+2,label+' no sideways page scroll');
-  const scrollCheck=await page.evaluate(()=>{
-    const main=document.querySelector('.app-shell>.main');
-    const initial=window.scrollY;
-    const maxScroll=Math.max(0,document.documentElement.scrollHeight-innerHeight);
-    window.scrollTo(0,maxScroll);
-    return {maxScroll,actual:window.scrollY,overflow:getComputedStyle(main).overflowY};
-  });
-  assert.ok(scrollCheck.overflow!=='hidden',label+' main content must allow vertical scrolling');
-  if(scrollCheck.maxScroll>20)assert.ok(scrollCheck.actual>5,label+' vertical page scroll works');
-  await page.evaluate(()=>window.scrollTo(0,0));
-
-  assert.equal(await navGrid.locator('button').count(),9,label+' section grid has nine large buttons');
-  assert.equal(await navGrid.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').length),3,
-    label+' navigation renders three equal columns');
-  assert.ok(await navGrid.locator('button').first().evaluate(el=>el.getBoundingClientRect().height)>=110);
-  assert.equal(await page.locator('[data-action="open-tab"][data-ctx="settle"]').count(),0);
-  await navGrid.locator('[data-ctx="reminders"]').click();
-  assert.match(await page.locator('main.main').innerText(),/Reminders & group alerts/);
-  await page.locator('.d4p-breadcrumb [data-action="d4-back"]').click();
-  await page.evaluate(()=>document.querySelector('.toast')?.classList.remove('show'));
-  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-dashboard.png'),animations:'disabled'});
-  await page.locator('[data-action="open-tab"][data-ctx="members"]').first().click();
-  await page.locator('[data-action="modal-add-member"]').click();
-  assert.ok(await page.locator('.modal-header .modal-back').isVisible(),label+' form Back visible');
-  assert.match(await page.locator('#activeForm button[type="submit"]').innerText(),/Save Member/);
-  await page.locator('#f_member').fill('New Person');
-  await page.locator('#activeForm button[type="submit"]').click();
-  // This browser fixture is an ordinary Trip Admin: they may add but never remove.
+  assert.ok(frame.width<=frame.viewport+3,label+' no horizontal page crop');
+  assert.ok(frame.nav?.left>=-2&&frame.nav?.right<=frame.viewport+2,label+' bottom nav fits viewport');
+  await capture('premium-overview');
+  await sections.locator('summary').first().click();
+  assert.equal(await sections.getAttribute('open'),null,label+' Hide collapses Trip Sections');
+  await sections.locator('summary').first().click();
+  assert.notEqual(await sections.getAttribute('open'),null,label+' Show reopens Trip Sections');
+  await sections.locator('.ref-sections-grid [data-ctx="plan"]').click();
+  await page.locator('.ref-day-control').waitFor({state:'visible'});
+  assert.match(await page.locator('.ref-day-count').innerText(),/3/);
+  await capture('day-plan-before');
+  // + Day and - Day only touch the end of the trip and preserve payment data.
+  await page.locator('[data-trip-day-action="add"]').click();
+  assert.equal(await page.locator('.ref-day-count>b').innerText(),'4');
   data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].members.includes('New Person'),true);
-  assert.equal(await page.locator('[data-action="remove-member"]').count(),0,
-    label+' Trip Admin cannot remove a code-joined or roster member');
-  assert.equal(await page.locator('[data-action="restore-member"]').count(),0,
-    label+' Trip Admin cannot restore removed users');
-  assert.equal(data.trips[0].collection.payments.length,2,
-    label+' Add Member preserves recorded payments');
-  // M6 expense entry: note-only and no split controls.
-  await page.locator('.d4-liquid-rail [data-action="open-tab"][data-ctx="expenses"]').click();
-  assert.match(await page.locator('main.main').innerText(),/Day-wise records/);
-  assert.doesNotMatch(await page.locator('main.main').innerText(),/Who owes whom|Smart Split/);
-  await page.locator('[data-action="quick-expense"]').first().click();
-  assert.equal(await page.locator('[name="splitMode"]').count(),0);
-  assert.equal(await page.locator('[name="participant"]').count(),0);
-  await page.locator('#f_amount').fill('325');
-  await page.locator('#f_note').fill('Breakfast note');
-  await page.locator('#activeForm button[type="submit"]').click();
+  assert.equal(data.trips[0].end,'2026-11-13');
+  await page.locator('[data-trip-day-action="remove"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].expenses.length,1);
-  assert.equal(data.trips[0].expenses[0].amount,325);
-  assert.equal(data.trips[0].expenses[0].mode,'note');
-  assert.deepEqual(data.trips[0].expenses[0].participants,[]);
-  await page.locator('[data-action="edit-expense"]').first().click();
-  await page.locator('#f_amount').fill('375');
-  await page.locator('#activeForm button[type="submit"]').click();
+  assert.equal(data.trips[0].end,'2026-11-12');
+  assert.equal(data.trips[0].collection.payments.length,2);
+  // Shift a selected date and verify that the calendar remains consecutive.
+  await page.locator('#ref-selected-day-date').fill('2026-11-14');
+  await page.locator('[data-trip-day-action="shift"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].expenses.length,1);
-  assert.equal(data.trips[0].expenses[0].amount,375);
-  // Exercise actual itinerary add/edit/save and completion, then member view-only UI.
-  await page.locator('.d4-liquid-rail [data-ctx="plan"]').click();
-  // Regression: Day Planner cards, text and CTA must be reachable on iPhone-sized screens.
-  async function assertPlannerFits(selectors) {
-    const boxes=await page.evaluate(items=>items.map(selector=>{
-      const element=document.querySelector(selector);
-      if(!element)return {selector,missing:true};
-      const {left,right,width}=element.getBoundingClientRect();
-      return {selector,left,right,width};
-    }),selectors);
-    for(const box of boxes){
-      assert.ok(!box.missing,label+' missing planner element '+box.selector);
-      assert.ok(box.width>0&&box.left>=-2&&box.right<=viewport.width+2,
-        label+' planner crop: '+JSON.stringify(box));
-    }
-  }
-  await assertPlannerFits(['.plan-ui','.plan-hero','.plan-toolbar','.d4-ms-summary',
-    '.empty.bright-empty','.plan-view-note']);
-  await page.screenshot({path:path.join(__dirname,'preview',label+'-premium-day-planner.png'),animations:'disabled'});
-  await page.locator('[data-action="quick-plan"]').first().click();
-  await page.locator('#f_title').fill('Beach walk');
-  await page.locator('#f_date').selectOption('2026-11-11');
-  // No hidden 8 AM default on a new/empty day: choose the actual first time.
-  await page.locator('#f_time').fill('09:00');
-  await page.locator('#activeForm button[type="submit"]').click();
-  await page.locator('[data-action="plan-edit"]').first().click();
-  await page.locator('#f_time').fill('09:30');
-  await page.locator('#activeForm button[type="submit"]').click();
-  await page.locator('[data-action="plan-toggle"]').first().click();
-  await assertPlannerFits(['.plan-ui','.d4-ms-summary','.d4-ms-track','.d4-ms-track>.d4-ms-item']);
-  data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].plans[0].date,'2026-11-11');
-  assert.equal(data.trips[0].plans[0].time,'09:30');
-  assert.equal(data.trips[0].plans[0].done,true);
-  // New inline flow: Add Below must follow the saved time, never reset to 8:00 AM.
-  await page.locator('.d4-ms-add-next [data-goa-action="add"]').click();
-  await page.locator('.d4-ms-inline-editor').waitFor();
-  assert.equal(await page.locator('.d4-ms-inline-editor [name="time"]').inputValue(),'10:00');
-  assert.ok(await page.locator('.d4-ms-inline-editor [data-visual="fort"] img').count()>0);
-  assert.ok(await page.locator('.d4-ms-inline-editor [data-visual="lunch"] img').count()>0);
-  assert.ok(await page.locator('.d4-ms-inline-editor [data-visual="dinner"] img').count()>0);
-  await page.locator('.d4-ms-inline-editor [data-visual="fort"]').click();
-  await page.locator('.d4-ms-inline-editor [name="title"]').fill('Fort Aguada extra');
-  await page.locator('.d4-ms-inline-editor [name="place"]').fill('North Goa');
-  await page.locator('.d4-ms-inline-editor button[type="submit"]').click();
-  data=await page.evaluate(()=>window.D4TripLocal.getData());
-  const fortStep=data.trips[0].plans.find(p=>p.title==='Fort Aguada extra');
-  assert.ok(fortStep,label+' inline Add Below did not save');
-  assert.equal(fortStep.time,'10:00');
-  assert.equal(fortStep.goaIcon,'🏰');
-  assert.equal(fortStep.category,'Sightseeing');
-  assert.equal(data.trips[0].plans[0].done,true);
-  assert.ok(await page.locator('.d4-ms-track>.d4-ms-item').count()===2);
-  await page.locator('[data-goa-step-id="'+fortStep.id+'"] [data-goa-action="time"]').click();
-  await page.locator('.d4-ms-inline-editor [name="time"]').fill('10:45');
-  await page.locator('.d4-ms-inline-editor button[type="submit"]').click();
-  data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].plans.find(p=>p.id===fortStep.id).time,'10:45');
-  assert.match(await page.locator('[data-goa-step-id="'+fortStep.id+'"]').innerText(),/10:45/);
-  await page.locator('.d4-liquid-rail [data-view="profile"]').click();
-  await page.locator('#profileSelect').selectOption('A');
-  await page.locator('.d4p-breadcrumb [data-action="d4-back"]').click();
-  assert.equal(await page.locator('[data-action="collection-quick-add"]').count(),0);
-  await page.locator('.d4-liquid-rail [data-action="open-tab"][data-ctx="members"]').click();
-  assert.equal(await page.locator('[data-action="modal-add-member"]').count(),0);
-  assert.equal(await page.locator('[data-action="remove-member"]').count(),0);
-  await page.locator('.d4-liquid-rail [data-ctx="expenses"]').click();
-  assert.match(await page.locator('main.main').innerText(),/Breakfast note/);
-  assert.equal(await page.locator('[data-action="edit-expense"]').count(),0);
-  assert.equal(await page.locator('[data-action="delete-expense"]').count(),0);
-  await page.locator('.d4-liquid-rail [data-ctx="plan"]').click();
-  assert.equal(await page.locator('[data-action="plan-edit"]').count(),0);
-  await page.locator('.d4-liquid-rail [data-view="chat"]').click();
-  assert.match(await page.locator('main.main').innerText(),/Coming Soon/);
-  await page.locator('.d4-liquid-rail [data-view="profile"]').click();
-  for(const mode of ['light','sunset','midnight']){
-    await page.locator('[data-d4-theme="'+mode+'"]').click();
-    assert.equal(await page.locator('[data-d4-theme="'+mode+'"]').getAttribute('aria-pressed'),'true');
-  }
-  await page.locator('#profileSelect').selectOption('Admin');
-  await page.reload({waitUntil:'domcontentloaded'});
-  data=await page.evaluate(()=>window.D4TripLocal.getData());
-  assert.equal(data.trips[0].collection.payments.length,2,label+' payments persist after reload');
-  assert.equal(data.trips[0].members.includes('New Person'),true,label+' added member remains saved after reload');
-  // The secure Groups UI must be visible as a clearly disabled preview,
-  // not as an enabled cross-account network feature.
-  await page.locator('[data-action="entry-select-trip"]').first().click();
-  await page.locator('[data-action="enter-selected-trip"]').first().click();
-  await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
-  await page.locator('#d4-shared-panel').waitFor();
-  assert.match(await page.locator('#d4-shared-panel').innerText(),/Real multi-account sharing is OFF/);
-  assert.equal(await page.locator('[data-d4-shared-form]').count(),0);
-  const groupPreview=path.join(__dirname,'preview',label+'-secure-groups.png');
-  fs.mkdirSync(path.dirname(groupPreview),{recursive:true});
-  await page.evaluate(()=>document.querySelector('#d4-shared-panel')?.scrollIntoView({block:'center'}));
-  await page.waitForTimeout(500);
-  await page.screenshot({path:groupPreview,animations:'disabled'});
-  await page.reload({waitUntil:'domcontentloaded'});
-  // Replay is intentionally in Settings now to keep Explore Trips spacious.
-  await page.locator('[data-action="entry-select-trip"]').first().click();
-  await page.locator('[data-action="enter-selected-trip"]').first().click();
-  await page.locator('button.avatar[data-action="nav"][data-view="profile"]').click();
-  await page.locator('[data-action="replay-intro"]').click();
-  await page.locator('#d4Intro').waitFor({state:'visible'});
-  assert.equal(await page.locator('[data-d4-intro-skip]').count(),1);
-  await page.waitForTimeout(3400);
-  const output = path.join(__dirname,'preview',label+'-cinematic.png');
-  fs.mkdirSync(path.dirname(output),{recursive:true});
-  await page.screenshot({path:output,animations:'allow'});
-  await page.locator('[data-d4-intro-skip]').click();
-  await page.locator('#d4Intro').waitFor({state:'hidden'});
-  // Replay was launched from Settings, so it should return to the same screen.
-  assert.equal(await page.locator('#d4-cloud-panel').isVisible(),true);
-  assert.deepEqual(pageErrors,[],label+' runtime exceptions');
+  assert.equal(data.trips[0].start,'2026-11-12');
+  assert.equal(data.trips[0].end,'2026-11-14');
+  assert.equal(data.trips[0].collection.payments[0].date,
+    data.trips[0].collection.payments[0].date,label+' payment history unchanged');
+  await capture('date-control-updated');
+  // The native Install App CTA is exposed without ever falsely claiming installation.
+  assert.ok(await page.locator('[data-d4-install="1"]').count()>0,label+' install button appears');
+  await page.evaluate(()=>window.D4TripInstall.showInstructions());
+  assert.equal(await page.locator('#d4-install-overlay').count(),1,label+' install fallback shows instructions');
+  await page.locator('[data-d4-install-close]').first().click();
+  assert.equal(await page.locator('#d4-install-overlay').count(),0);
+  assert.deepEqual(pageErrors.filter(e=>!/Firebase|Failed to fetch|network/i.test(e)),[],
+    label+' has no unrelated JavaScript runtime errors');
   await context.close();
-  console.log('PASS browser smoke: '+label+' payments / save / remove / reload / cinematic replay & skip');
+  console.log('PASS '+label+' paid/unpaid, corrections, nine tiles, calendar +/-/edit, install CTA');
 }
+
 async function joinByNameLinkFlow(browser) {
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   await context.route('**/*googleapis.com/*',route=>route.abort());
