@@ -1,0 +1,167 @@
+/* D4 Trip v40 — Paid / Partial / Unpaid member roster, high contrast and scrollable. */
+body.d4-premium .ref-payment-roster{
+ display:block!important;margin:18px 0!important;padding:15px 13px 12px!important;
+ border-radius:23px!important;border:1px solid #d2b37794!important;
+ background:radial-gradient(ellipse 80% 40% at 95% -8%,#a078393d,transparent 75%),linear-gradient(155deg,#18344a,#071627 85%)!important;
+ color:#f4f8ff!important;box-shadow:0 16px 44px #0008,inset 0 1px #fff2!important;
+ box-sizing:border-box!important;min-width:0!important;
+}
+body.d4-premium .ref-roster-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 14px!important
+}
+body.d4-premium .ref-roster-heading>div{min-width:0!important}
+body.d4-premium .ref-roster-heading h3{font-size:19px!important;font-weight:900!important;line-height:1.2!important;color:#ffe5ae!important;margin:5px 0!important}
+body.d4-premium .ref-roster-heading p{margin:0!important;color:#c6d9e4!important;font-size:11px!important;line-height:1.4!important}
+body.d4-premium .ref-roster-total{
+ flex:none!important;display:grid!important;place-items:center!important;min-width:57px!important;min-height:48px!important;
+ padding:8px!important;background:#173e52!important;border:1px solid #9ac7c974!important;border-radius:15px!important;
+ color:#fff0d1!important;font-size:14px!important;font-weight:850!important;
+}
+body.d4-premium .ref-roster-filters{
+ display:flex!important;overflow-x:auto!important;align-items:center!important;gap:7px!important;
+ padding:2px 2px 10px!important;scrollbar-width:thin!important;min-width:0!important;
+}
+body.d4-premium .ref-roster-filter{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ flex:none!important;min-height:45px!important;padding:8px 12px!important;border-radius:999px!important;
+ font-size:12px!important;font-weight:850!important;color:#e2eaf1!important;
+ background:#102638!important;border:1px solid #749bb38f!important;cursor:pointer!important;
+}
+body.d4-premium .ref-roster-filter.active{
+ background:linear-gradient(135deg,#ffebad,#e9b769)!important;color:#14273a!important;border-color:#fff0b7!important;
+ box-shadow:0 0 12px #e6ae5649!important;
+}
+body.d4-premium .ref-roster-filter b{
+ display:grid!important;place-items:center!important;min-width:22px!important;height:22px!important;
+ border-radius:50%!important;background:#ffffff24!important;color:inherit!important;font-size:11px!important;
+}
+body.d4-premium .ref-roster-search{
+ display:flex!important;align-items:center!important;gap:9px!important;margin:0 0 12px!important;
+ padding:0 12px!important;background:#091c2e!important;border:1px solid #90b1bb87!important;
+ border-radius:13px!important;color:#f9d88e!important;font-size:23px!important;min-height:47px!important;
+}
+body.d4-premium .ref-roster-search input{
+ flex:1!important;min-width:0!important;min-height:44px!important;
+ background:transparent!important;color:#fff!important;box-shadow:none!important;border:0!important;
+ font-size:14px!important;padding:7px 2px!important;outline-offset:1px!important;
+}
+body.d4-premium .ref-roster-scroll{
+ display:block!important;max-height:min(57dvh,620px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+ overscroll-behavior:contain!important;scrollbar-width:thin!important;
+ padding:0 3px 6px!important;scroll-padding-top:10px!important;
+}
+body.d4-premium .ref-roster-group{display:block!important;margin:0 0 15px!important}
+body.d4-premium .ref-roster-group[hidden],body.d4-premium .ref-roster-card[hidden],
+body.d4-premium .ref-roster-empty[hidden]{display:none!important}
+body.d4-premium .ref-roster-group-head{
+ display:flex!important;align-items:center!important;gap:9px!important;margin:0 0 8px!important;padding:8px 5px!important;
+}
+body.d4-premium .ref-roster-group-symbol{
+ display:grid!important;place-items:center!important;min-width:41px!important;min-height:41px!important;
+ border-radius:13px!important;font-size:20px!important;font-weight:900!important;
+ background:#153f38!important;color:#6df2b4!important;border:1px solid #72e4b083!important;
+}
+body.d4-premium .ref-roster-group-head>div{flex:1!important;min-width:0!important}
+body.d4-premium .ref-roster-group-head h4{
+ margin:0 0 2px!important;font-size:15px!important;font-weight:900!important;color:#d5ffeb!important;
+}
+body.d4-premium .ref-roster-group-head small{font-size:11px!important;color:#b9d2d5!important}
+body.d4-premium .ref-roster-group-head>b{font-size:11px!important;white-space:nowrap!important;color:#cffde6!important}
+body.d4-premium .ref-roster-cards{display:flex!important;flex-direction:column!important;gap:9px!important}
+body.d4-premium .ref-roster-card{
+ display:flex!important;align-items:flex-start!important;gap:11px!important;min-width:0!important;
+ padding:13px 11px!important;border-radius:18px!important;
+ border:1px solid #5fcb9a86!important;
+ background:radial-gradient(ellipse at 100% 0%,#27c59021,transparent 70%),linear-gradient(130deg,#153a3c,#0c262e)!important;
+ box-shadow:inset 3px 0 #66e3a7,0 7px 15px #0005!important;
+}
+body.d4-premium .ref-roster-avatar{
+ display:grid!important;place-items:center!important;min-width:40px!important;width:40px!important;height:40px!important;
+ border-radius:14px!important;border:1px solid #a8e4cb!important;flex:none!important;
+ font-size:17px!important;font-weight:900!important;color:#ebfff4!important;
+ background:linear-gradient(155deg,#2a8469,#13453f)!important;
+}
+body.d4-premium .ref-roster-content{flex:1!important;min-width:0!important}
+body.d4-premium .ref-roster-name-line{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important}
+body.d4-premium .ref-roster-name-line strong{color:#f9fcff!important;font-size:13px!important;font-weight:900!important;overflow-wrap:anywhere!important}
+body.d4-premium .ref-roster-badge{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;white-space:nowrap!important;
+ min-height:25px!important;padding:4px 8px!important;background:#185940!important;
+ color:#96fac5!important;border:1px solid #6adc9e7f!important;border-radius:999px!important;font-size:10px!important;font-weight:900!important;
+}
+body.d4-premium .ref-roster-amounts{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:5px 12px!important;margin:8px 0!important}
+body.d4-premium .ref-roster-amounts span{display:flex!important;align-items:center!important;gap:5px!important;font-size:11px!important;color:#c0e2d9!important}
+body.d4-premium .ref-roster-amounts b{font-size:12px!important;color:#f3fffa!important;font-weight:850!important}
+body.d4-premium .ref-roster-track{
+ height:7px!important;overflow:hidden!important;border-radius:99px!important;
+ background:#061b22!important;box-shadow:inset 0 2px 3px #0008!important;
+}
+body.d4-premium .ref-roster-track>span{
+ height:100%!important;display:block!important;border-radius:99px!important;
+ background:linear-gradient(90deg,#45c987,#9cffbe)!important;box-shadow:0 0 10px #6cf8a46b!important;
+}
+body.d4-premium .ref-roster-actions{display:flex!important;gap:8px!important;margin:11px 0 0!important;flex-wrap:wrap!important}
+body.d4-premium .ref-roster-actions button{
+ display:inline-flex!important;justify-content:center!important;align-items:center!important;gap:4px!important;
+ min-height:42px!important;padding:7px 13px!important;border-radius:12px!important;font-size:11px!important;
+ font-weight:900!important;cursor:pointer!important;
+}
+body.d4-premium .ref-roster-edit{
+ background:linear-gradient(135deg,#ffecbb,#e0ab58)!important;color:#16283d!important;border:1px solid #fff0c6!important;
+}
+body.d4-premium .ref-roster-add{background:#113a44!important;color:#bdffe2!important;border:1px solid #75d5aa88!important}
+body.d4-premium .ref-roster-partial .ref-roster-group-symbol{
+ background:#554023!important;color:#ffe099!important;border-color:#f6ce7e8a!important;
+}
+body.d4-premium .ref-roster-partial .ref-roster-group-head h4,body.d4-premium .ref-roster-partial .ref-roster-group-head>b{color:#ffe5b5!important}
+body.d4-premium .ref-status-partial{
+ border-color:#d4ae6c99!important;
+ background:radial-gradient(ellipse at 100% 0%,#a8762b33,transparent 70%),linear-gradient(130deg,#403321,#201d1d)!important;
+ box-shadow:inset 3px 0 #ffd684,0 7px 15px #0005!important;
+}
+body.d4-premium .ref-status-partial .ref-roster-avatar{background:linear-gradient(145deg,#9c7135,#5b3929)!important;border-color:#f0d292!important}
+body.d4-premium .ref-status-partial .ref-roster-badge{background:#684a24!important;color:#ffe0a2!important;border-color:#e9bd74!important}
+body.d4-premium .ref-status-partial .ref-roster-track>span{background:linear-gradient(90deg,#d99139,#ffe4a0)!important}
+body.d4-premium .ref-status-partial .ref-roster-amounts span{color:#f3dab1!important}
+body.d4-premium .ref-roster-unpaid .ref-roster-group-symbol{background:#532a36!important;color:#ffc1b9!important;border-color:#ec9c9c8f!important}
+body.d4-premium .ref-roster-unpaid .ref-roster-group-head h4,body.d4-premium .ref-roster-unpaid .ref-roster-group-head>b{color:#ffd5c8!important}
+body.d4-premium .ref-status-unpaid{
+ border-color:#dc8d968c!important;
+ background:radial-gradient(ellipse at 100% 0%,#d35b6b26,transparent 70%),linear-gradient(130deg,#492936,#211824)!important;
+ box-shadow:inset 3px 0 #f49ba2,0 7px 15px #0005!important;
+}
+body.d4-premium .ref-status-unpaid .ref-roster-avatar{background:linear-gradient(145deg,#93515d,#4d293a)!important;border-color:#d998a5!important}
+body.d4-premium .ref-status-unpaid .ref-roster-badge{background:#663340!important;color:#ffd1d0!important;border-color:#e59ea3!important}
+body.d4-premium .ref-status-unpaid .ref-roster-track>span{background:linear-gradient(90deg,#ed7585,#ffb4a9)!important}
+body.d4-premium .ref-status-unpaid .ref-roster-amounts span{color:#e9c2c7!important}
+body.d4-premium .ref-roster-unset .ref-roster-group-symbol{background:#233c57!important;color:#c9defa!important;border-color:#a6bbd77d!important}
+body.d4-premium .ref-status-unset{border-color:#7e9fb17d!important;background:linear-gradient(125deg,#24394a,#122736)!important;box-shadow:inset 3px 0 #8cb5ca!important}
+body.d4-premium .ref-status-unset .ref-roster-avatar{background:#2e5269!important}
+body.d4-premium .ref-roster-footer{
+ display:flex!important;justify-content:space-between!important;gap:8px!important;
+ flex-wrap:wrap!important;margin-top:11px!important;color:#b2c8d7!important;font-size:11px!important;font-weight:750!important;
+}
+body.d4-premium .ref-original-finance{
+ display:block!important;margin:14px 0 24px!important;border:1px solid #9ab0c079!important;
+ border-radius:17px!important;background:#102338!important;overflow:visible!important;
+}
+body.d4-premium .ref-original-finance>summary{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ cursor:pointer!important;list-style:none!important;padding:14px!important;
+ font-size:13px!important;color:#ffe1a1!important;font-weight:850!important;
+}
+body.d4-premium .ref-original-finance>summary::-webkit-details-marker{display:none}
+body.d4-premium .ref-original-finance-inner{padding:10px!important;overflow:visible!important}
+body.d4-premium .ref-roster-empty:not([hidden]){color:#f6dbb4!important;padding:22px 8px!important;text-align:center!important;font-size:12px!important}
+body.d4-premium .ref-payment-roster button:focus-visible,body.d4-premium .ref-roster-search input:focus-visible{
+ outline:3px solid #ffe2a2!important;outline-offset:2px!important;
+}
+@media(max-width:390px){
+ body.d4-premium .ref-payment-roster{padding:12px 9px!important}
+ body.d4-premium .ref-roster-card{gap:8px!important;padding:10px 8px!important}
+ body.d4-premium .ref-roster-avatar{width:35px!important;min-width:35px!important;height:35px!important}
+ body.d4-premium .ref-roster-name-line strong{font-size:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body.d4-premium .ref-roster-card,body.d4-premium .ref-roster-filter{transition:none!important}
+}
