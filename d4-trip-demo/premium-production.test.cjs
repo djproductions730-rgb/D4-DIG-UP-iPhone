@@ -21,11 +21,11 @@ for(const asset of ['team-join.js','firebase-sync.js']){
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
 for(const [asset,version] of [
-  ['premium-production.css',33],
+  ['premium-production.css',44],
   ['goa-milestones.js',29],
   ['obsidian-luxe.css',34],
   ['reference-premium.css',41],
-  ['reference-premium.js',42],
+  ['reference-premium.js',44],
   ['install-app.js',38],
   ['install-app.css',38],
   ['payment-roster.css',40],
@@ -36,7 +36,7 @@ for(const [asset,version] of [
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=42/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=44/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
@@ -231,7 +231,7 @@ assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 console.log('PASS: Premium D4 Trip scripts parse, reference bottom navigation, real-data scoreboard, role permissions and account panel.');
 
 for(const asset of ['premium-production.js','team-sync.js']){
-  const version=asset==='premium-production.js'?33:30;
+  const version=asset==='premium-production.js'?44:30;
   assert.ok(html.includes('./'+asset+'?build='+version), 'Shared sync version missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Shared sync version missing from offline cache: '+asset);
 }
