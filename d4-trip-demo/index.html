@@ -439,6 +439,33 @@ function collectionSave(t,member,value,method='Manual',note=''){
  return collectionTotals(t);
 }
 
+function collectionEditSave(t,receiptId,updates){
+ if(!isTripAdmin(t))throw Error('Trip Admin access needed to edit payments');
+ const receipts=t.collection?.payments;
+ const receipt=Array.isArray(receipts)?receipts.find(p=>p.id===receiptId):null;
+ if(!receipt)throw Error('Payment no longer exists. Refresh and try again.');
+ const member=String(updates.member||'');
+ if(!t.members.includes(member))throw Error('Choose an active trip member');
+ const amount=Number(updates.amount),cents=Math.round(amount*100);
+ if(!Number.isFinite(amount)||cents<=0||cents>10000000000)throw Error('Enter a valid amount above ₹0');
+ const date=String(updates.date||'');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(new Date(date+'T12:00:00').getTime()))throw Error('Choose a valid payment date');
+ const method=String(updates.method||'Manual');
+ if(!['Manual','UPI','Cash','Bank transfer','Card'].includes(method))throw Error('Choose a valid payment method');
+ const note=String(updates.note||'').trim();
+ if(note.length>140)throw Error('Payment note is too long');
+ const target=Math.round(Math.max(0,Number(t.collection?.targetPerPerson||0))*100);
+ const others=receipts.filter(p=>p.id!==receiptId&&p.member===member).reduce((sum,p)=>sum+Math.round(Number(p.amount||0)*100),0);
+ if(target>0&&others+cents>target)throw Error('Amount exceeds remaining '+money(Math.max(0,target-others)/100)+' for '+member);
+ const previous={member:receipt.member,amount:receipt.amount,method:receipt.method||'Manual',date:receipt.date,note:receipt.note||''};
+ saveTripChange(t,()=>{
+  const history=Array.isArray(receipt.editHistory)?receipt.editHistory:[];
+  receipt.editHistory=history.concat({previous,editedAt:new Date().toISOString(),by:profile});
+  receipt.member=member;receipt.amount=cents/100;receipt.method=method;receipt.date=date;receipt.note=note;
+  receipt.editedAt=new Date().toISOString();receipt.editedBy=profile;
+ });
+ return collectionTotals(t);
+}
 function calculations(t){const memberBalances=Object.fromEntries(t.members.map(n=>[n,{paid:0,share:0,net:0}]));const categories={};let total=0;const daily={};for(const e of t.expenses){let cents=Math.round(Number(e.amount)*100);total+=cents;categories[e.category]=(categories[e.category]||0)+cents;daily[e.date]=(daily[e.date]||0)+cents;if(!memberBalances[e.paidBy])memberBalances[e.paidBy]={paid:0,share:0,net:0};memberBalances[e.paidBy].paid+=cents;for(const [n,share] of Object.entries(sharedPaise(e))){if(!memberBalances[n])memberBalances[n]={paid:0,share:0,net:0};memberBalances[n].share+=share}}
 for(const row of Object.values(memberBalances))row.net=row.paid-row.share;
 for(const x of (t.settlementsPaid||[])){const cents=Math.round(Number(x.amount)*100);if(memberBalances[x.from])memberBalances[x.from].net+=cents;if(memberBalances[x.to])memberBalances[x.to].net-=cents;}
@@ -577,6 +604,22 @@ function selectField(name,label,options){return `<div class="field"><label for="
 function ensurePermission(condition){if(!condition){toast('🔒 Permission denied for this role.');return false}return true}
 function openModal(name,context={}){if(name==='join-trip'){view='entry';render();document.querySelector('#d4-trip-link-input')?.focus();return;}const t=current();activeModal=name;modalContext=context;let title='',body='',button='Save';switch(name){
 case 'collection-target':{const tt=trip(context.tripId)||t;if(!ensurePermission(isMain()&&canSee(tt)))return;title='🎯 Set Trip Amount';button='Save Trip Target';body=`<div class="notice">Target is per person for <b>${esc(tt.name)}</b>. Set ₹0 to disable tracking. Existing received amounts are preserved.</div><div style="height:14px"></div>${field('perPerson','Trip target per person (₹)',tt.collection?.targetPerPerson||0,'number','required min="0" max="100000000" step="0.01"')}`;break;}
+case 'collection-payment-edit':{
+ const tt=trip(context.tripId)||t;
+ if(!ensurePermission(isTripAdmin(tt)))return;
+ const item=tt.collection?.payments?.find(p=>p.id===context.receiptId);
+ if(!item)return toast('Payment no longer exists. Refresh and try again.');
+ title='✏️ Edit Recorded Payment';button='Save Payment Changes';
+ const members=selectOptions(tt.members,item.member);
+ const methods=['Manual','UPI','Cash','Bank transfer','Card'].map(m=>'<option '+((item.method||'Manual')===m?'selected':'')+'>'+m+'</option>').join('');
+ body='<p class="muted">Correct a previously recorded payment. Totals and pending balances will recalculate. The original entry is kept in its edit history.</p>'+
+  selectField('member','Member',members)+
+  field('amount','Received amount (₹)',item.amount,'number','required min="0.01" max="100000000" step="0.01"')+
+  field('date','Payment date',item.date||today(),'date','required')+
+  selectField('method','Payment method',methods)+
+  field('note','Payment stage / note',item.note||'','text','maxlength="140" placeholder="Advance / Full / Reference"');
+ break;
+}
 case 'collection-payment':{const tt=trip(context.tripId)||t;if(!ensurePermission(isTripAdmin(tt)))return;title='💳 Record Trip Payment';button='Confirm & Save Payment';body=`<p class="muted">${esc(tt.name)} — just enter the amount received. This is separate from trip expenses.</p>${selectField('member','Received from member',selectOptions(tt.members,context.member||tt.members[0]))}${selectField('paymentStage','Payment stage','<option value="advance">Advance payment</option><option value="balance">Remaining / balance payment</option><option value="full">Full payment</option>')}${field('amount','Amount received (₹)','','number','required min="0.01" max="100000000" step="0.01" placeholder="3000"')}${selectField('method','Payment type','<option>Manual</option><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option>')}${field('note','Optional note','','text','maxlength="140" placeholder="First instalment / final payment"')}`;break;}
 case 'register-local':title='👤 Create Local Profile';button='Save Name';body=`<div class="notice">Name only, saved in this browser. No account or OTP verification yet.</div><div style="height:12px"></div>${field('newUser','Display name','','text','required minlength="2" maxlength="40"')}`;break;
 case 'new-trip':if(!ensurePermission(isMain()))return;title='🧳 Create a New Trip';button='Create Trip';body=`<div class="notice" style="margin-bottom:15px">👑 Only the Main Admin can create a new trip and generate its code.</div>${field('name','Trip name','','text','required maxlength="75"')}${field('destination','Destination','','text','required maxlength="60"')}<div class="field-row">${field('start','Start date',today(),'date','required')}${field('end','End date',today(),'date','required')}</div>${selectField('kind','Trip cover / theme','<option value="goa">🏖️ Beach</option><option value="ooty">🏔️ Hills</option><option value="pondy">🌅 Coastal</option><option value="other">🧳 Adventure</option>')}${field('members','Initial members (comma-separated)','','text','maxlength="400"')}${field('perPerson','Trip amount per person (₹)','0','number','required min="0" max="100000000" step="0.01"')}`;break;
@@ -631,6 +674,16 @@ function generateCode(tname){const prefix='D4'+String(tname).replace(/[^a-z0-9]/
 function readAttachment(file){return new Promise((resolve,reject)=>{if(!file||!file.size)return resolve(null);if(!file.type.startsWith('image/')&&file.type!=='application/pdf')return reject(new Error('Only photos or PDF bills accepted.'));if(file.type==='application/pdf'){if(file.size>350000)return reject(new Error('PDF bills must be under 350 KB in this offline demo.'));const fr=new FileReader();fr.onerror=()=>reject(new Error('Unable to read PDF'));fr.onload=()=>resolve({name:file.name,type:file.type,data:fr.result});fr.readAsDataURL(file);return;}if(file.size>12000000)return reject(new Error('Photo must be under 12 MB.'));const url=URL.createObjectURL(file);const img=new Image();img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Cannot open this photo. Try JPEG/PNG.'))};img.onload=()=>{try{const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/jpeg',.68);URL.revokeObjectURL(url);if(data.length>650000)throw Error('Compressed image still too large; crop the receipt and try again.');resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data})}catch(e){URL.revokeObjectURL(url);reject(e)}};img.src=url})}
 async function saveForm(ev){ev.preventDefault();const fd=new FormData(ev.target),name=activeModal,t=(modalContext.tripId?trip(modalContext.tripId):current());try{switch(name){
 case 'collection-target':{if(!isMain()||!canSee(t))throw Error('Main Admin only');const amount=Number(fd.get('perPerson'));if(!Number.isFinite(amount)||amount<0||amount>100000000)throw Error('Invalid target');t.collection=t.collection||{targetPerPerson:0,payments:[]};t.collection.targetPerPerson=Math.round(amount*100)/100;persist();closeModal();view='collections';activeTrip=t.id;render();toast('Per-person trip target updated');return}
+case 'collection-payment-edit':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const totals=collectionEditSave(t,modalContext.receiptId,{
+  member:fd.get('member'),amount:fd.get('amount'),date:fd.get('date'),
+  method:fd.get('method'),note:fd.get('note')
+ });
+ const returnTo=modalContext.returnTo||'collections';
+ closeModal();view=returnTo;activeTrip=t.id;render();
+ toast('Payment updated. Remaining: '+money(totals.pending));return;
+}
 case 'collection-payment':{const stage=String(fd.get('paymentStage')||'advance');if(!['advance','balance','full'].includes(stage))throw Error('Choose a valid payment stage');const c=collectionSave(t,String(fd.get('member')),fd.get('amount'),String(fd.get('method')||'Manual'),stage.toUpperCase()+' · '+String(fd.get('note')||''));const returnTo=modalContext.returnTo||'entry';closeModal();view=returnTo;activeTrip=t.id;render();toast('Payment saved. Pending: '+money(c.pending));return}
 case 'register-local':{const n=String(fd.get('newUser')||'').trim();if(n.length<2)throw Error('Enter at least 2 characters');if(n==='Karthik')throw Error('Demo owner name is reserved');if(n.length>40)throw Error('Name is too long');profile=n;localStorage.setItem(USER_STORE,profile);closeModal();go('trips');toast('Hello '+n+'! Join a trip with a code.');return}
 case 'delete-trip':{
@@ -744,6 +797,12 @@ case 'replay-intro':if(!window.D4TripIntro?.play({force:true}))toast('Intro prev
 case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';collectionPage=0;showCollectionMembers();break;
 case 'collection-page-prev':collectionPage=Math.max(0,collectionPage-1);showCollectionMembers();break;
 case 'collection-page-next':collectionPage++;showCollectionMembers();break;
+case 'collection-edit-payment':{
+ if(!t||!isTripAdmin(t))return toast('Only admins can edit payments');
+ const item=t.collection?.payments?.find(p=>p.id===el.dataset.id);
+ if(!item)return toast('Payment not found');
+ openModal('collection-payment-edit',{tripId:t.id,receiptId:item.id,returnTo:view});break;
+}
 case 'collection-member-pay':if(!isTripAdmin(t))return toast('Admins only');openModal('collection-payment',{tripId:t.id,member:el.dataset.member,returnTo:view});break;
 case 'collection-filter':collectionFilter=el.dataset.filter||'all';render();break;
  case 'entry-back':go('entry');break;
