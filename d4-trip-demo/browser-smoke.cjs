@@ -88,6 +88,14 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('.ref-bottom-nav [data-action="open-tab"][data-ctx="overview"]').click();
   const sections=page.locator('.ref-trip-sections');
   await sections.waitFor({state:'visible'});
+  const dial=page.locator('.ref-luxe-home .ref-luxe-dial');
+  assert.equal(await dial.count(),1,label+' must show exactly one circular money dial');
+  const ringValue=Number(await dial.getAttribute('aria-valuenow'));
+  assert.ok(Number.isFinite(ringValue)&&ringValue>=0&&ringValue<=100,label+' ring must expose a valid percentage');
+  assert.equal(await page.locator('.ref-luxe-home .ref-progress-track').count(),0,label+' obsolete straight line must be removed');
+  assert.equal(await page.locator('.ref-luxe-actions button').count(),4,label+' overview has four shortcut buttons');
+  assert.equal(await page.locator('.ref-luxe-actions .ref-luxe-svg').count(),4,label+' all four shortcuts have premium SVG illustrations');
+  assert.match(await page.locator('.ref-luxe-tracker').innerText(),/Trip Payments/);
   assert.equal(await sections.locator('.ref-sections-grid button').count(),9);
   assert.equal(await sections.locator('.ref-section-icon svg').count(),9);
   assert.equal(await page.locator('.ref-bottom-nav .ref-nav-item').count(),4);
