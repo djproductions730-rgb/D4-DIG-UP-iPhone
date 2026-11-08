@@ -256,3 +256,42 @@ body.d4-premium .d4-liquid-admin .d4p-grid{display:grid!important;grid-template-
    padding:12px 12px calc(112px + env(safe-area-inset-bottom))!important;margin:0 auto!important;
  }
 }
+
+
+/* D4 Trip v36 — live member totals and correction controls. */
+body.d4-premium .ref-home-balances{
+ display:block;min-width:0;margin:15px 0 20px;padding:14px;border-radius:22px;
+ background:linear-gradient(145deg,#183247,#091826)!important;
+ border:1px solid #d4b47080!important;box-shadow:0 16px 32px #0008,inset 0 1px #fff2;
+}
+body.d4-premium .ref-home-balances .ref-section-title{margin-bottom:9px}
+body.d4-premium .ref-home-balances .ref-section-title h3{font-size:16px!important;color:#fce5af!important}
+body.d4-premium .ref-home-balances-total{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 12px}
+body.d4-premium .ref-home-balances-total>span{display:flex;flex-direction:column;gap:3px;border-radius:13px;border:1px solid #9babb76e;padding:10px;font-size:11px;color:#b5d4e4;background:#081828}
+body.d4-premium .ref-home-balances-total b{font-size:16px;color:#ffe5a7!important;overflow-wrap:anywhere}
+body.d4-premium .ref-balance-person{display:flex;align-items:center;gap:9px;padding:10px 5px;border-top:1px solid #b6c7d125;min-width:0}
+body.d4-premium .ref-balance-initial{width:35px;height:35px;flex:none;display:grid;place-items:center;border:1px solid #e4cb948f;border-radius:50%;background:linear-gradient(135deg,#366a7c,#b88747);color:#fff;font-size:14px;font-weight:850}
+body.d4-premium .ref-balance-details{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+body.d4-premium .ref-balance-details>b{font-size:13px;color:#fff!important;overflow-wrap:anywhere}
+body.d4-premium .ref-balance-status{font-size:10px;color:#e8c783}
+body.d4-premium .ref-balance-details>div{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:10px;color:#b9cdda}
+body.d4-premium .ref-balance-details>div strong{color:#d8f7e5!important;font-size:11px}
+body.d4-premium .ref-balance-details>div>span:last-child strong{color:#ffcf9e!important}
+body.d4-premium :is(.ref-edit-paid,.ref-edit-receipt){min-height:42px;flex:none;padding:8px 12px;border-radius:12px;background:linear-gradient(145deg,#ffe4a6,#dda84e)!important;border:1px solid #fff0bc!important;color:#112338!important;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 4px 12px #cd98365c}
+body.d4-premium .ref-all-balances{margin-top:5px}
+body.d4-premium .ref-all-balances>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;padding:13px 12px;cursor:pointer;border-radius:12px;border:1px solid #a5b7c25a;color:#ffe0a4;font-size:12px;font-weight:850}
+body.d4-premium .ref-all-balances>summary::-webkit-details-marker{display:none}
+body.d4-premium .ref-receipt .ref-edit-receipt{margin-left:auto;font-size:11px;min-height:39px;padding:6px 8px}
+body.d4-premium .ref-receipt>b{font-size:12px;white-space:nowrap}
+body.d4-premium :is(.ref-amount-actions,.ref-inline-amount-actions){display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+body.d4-premium .ref-amount-actions .cc-tiny-edit{min-height:38px!important;padding:6px 9px!important;border-radius:11px!important;font-size:11px!important}
+body.d4-premium .ref-inline-amount-actions .d4-gold-pay{min-width:36px!important;min-height:38px!important;padding:4px!important}
+body.d4-premium .ref-edit-preview{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+body.d4-premium .ref-edit-preview span{display:flex;flex-direction:column;gap:5px;flex:1;min-width:100px;padding:10px;border:1px solid #dcc18075;border-radius:13px;background:#1e2c3e;font-size:11px;color:#d1dbe9}
+body.d4-premium .ref-edit-preview strong{font-size:16px;color:#ffe3a4!important}
+@media(max-width:420px){
+ body.d4-premium .ref-home-balances{padding:11px}
+ body.d4-premium .ref-receipt{flex-wrap:wrap}
+ body.d4-premium .ref-receipt .ref-edit-receipt{margin-left:45px}
+ body.d4-premium :is(.ref-edit-paid,.ref-edit-receipt){padding:8px 9px}
+}
