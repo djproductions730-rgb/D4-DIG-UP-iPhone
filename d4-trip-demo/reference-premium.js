@@ -35,6 +35,7 @@
         '<text x="35" y="73" font-size="19" font-weight="900" font-family="Arial,sans-serif" fill="#17324b">31</text></g>'+
         '<path d="M17 83C35 89 66 88 86 63" stroke="url(#'+gold+')" stroke-width="2.7" fill="none" stroke-linecap="round"/>'+
         '<path d="m66 55 18-6-7 17-6-5-11 5-3-3 10-8Z" fill="url(#'+paper+')" stroke="#d9ab57" stroke-width="1.6"/>',
+      memories:'<g filter="url(#'+shade+')"><rect x="11" y="24" width="74" height="56" rx="10" fill="url(#'+blue+')" stroke="url(#'+gold+')" stroke-width="4"/><circle cx="33" cy="42" r="8" fill="#ffda78"/><path d="M18 72l20-23 15 15 10-12 16 20" fill="none" stroke="#b3f6d9" stroke-width="6" stroke-linejoin="round"/><path d="M29 16h40" stroke="#ffe2a2" stroke-width="5" stroke-linecap="round"/></g>',
       members:'<g filter="url(#'+shade+')">'+
         '<circle cx="25" cy="35" r="12" fill="url(#'+paper+')" stroke="#cce7fa"/>'+
         '<path d="M5 69c0-14 8-22 20-22s20 8 20 22v7H5Z" fill="url(#'+blue+')" stroke="#a1cbed"/>'+
