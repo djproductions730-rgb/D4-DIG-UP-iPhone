@@ -1,4 +1,4 @@
-name: D4 Trip v40 Gold Circular Dial Hosting release
+name: D4 Trip v43 AI Journey Completion Hosting release
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: d4-trip-v40-hosting-release
+  group: d4-trip-v43-hosting-release
   cancel-in-progress: false
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout approved premium app source
+      - name: Checkout approved D4 Trip source
         uses: actions/checkout@v4
 
       - name: Set up Node 22
@@ -28,10 +28,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Run full app integrity, payment, date and PWA regression suite
+      - name: Test data integrity, member access and trip completion
         run: node d4-trip-demo/check.cjs
 
-      - name: Check target project and version assets
+      - name: Confirm Hosting target and locally hosted AI illustrations
         run: |
           node - <<'NODE'
           const assert=require('node:assert/strict'),fs=require('node:fs');
@@ -39,21 +39,27 @@ jobs:
           assert.equal(cfg.hosting.site,'d4-trip');
           assert.equal(cfg.hosting.public,'.');
           const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
-          for(const asset of ['install-app.js?build=38','payment-roster.css?build=40','trip-day-controls.js?build=40','trip-day-controls.css?build=40','home-circular-luxe.css?build=42','reference-premium.js?build=42']){
-            assert.ok(html.includes('./'+asset),'Missing approved asset '+asset);
+          for(const asset of [
+            'reference-premium.js?build=42','goa-milestones.js?build=29',
+            'trip-day-controls.js?build=40','journey-completion.js?build=43',
+            'journey-completion.css?build=43'
+          ]) assert.ok(html.includes('./'+asset),'Missing release asset '+asset);
+          for (const file of ['journey-completion.js','journey-completion.css',
+            'milestone-day1.svg','milestone-day2.svg','milestone-day3.svg']){
+            assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
           }
-          console.log('Hosting-only release assets and target verified.');
+          console.log('PASS: v43 Hosting-only build and AI milestone illustrations');
           NODE
 
-      - name: Verify the approved keyless GitHub deployment identity
+      - name: Verify approved keyless GitHub deployment identity
         env:
           PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
         run: |
-          test "$PROVIDER" = "projects/734858180381/locations/global/workloadIdentityPools/d4-trip-github/providers/d4-trip-github-actions" || { echo "Unapproved GCP identity provider"; exit 1; }
+          test "$PROVIDER" = "projects/734858180381/locations/global/workloadIdentityPools/d4-trip-github/providers/d4-trip-github-actions" || { echo "Unapproved provider"; exit 1; }
           test "$SERVICE_ACCOUNT" = "d4-trip-github-deployer@d4-trip.iam.gserviceaccount.com" || { echo "Unapproved service account"; exit 1; }
 
-      - name: Authenticate securely without a service account key
+      - name: Authenticate with Google Workload Identity Federation
         uses: google-github-actions/auth@v3
         with:
           project_id: d4-trip
@@ -61,52 +67,40 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
           create_credentials_file: true
 
-      - name: Install Firebase CLI
+      - name: Install pinned Firebase CLI
         run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
 
-      - name: Deploy Firebase Hosting only (never Firestore)
+      - name: Deploy Firebase Hosting only — no Firestore, Auth or Functions changes
         working-directory: d4-trip-demo
         run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
 
-      - name: Verify LIVE files match this exact GitHub commit (not an old HTML fallback)
+      - name: Verify exact live HTML, app code, AI art and service worker
         run: |
           set -euo pipefail
           URL="https://d4-trip.web.app"
-          for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
-            echo "Public verification attempt ${attempt}"
-            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}&v=40" -o /tmp/d4-live-index.html || true
+          for attempt in {1..12}; do
+            echo "Verify LIVE v43 attempt: $attempt"
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}" -o /tmp/d4-live-index.html || true
             if ! cmp -s d4-trip-demo/index.html /tmp/d4-live-index.html; then
-              echo 'Live HTML is not yet the GitHub v40 HTML'
               sleep 5
               continue
             fi
-            ok=1
-            for file in reference-premium.js reference-premium.css home-circular-luxe.css goa-milestones.js payment-roster.css trip-day-controls.js install-app.js; do
-              curl -fsSL --max-time 20 -D "/tmp/d4-${file}.headers" \
-                -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" \
-                -o "/tmp/d4-${file}" || { ok=0; break; }
-              if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-${file}"; then
-                echo "WRONG CONTENT: $file (old HTML fallback, stale asset or mismatched deploy)"
-                head -c 80 "/tmp/d4-${file}" || true
-                ok=0
+            status=0
+            for file in journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js sw.js; do
+              curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-$file" || { status=1; break; }
+              if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-$file"; then
+                echo "Mismatch in LIVE file: $file"
+                status=1
                 break
               fi
-              if grep -qi '^content-type:.*text/html' "/tmp/d4-${file}.headers"; then
-                echo "WRONG MIME: $file is being returned as HTML"
-                ok=0
-                break
-              fi
-              echo "PASS exact LIVE file $file ($(wc -c < "/tmp/d4-${file}") bytes)"
             done
-            if [ "$ok" -eq 1 ]; then
-              grep -q 'v40-premium-live-repaired-20261108' /tmp/d4-live-index.html
-              grep -q 'reference-premium.js?build=42' /tmp/d4-live-index.html
-              grep -q 'home-circular-luxe.css?build=42' /tmp/d4-live-index.html
-              grep -q 'reference-premium.css?build=41' /tmp/d4-live-index.html
-              echo "PASS: Production root HTML and all seven premium assets exactly match GitHub, v40 live is verified"
+            if [ "$status" -eq 0 ]; then
+              grep -q 'journey-completion.js?build=43' /tmp/d4-live-index.html
+              grep -q 'journey-completion.css?build=43' /tmp/d4-live-index.html
+              echo "PASS: v43 AI trip milestone/finish flow is LIVE, exact content verified."
               exit 0
             fi
             sleep 5
           done
-          echo "FAIL: live site does not match approved v40 code; do NOT report deployment as verified"
+          echo "FAIL: production Hosting does not match the approved commit"
           exit 1

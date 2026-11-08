@@ -67,16 +67,16 @@
   ];
 
   const photoUrls = {
-    fort:'https://s7ap1.scene7.com/is/image/incredibleindia/fort-aguada-goa-3-musthead-hero?qlt=76&ts=1742162053837',
-    beach:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=240&q=72',
-    lunch:'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=240&q=72',
-    dinner:'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=240&q=72',
-    breakfast:'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=240&q=72',
-    hotel:'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=240&q=72',
-    bike:'https://images.unsplash.com/photo-1558981806-ec527fa84c39?auto=format&fit=crop&w=240&q=72',
-    train:'https://images.unsplash.com/photo-1474487548417-781cb71495f3?auto=format&fit=crop&w=240&q=72',
-    water:'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=240&q=72',
-    mountains:'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=240&q=72'
+    fort:'./milestone-day3.svg',
+    beach:'./milestone-day2.svg',
+    lunch:'./milestone-day2.svg',
+    dinner:'./milestone-day2.svg',
+    breakfast:'./milestone-day1.svg',
+    hotel:'./milestone-day1.svg',
+    bike:'./milestone-day1.svg',
+    train:'./milestone-day1.svg',
+    water:'./milestone-day2.svg',
+    mountains:'./milestone-day3.svg'
   };
   const visualCategories=[
     {id:'fort',label:'Fort',icon:'🏰',category:'Sightseeing',photo:'fort'},
