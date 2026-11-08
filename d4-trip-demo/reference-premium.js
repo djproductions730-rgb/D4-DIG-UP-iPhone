@@ -71,12 +71,14 @@
     const t=current();
     if(!t)return previous.collectionsPage();
     const c=collectionTotals(t),canEdit=isTripAdmin(t);
-    const recent=(t.collection?.payments||[]).slice(-6).reverse();
-    const history=recent.map(item=>'<div class="ref-receipt"><span class="ref-receipt-avatar">'+html(String(item.member||'?').slice(0,1).toUpperCase())+'</span>'+
+    const allPayments=(t.collection?.payments||[]).slice().reverse();
+    const receiptRow=item=>'<div class="ref-receipt"><span class="ref-receipt-avatar">'+html(String(item.member||'?').slice(0,1).toUpperCase())+'</span>'+
       '<div><strong>'+html(item.member)+'</strong><small>'+(item.adjustment?'Balance correction · ':'')+html(item.date||'')+' · '+html(item.method||'Manual')+'</small></div>'+
       '<b>'+money(item.amount)+'</b>'+
-      (canEdit&&!item.adjustment?'<button type="button" class="ref-edit-receipt" data-action="collection-edit-payment" data-id="'+html(item.id)+'" aria-label="Edit payment for '+html(item.member)+'">✎ Edit</button>':'')+
-      '</div>').join('');
+      (canEdit&&!item.adjustment&&item.id?'<button type="button" class="ref-edit-receipt" data-action="collection-edit-payment" data-id="'+html(item.id)+'" aria-label="Edit payment for '+html(item.member)+'">✎ Edit</button>':'')+
+      '</div>';
+    const history=allPayments.slice(0,6).map(receiptRow).join('');
+    const fullHistory=allPayments.map(receiptRow).join('');
     return '<section class="ref-finance-cover"><span class="ref-overline">✦ TRIP COLLECTIONS</span><h2>Payments</h2>'+
       '<p>'+html(t.name)+' · '+t.members.length+' members</p>'+
       '<div class="ref-finance-grid"><div class="ref-ring" style="--pct:'+c.progress+'"><span><strong>'+c.progress+'%</strong><small>Collected</small></span></div>'+
@@ -87,8 +89,10 @@
       '<div class="ref-finance-buttons"><button class="ref-primary" data-action="collection-members">👥 View Member Payments</button>'+
       (canEdit?'<button class="ref-secondary" data-action="collection-quick-add" data-id="'+html(t.id)+'">＋ Add Payment</button>':'<span class="ref-readonly">🔒 View only</span>')+'</div></section>'+
       memberAmountPanel(t)+
-      '<section class="ref-card ref-recent"><div class="ref-section-title"><h3>Recent Payments</h3><button data-action="collection-members">View all ›</button></div>'+
+      '<section class="ref-card ref-recent"><div class="ref-section-title"><h3>Recent Payments</h3><span class="ref-history-count">Last 6</span></div>'+
       (history||'<p class="ref-empty">No payments recorded yet.</p>')+'</section>'+
+      '<details class="ref-full-payment-history"><summary>🧾 All Payment Entries ('+allPayments.length+') <span>⌄</span></summary>'+
+      '<div class="ref-history-inner">'+(fullHistory||'<p class="ref-empty">No entries yet.</p>')+'</div></details>'+
       '<section class="ref-original-finance" aria-label="Complete payment details">'+previous.collectionsPage()+'</section>';
   };
   tripMembers=function(t){
