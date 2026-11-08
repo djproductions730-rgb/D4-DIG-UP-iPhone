@@ -308,3 +308,6 @@ body.d4-premium .ref-full-payment-history>summary::-webkit-details-marker{displa
 body.d4-premium .ref-history-inner{padding:4px 13px 13px;max-height:min(58dvh,540px);overflow-y:auto;overscroll-behavior:contain}
 body.d4-premium .ref-history-count{font-size:10px;color:#c7d8e3}
 body.d4-premium .ref-amount-actions{min-width:0}
+
+body.d4-premium .ref-person-finance{display:block;margin-top:3px;font-size:11px;color:#c6ecdb!important;overflow-wrap:anywhere}
+body.d4-premium .ref-person .ref-edit-paid{margin-left:auto}
