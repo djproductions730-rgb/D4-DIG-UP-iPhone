@@ -46,7 +46,7 @@ assert.ok(renderCount>0);
 assert.match(env.tripPlan(base),/Admin edit actions/);
 base.plans.forEach(p=>p.done=true);
 assert.equal(api.statsFor(base).complete,true);
-assert.match(env.tripOverview(base),/View Trip Completed/);
+assert.doesNotMatch(env.tripOverview(base),/View Trip Completed|Trip Milestones/);
 click('finish');
 const finishHtml=env.tripPlan(base);
 assert.match(finishHtml,/Trip Completed!/);
