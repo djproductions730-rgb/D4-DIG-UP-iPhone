@@ -113,6 +113,109 @@
       '<details class="ref-expand-tools"><summary>✨ More Trip Tools &amp; Admin Options <span>⌄</span></summary>'+
       '<div class="ref-tool-body">'+legacy+'</div></details>';
   };
+  // Every approved member is shown directly on Payments — no pagination or popup.
+  // Paid, partial and unpaid are derived from the original collectionTotals records.
+  let paymentRosterFilter='all';
+  function paymentRoster(t){
+    const totals=collectionTotals(t),canEdit=isTripAdmin(t);
+    const definitions=[
+      {key:'paid',status:'Paid',label:'Paid in Full',icon:'✓',summary:'Completed payments'},
+      {key:'partial',status:'Partial',label:'Advance / Partial',icon:'◐',summary:'Partially paid'},
+      {key:'unpaid',status:'Pending',label:'Unpaid',icon:'!',summary:'Still awaiting payment'},
+      {key:'unset',status:'Not set',label:'Target not set',icon:'?',summary:'Set trip amount to track'}
+    ];
+    const counter={all:totals.rows.length,paid:totals.full,partial:totals.partial,unpaid:totals.unpaid,
+      unset:totals.rows.filter(row=>row.status==='Not set').length};
+    if(!counter[paymentRosterFilter])paymentRosterFilter='all';
+    const filterButtons=[
+      ['all','All Members'],['paid','Paid'],['partial','Partial'],['unpaid','Unpaid'],
+      ...(counter.unset?[['unset','Not set']]:[])
+    ].map(([key,label])=>'<button type="button" class="ref-roster-filter'+(paymentRosterFilter===key?' active':'')+
+      '" data-roster-filter="'+key+'" aria-pressed="'+(paymentRosterFilter===key)+'">'+html(label)+
+      '<b>'+counter[key]+'</b></button>').join('');
+    const items=definitions.map(g=>{
+      const rows=totals.rows.filter(row=>row.status===g.status);
+      if(!rows.length)return '';
+      const cards=rows.map(row=>{
+        const p=row.target>0?Math.max(0,Math.min(100,Math.round(row.paid/row.target*100))):0;
+        return '<article class="ref-roster-card ref-status-'+g.key+'" data-roster-card data-roster-name="'+
+          html(String(row.member).toLocaleLowerCase())+'">'+
+          '<span class="ref-roster-avatar" aria-hidden="true">'+html(String(row.member).slice(0,1).toUpperCase())+'</span>'+
+          '<div class="ref-roster-content"><div class="ref-roster-name-line"><strong>'+html(row.member)+'</strong>'+
+          '<span class="ref-roster-badge">'+(g.key==='paid'?'✓ PAID':g.key==='partial'?'◐ PARTIAL':g.key==='unpaid'?'● UNPAID':'TARGET NOT SET')+'</span></div>'+
+          '<div class="ref-roster-amounts"><span>Paid <b>'+money(row.paid)+'</b></span><span>Balance <b>'+money(row.pending)+'</b></span></div>'+
+          '<div class="ref-roster-track" role="progressbar" aria-label="Paid progress for '+html(row.member)+
+          '" aria-valuenow="'+p+'" aria-valuemin="0" aria-valuemax="100"><span style="width:'+p+'%"></span></div>'+
+          (canEdit?'<div class="ref-roster-actions">'+
+          '<button type="button" class="ref-roster-edit" data-action="collection-member-total" data-member="'+html(row.member)+'" aria-label="Edit total paid for '+html(row.member)+'">✎ Edit Paid</button>'+
+          '<button type="button" class="ref-roster-add" data-action="collection-member-pay" data-member="'+html(row.member)+'" aria-label="Add payment for '+html(row.member)+'">＋ Add</button></div>':'')+
+          '</div></article>';
+      }).join('');
+      return '<section class="ref-roster-group ref-roster-'+g.key+'" data-roster-group="'+g.key+'"'+
+        (paymentRosterFilter==='all'||paymentRosterFilter===g.key?'':' hidden')+'>'+
+        '<div class="ref-roster-group-head"><span class="ref-roster-group-symbol" aria-hidden="true">'+g.icon+'</span>'+
+        '<div><h4>'+g.label+'</h4><small>'+g.summary+'</small></div>'+
+        '<b>'+rows.length+' '+(rows.length===1?'member':'members')+'</b></div>'+
+        '<div class="ref-roster-cards">'+cards+'</div></section>';
+    }).join('');
+    return '<section class="ref-payment-roster" id="d4-payment-roster" aria-labelledby="ref-roster-title" data-roster-total="'+
+      totals.rows.length+'"><div class="ref-roster-heading"><div><span class="ref-overline">✦ TRAVELLER PAYMENTS</span>'+
+      '<h3 id="ref-roster-title">Member Payment Status</h3><p>All '+totals.rows.length+
+      ' members · paid, advance and unpaid in one place</p></div>'+
+      '<span class="ref-roster-total">👥 '+totals.rows.length+'</span></div>'+
+      '<div class="ref-roster-filters" aria-label="Filter members by payment status">'+filterButtons+'</div>'+
+      '<label class="ref-roster-search">⌕ <input type="search" data-roster-search placeholder="Search member name..." aria-label="Search members by name" autocomplete="off"></label>'+
+      '<div class="ref-roster-scroll" data-roster-scroll tabindex="0" aria-label="Scrollable payment list of every trip member">'+
+      (items||'<p class="ref-empty">No trip members yet.</p>')+
+      '<p class="ref-roster-empty" data-roster-empty hidden>No members match this filter or search.</p></div>'+
+      '<div class="ref-roster-footer"><span data-roster-visible-count>'+totals.rows.length+
+      ' of '+totals.rows.length+' shown</span><span>↕ Scroll to see everyone</span></div></section>';
+  }
+  function refreshPaymentRoster(){
+    const root=document.querySelector('#d4-payment-roster');
+    if(!root)return;
+    const query=(root.querySelector('[data-roster-search]')?.value||'').trim().toLocaleLowerCase();
+    let shown=0;
+    root.querySelectorAll('[data-roster-group]').forEach(section=>{
+      let inGroup=0;
+      const included=paymentRosterFilter==='all'||section.dataset.rosterGroup===paymentRosterFilter;
+      section.querySelectorAll('[data-roster-card]').forEach(card=>{
+        const visible=included&&String(card.dataset.rosterName||'').includes(query);
+        card.hidden=!visible;
+        if(visible)inGroup++;
+      });
+      section.hidden=inGroup===0;
+      shown+=inGroup;
+    });
+    root.querySelectorAll('[data-roster-filter]').forEach(button=>{
+      const active=button.dataset.rosterFilter===paymentRosterFilter;
+      button.classList.toggle('active',active);
+      button.setAttribute('aria-pressed',String(active));
+    });
+    const count=root.querySelector('[data-roster-visible-count]');
+    if(count)count.textContent=shown+' of '+root.dataset.rosterTotal+' shown';
+    const empty=root.querySelector('[data-roster-empty]');
+    if(empty)empty.hidden=shown!==0;
+  }
+  document.addEventListener('click',function(event){
+    const filter=event.target.closest('[data-roster-filter]');
+    if(filter){
+      event.preventDefault();
+      paymentRosterFilter=filter.dataset.rosterFilter||'all';
+      refreshPaymentRoster();
+      const scroller=document.querySelector('#d4-payment-roster [data-roster-scroll]');
+      if(scroller)scroller.scrollTop=0;
+      return;
+    }
+    if(event.target.closest('[data-roster-jump]')){
+      event.preventDefault();
+      const area=document.querySelector('#d4-payment-roster');
+      area?.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  },true);
+  document.addEventListener('input',function(event){
+    if(event.target.matches?.('[data-roster-search]'))refreshPaymentRoster();
+  });
   collectionsPage=function(){
     const t=current();
     if(!t)return previous.collectionsPage();
@@ -132,14 +235,14 @@
       '<div><small>Received</small><b class="ref-good">'+money(c.paid)+'</b></div>'+
       '<div><small>Remaining</small><b class="ref-due">'+money(c.pending)+'</b></div></div></div>'+
       '<div class="ref-status-grid"><span>✅ Paid <b>'+c.full+'</b></span><span>◐ Partial <b>'+c.partial+'</b></span><span>⏳ Pending <b>'+c.unpaid+'</b></span></div>'+
-      '<div class="ref-finance-buttons"><button class="ref-primary" data-action="collection-members">👥 View Member Payments</button>'+
+      '<div class="ref-finance-buttons"><button type="button" class="ref-primary" data-roster-jump="1">👥 All Member Payments</button>'+
       (canEdit?'<button class="ref-secondary" data-action="collection-quick-add" data-id="'+html(t.id)+'">＋ Add Payment</button>':'<span class="ref-readonly">🔒 View only</span>')+'</div></section>'+
-      memberAmountPanel(t)+
+      paymentRoster(t)+
       '<section class="ref-card ref-recent"><div class="ref-section-title"><h3>Recent Payments</h3><span class="ref-history-count">Last 6</span></div>'+
       (history||'<p class="ref-empty">No payments recorded yet.</p>')+'</section>'+
       '<details class="ref-full-payment-history"><summary>🧾 All Payment Entries ('+allPayments.length+') <span>⌄</span></summary>'+
       '<div class="ref-history-inner">'+(fullHistory||'<p class="ref-empty">No entries yet.</p>')+'</div></details>'+
-      '<section class="ref-original-finance" aria-label="Complete payment details">'+previous.collectionsPage()+'</section>';
+      '<details class="ref-original-finance" aria-label="More payment tools"><summary>⚙️ Additional payment tools <span>⌄</span></summary><div class="ref-original-finance-inner">'+previous.collectionsPage()+'</div></details>';
   };
   tripMembers=function(t){
     if(!t)return previous.tripMembers(t);
