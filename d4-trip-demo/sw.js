@@ -1,5 +1,5 @@
-const CACHE='d4-trip-app-v35-reference-luxe';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192-v28.png','./icon-512-v28.png','./icon-maskable-v28.png','./apple-touch-icon-v28.png','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js?build=27','./team-sync.js?build=30','./team-join.js?build=27','./team-invite-runtime.js?build=27','./premium-production.css?build=33','./obsidian-luxe.css?build=34','./reference-premium.css?build=35','./goa-milestones.js?build=29','./premium-production.js?build=33','./reference-premium.js?build=35','./shared-beta.js','./shared-runtime.js?build=27','./intro.css','./trip-intro.js','./intro-logo.svg'];
+const CACHE='d4-trip-app-v36-member-edits';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg','./icon-192-v28.png','./icon-512-v28.png','./icon-maskable-v28.png','./apple-touch-icon-v28.png','./night.css','./fjord.webp','./summit.webp','./dunes.webp','./firebase-config.js','./firebase-sync.js?build=27','./team-sync.js?build=30','./team-join.js?build=27','./team-invite-runtime.js?build=27','./premium-production.css?build=33','./obsidian-luxe.css?build=34','./reference-premium.css?build=36','./goa-milestones.js?build=29','./premium-production.js?build=33','./reference-premium.js?build=36','./shared-beta.js','./shared-runtime.js?build=27','./intro.css','./trip-intro.js','./intro-logo.svg'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));
   self.skipWaiting();
