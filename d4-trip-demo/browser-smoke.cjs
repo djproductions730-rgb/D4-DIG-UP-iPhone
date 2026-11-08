@@ -74,7 +74,7 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('#d4-payment-roster [data-roster-filter="all"]').click();
   await capture('payments-paid-and-unpaid');
   // Go to the same trip Overview; verify nine premium Trip Sections.
-  await page.locator('[data-action="enter-selected-trip"]').first().click();
+  await page.locator('.ref-bottom-nav [data-action="open-tab"][data-ctx="overview"]').click();
   const sections=page.locator('.ref-trip-sections');
   await sections.waitFor({state:'visible'});
   assert.equal(await sections.locator('.ref-sections-grid button').count(),9);
@@ -107,13 +107,13 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(data.trips[0].end,'2026-11-12');
   assert.equal(data.trips[0].collection.payments.length,2);
   // Shift a selected date and verify that the calendar remains consecutive.
+  const paymentDate=data.trips[0].collection.payments[0].date;
   await page.locator('#ref-selected-day-date').fill('2026-11-14');
   await page.locator('[data-trip-day-action="shift"]').click();
   data=await page.evaluate(()=>window.D4TripLocal.getData());
   assert.equal(data.trips[0].start,'2026-11-12');
   assert.equal(data.trips[0].end,'2026-11-14');
-  assert.equal(data.trips[0].collection.payments[0].date,
-    data.trips[0].collection.payments[0].date,label+' payment history unchanged');
+  assert.equal(data.trips[0].collection.payments[0].date,paymentDate,label+' payment history unchanged');
   await capture('date-control-updated');
   // The native Install App CTA is exposed without ever falsely claiming installation.
   assert.ok(await page.locator('[data-d4-install="1"]').count()>0,label+' install button appears');
