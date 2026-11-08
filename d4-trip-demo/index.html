@@ -369,6 +369,28 @@ function deleteLocalTrip(tripId){
 function datesInTrip(t){if(!t)return[];let out=[],d=new Date(t.start+'T12:00:00'),end=new Date(t.end+'T12:00:00');for(let n=0;d<=end&&n<90;n++,d.setDate(d.getDate()+1))out.push([d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'));return out}
 function sharedPaise(e){const names=e.participants.filter(Boolean);const amount=Math.round(Number(e.amount)*100);if(!names.length)return{};if(e.mode==='custom'&&e.shares)return Object.fromEntries(names.map(n=>[n,Math.round(Number(e.shares[n]||0)*100)]));const base=Math.floor(amount/names.length), extra=amount-base*names.length;return Object.fromEntries(names.map((n,i)=>[n,base+(i<extra?1:0)]));}
 
+// Correct an individual member's total received without losing the original payment ledger.
+function collectionMemberTotalSave(t,member,value){
+ if(!t||!isTripAdmin(t))throw Error('Only Main Admin or Trip Admin can edit member amounts');
+ if(!t.members.includes(member))throw Error('Choose an active trip member');
+ const amount=Number(value),cents=Math.round(amount*100);
+ if(String(value).trim()===''||!Number.isFinite(amount)||cents<0||cents>10000000000)throw Error('Enter a valid amount from ₹0');
+ const target=Math.round(Math.max(0,Number(t.collection?.targetPerPerson||0))*100);
+ if(target>0&&cents>target)throw Error('Amount exceeds the member target '+money(target/100));
+ const previous=collectionTotals(t).rows.find(row=>row.member===member);
+ const oldCents=Math.round(Number(previous?.paid||0)*100),difference=cents-oldCents;
+ if(difference===0)return collectionTotals(t);
+ saveTripChange(t,()=>{
+  if(!t.collection)t.collection={targetPerPerson:0,payments:[]};
+  if(!Array.isArray(t.collection.payments))t.collection.payments=[];
+  t.collection.payments.push({
+   id:uid(),member,amount:difference/100,method:'Manual',date:today(),by:profile,
+   adjustment:true,previousPaid:oldCents/100,newPaid:cents/100,
+   note:'Corrected total paid from '+money(oldCents/100)+' to '+money(cents/100)
+  });
+ });
+ return collectionTotals(t);
+}
 // Collection tracking is separate from expense payments and debt settlement.
 // Entering an amount is a recorded contribution, not a verified bank transaction.
 function collectionTotals(t){
@@ -410,7 +432,7 @@ return `<section class="compact-collection">
 <div class="cc-top"><button class="cc-back" data-action="entry-back">← My Trips</button><span class="cc-trip">${t.emoji} ${esc(t.name)}</span><span class="cc-role">${isMain()?'👑 Main Admin':admin?'🛡️ Admin':'👁️ View only'}</span></div>
 <div class="cc-banner"><div><small>YOUR TRIP COLLECTION</small><h2>💳 Paid & Pending</h2><p>${t.members.length} travellers · ${money(c.each)} per member</p></div><div class="cc-sun">🌴</div></div>
 <div class="cc-plain-summary"><div><small>🎯 Target</small><b>${money(c.target)}</b></div><div><small>✓ Paid</small><b>${money(c.paid)}</b></div><div><small>⏳ Remaining</small><b>${money(c.pending)}</b></div></div><div class="d4-payment-counts"><b>🟢 Paid ${c.full}</b><b>🟠 Advance / Partial ${c.partial}</b><b>🔴 Unpaid ${c.unpaid}</b></div><div class="cc-actions"><button class="cc-primary" data-action="enter-selected-trip">✈️ Enter Trip →</button>${admin?'<button class="cc-add" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':''}</div>
-<div class="d4-gold-members"><div class="d4-gold-members-heading"><h3>👥 Member Payments</h3><span>${c.rows.length} travellers</span></div><div class="d4-gold-member-list">${c.rows.map(r=>`<article class="d4-gold-member"><span class="d4-gold-avatar">${esc(r.member.slice(0,1).toUpperCase())}</span><div class="d4-gold-person"><strong>${esc(r.member)}</strong><small>Paid ${money(r.paid)} / ${money(r.target)}</small></div><div class="d4-gold-member-status"><b class="${r.status.toLowerCase()}">${r.status==='Pending'?'Unpaid':esc(r.status)}</b><small>Due ${money(r.pending)}</small></div>${admin?`<button class="d4-gold-pay" data-action="collection-member-pay" data-member="${esc(r.member)}" aria-label="Add payment for ${esc(r.member)}">＋</button>`:''}</article>`).join('')}</div></div>
+<div class="d4-gold-members"><div class="d4-gold-members-heading"><h3>👥 Member Payments</h3><span>${c.rows.length} travellers</span></div><div class="d4-gold-member-list">${c.rows.map(r=>`<article class="d4-gold-member"><span class="d4-gold-avatar">${esc(r.member.slice(0,1).toUpperCase())}</span><div class="d4-gold-person"><strong>${esc(r.member)}</strong><small>Paid ${money(r.paid)} / ${money(r.target)}</small></div><div class="d4-gold-member-status"><b class="${r.status.toLowerCase()}">${r.status==='Pending'?'Unpaid':esc(r.status)}</b><small>Due ${money(r.pending)}</small></div>${admin?`<span class="ref-inline-amount-actions"><button class="d4-gold-pay" data-action="collection-member-total" data-member="${esc(r.member)}" aria-label="Edit total paid for ${esc(r.member)}">✎</button><button class="d4-gold-pay" data-action="collection-member-pay" data-member="${esc(r.member)}" aria-label="Add payment for ${esc(r.member)}">＋</button></span>`:''}</article>`).join('')}</div></div>
 <button class="cc-open-members" data-action="collection-members">👥 View All ${t.members.length} Members <span>Paid ${c.full} · Partial ${c.partial} · Unpaid ${c.unpaid}</span> <b>↗</b></button>
 ${c.archivedPaid?`<p class="notice">Historical payments from removed members: ${money(c.archivedPaid)} (kept in payment records; excluded from active-member progress).</p>`:''}<div class="cc-footnote">Payments are manually recorded. They are not bank-verified. Members can view; Main Admin and assigned Trip Admin can edit.</div>
 </section>`;
@@ -424,7 +446,7 @@ function showCollectionMembers(){
  const pageSize=8,totalPages=Math.max(1,Math.ceil(rows.length/pageSize));collectionPage=Math.max(0,Math.min(collectionPage,totalPages-1));
  const visible=rows.slice(collectionPage*pageSize,(collectionPage+1)*pageSize);
  const pills=[['all','All',c.rows.length],['paid','Paid',c.full],['partial','Partial',c.partial],['pending','Unpaid',c.unpaid]].map(([k,l,n])=>'<button class="cc-filter '+(collectionFilter===k?'selected':'')+'" data-action="collection-popup-filter" data-filter="'+k+'">'+l+' '+n+'</button>').join('');
- const members=visible.map(r=>'<div class="cc-member-tile"><div class="cc-tile-top"><b>'+esc(r.member)+'</b>'+(admin?'<button type="button" class="cc-tiny-edit" data-action="collection-member-pay" data-member="'+esc(r.member)+'" aria-label="Add payment for '+esc(r.member)+'">＋ Pay</button>':'')+'</div><div class="cc-tile-money"><span class="cc-tile-amount"><small>Paid / Advance</small><b>'+money(r.paid)+'</b></span><span class="cc-tile-amount"><small>Remaining</small><b>'+money(r.pending)+'</b></span></div><div class="cc-tile-status '+r.status.toLowerCase()+'">'+(r.status==='Paid'?'Paid':r.status==='Partial'?'Partial':'Unpaid')+'</div></div>').join('');
+ const members=visible.map(r=>'<div class="cc-member-tile"><div class="cc-tile-top"><b>'+esc(r.member)+'</b>'+(admin?'<span class="ref-amount-actions"><button type="button" class="cc-tiny-edit" data-action="collection-member-total" data-member="'+esc(r.member)+'" aria-label="Edit total paid for '+esc(r.member)+'">✎ Edit Paid</button><button type="button" class="cc-tiny-edit" data-action="collection-member-pay" data-member="'+esc(r.member)+'" aria-label="Add payment for '+esc(r.member)+'">＋ Pay</button></span>':'')+'</div><div class="cc-tile-money"><span class="cc-tile-amount"><small>Paid / Advance</small><b>'+money(r.paid)+'</b></span><span class="cc-tile-amount"><small>Remaining</small><b>'+money(r.pending)+'</b></span></div><div class="cc-tile-status '+r.status.toLowerCase()+'">'+(r.status==='Paid'?'Paid':r.status==='Partial'?'Partial':'Unpaid')+'</div></div>').join('');
  $('#modalRoot').innerHTML='<div class="modal-backdrop cc-popup-backdrop"><div class="cc-popup cc-simple-popup" role="dialog" aria-modal="true" aria-label="Member payment summary"><div class="cc-popup-top"><button type="button" class="cc-popup-back" data-action="close-modal" aria-label="Back to payments">← Back</button><div class="cc-popup-heading"><small>🌴 '+esc(t.name)+'</small><h2>Member Payments</h2></div><button type="button" class="cc-popup-close" data-action="close-modal" aria-label="Close member payments">✕</button></div><div class="cc-popup-total"><span>🟢 Paid '+c.full+'</span><span>🟠 Partial '+c.partial+'</span><span>🔴 Unpaid '+c.unpaid+'</span></div><div class="cc-filters">'+pills+'</div><div class="cc-table-body">'+(members||'<p class="cc-empty">No members in this category.</p>')+'</div><div class="cc-pagination"><button data-action="collection-page-prev" '+(collectionPage===0?'disabled':'')+'>← Previous</button><span>Page '+(collectionPage+1)+' / '+totalPages+'</span><button data-action="collection-page-next" '+(collectionPage>=totalPages-1?'disabled':'')+'>Next →</button></div><div class="cc-popup-bottom"><button type="button" class="cc-popup-return" data-action="close-modal">← Back to Payments</button>'+(admin?'<button class="cc-primary" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':'<span class="cc-popup-viewonly">🔒 View Only</span>')+'</div></div></div>';
 }
 function collectionSave(t,member,value,method='Manual',note=''){
@@ -604,6 +626,19 @@ function selectField(name,label,options){return `<div class="field"><label for="
 function ensurePermission(condition){if(!condition){toast('🔒 Permission denied for this role.');return false}return true}
 function openModal(name,context={}){if(name==='join-trip'){view='entry';render();document.querySelector('#d4-trip-link-input')?.focus();return;}const t=current();activeModal=name;modalContext=context;let title='',body='',button='Save';switch(name){
 case 'collection-target':{const tt=trip(context.tripId)||t;if(!ensurePermission(isMain()&&canSee(tt)))return;title='🎯 Set Trip Amount';button='Save Trip Target';body=`<div class="notice">Target is per person for <b>${esc(tt.name)}</b>. Set ₹0 to disable tracking. Existing received amounts are preserved.</div><div style="height:14px"></div>${field('perPerson','Trip target per person (₹)',tt.collection?.targetPerPerson||0,'number','required min="0" max="100000000" step="0.01"')}`;break;}
+case 'collection-member-total':{
+ const tt=trip(context.tripId)||t;
+ if(!ensurePermission(isTripAdmin(tt)))return;
+ const member=String(context.member||'');
+ const row=collectionTotals(tt).rows.find(item=>item.member===member);
+ if(!row)return toast('Member not found');
+ title='✏️ Edit Member Paid Amount';button='Save Member Amount';
+ body='<div class="notice"><b>'+esc(member)+'</b><p>Set this member’s total paid amount. Any difference is saved as a correction; the original payment history stays available.</p></div>'+
+  '<div class="ref-edit-preview"><span>Current paid <strong>'+money(row.paid)+'</strong></span><span>Remaining <strong>'+money(row.pending)+'</strong></span></div>'+
+  field('amount','Total Paid (₹)',row.paid,'number','required min="0" max="100000000" step="0.01"')+
+  '<p class="tiny">Member target: '+money(row.target)+'. Main Admin / Trip Admin only.</p>';
+ break;
+}
 case 'collection-payment-edit':{
  const tt=trip(context.tripId)||t;
  if(!ensurePermission(isTripAdmin(tt)))return;
@@ -674,6 +709,13 @@ function generateCode(tname){const prefix='D4'+String(tname).replace(/[^a-z0-9]/
 function readAttachment(file){return new Promise((resolve,reject)=>{if(!file||!file.size)return resolve(null);if(!file.type.startsWith('image/')&&file.type!=='application/pdf')return reject(new Error('Only photos or PDF bills accepted.'));if(file.type==='application/pdf'){if(file.size>350000)return reject(new Error('PDF bills must be under 350 KB in this offline demo.'));const fr=new FileReader();fr.onerror=()=>reject(new Error('Unable to read PDF'));fr.onload=()=>resolve({name:file.name,type:file.type,data:fr.result});fr.readAsDataURL(file);return;}if(file.size>12000000)return reject(new Error('Photo must be under 12 MB.'));const url=URL.createObjectURL(file);const img=new Image();img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Cannot open this photo. Try JPEG/PNG.'))};img.onload=()=>{try{const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/jpeg',.68);URL.revokeObjectURL(url);if(data.length>650000)throw Error('Compressed image still too large; crop the receipt and try again.');resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data})}catch(e){URL.revokeObjectURL(url);reject(e)}};img.src=url})}
 async function saveForm(ev){ev.preventDefault();const fd=new FormData(ev.target),name=activeModal,t=(modalContext.tripId?trip(modalContext.tripId):current());try{switch(name){
 case 'collection-target':{if(!isMain()||!canSee(t))throw Error('Main Admin only');const amount=Number(fd.get('perPerson'));if(!Number.isFinite(amount)||amount<0||amount>100000000)throw Error('Invalid target');t.collection=t.collection||{targetPerPerson:0,payments:[]};t.collection.targetPerPerson=Math.round(amount*100)/100;persist();closeModal();view='collections';activeTrip=t.id;render();toast('Per-person trip target updated');return}
+case 'collection-member-total':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const totals=collectionMemberTotalSave(t,String(modalContext.member),fd.get('amount'));
+ const back=modalContext.returnTo||'collections';
+ closeModal();view=back;activeTrip=t.id;render();
+ toast('Member paid amount updated. Total received: '+money(totals.paid));return;
+}
 case 'collection-payment-edit':{
  if(!t||!isTripAdmin(t))throw Error('Admins only');
  const totals=collectionEditSave(t,modalContext.receiptId,{
@@ -797,6 +839,12 @@ case 'replay-intro':if(!window.D4TripIntro?.play({force:true}))toast('Intro prev
 case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';collectionPage=0;showCollectionMembers();break;
 case 'collection-page-prev':collectionPage=Math.max(0,collectionPage-1);showCollectionMembers();break;
 case 'collection-page-next':collectionPage++;showCollectionMembers();break;
+case 'collection-member-total':{
+ if(!t||!isTripAdmin(t))return toast('Admins only');
+ const member=String(el.dataset.member||'');
+ if(!t.members.includes(member))return toast('Member not found');
+ openModal('collection-member-total',{tripId:t.id,member,returnTo:view});break;
+}
 case 'collection-edit-payment':{
  if(!t||!isTripAdmin(t))return toast('Only admins can edit payments');
  const item=t.collection?.payments?.find(p=>p.id===el.dataset.id);
