@@ -95,7 +95,7 @@
         '<div><span class="ref-luxe-stat-icon">'+luxeIcon('check')+'</span><b>'+money(c.paid)+'</b><small>Received</small></div>'+
         '<div><span class="ref-luxe-stat-icon">'+luxeIcon('hourglass')+'</span><b>'+money(c.pending)+'</b><small>Pending</small></div></div>'+
       '<nav class="ref-hero-actions ref-luxe-actions" aria-label="Main trip sections">'+
-        iconButton(luxeIcon('calendar'),'Day Plan','open-tab','data-ctx="plan"')+
+        iconButton(luxeIcon('memories'),'Memories','open-tab','data-ctx="memories"')+
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
         iconButton(luxeIcon('expenses'),'Expenses','nav','data-view="expenses"')+'</nav>'+
