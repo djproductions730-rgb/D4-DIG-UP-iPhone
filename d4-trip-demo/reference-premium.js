@@ -97,12 +97,15 @@
   };
   tripMembers=function(t){
     if(!t)return previous.tripMembers(t);
+    const balances=collectionTotals(t).rows,canEdit=isTripAdmin(t);
     const members=(t.members||[]).map(name=>{
       const role=memberRole(t,name);
+      const amounts=balances.find(row=>row.member===name);
       return '<article class="ref-person" data-ref-person="'+html(String(name).toLocaleLowerCase())+'">'+
         '<span class="ref-person-avatar" aria-hidden="true">'+html(String(name).slice(0,1).toUpperCase())+'</span>'+
-        '<div><strong>'+html(name)+'</strong>'+roleBadge(role)+'</div>'+
-        '<span class="ref-person-arrow" aria-hidden="true">›</span></article>';
+        '<div><strong>'+html(name)+'</strong>'+roleBadge(role)+
+        (amounts?'<small class="ref-person-finance">Paid '+money(amounts.paid)+' · Due '+money(amounts.pending)+'</small>':'')+'</div>'+
+        (canEdit?'<button type="button" class="ref-edit-paid" data-action="collection-member-total" data-member="'+html(name)+'" aria-label="Edit amount for '+html(name)+'">✎ Edit</button>':'<span class="ref-person-arrow" aria-hidden="true">›</span>')+'</article>';
     }).join('');
     const editors=(t.admins||[]).length;
     return '<section class="ref-members-head"><span class="ref-overline">✦ YOUR PEOPLE</span><h2>Members <em>('+t.members.length+')</em></h2>'+
