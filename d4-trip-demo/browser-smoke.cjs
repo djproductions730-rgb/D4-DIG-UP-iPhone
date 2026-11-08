@@ -12,7 +12,7 @@ const seed = {
   trips:[{
     id:'m3-browser-smoke',name:'D4 Browser Test',destination:'Goa',
     start:'2026-11-10',end:'2026-11-12',kind:'goa',emoji:'🏝️',
-    code:'D4TEST2026',members:['Admin','A'],admins:['Admin'],
+    code:'D4TEST2026',members:['Admin','A',...Array.from({length:15},(_v,i)=>'Member '+String(i+3).padStart(2,'0'))],admins:['Admin'],
     collection:{targetPerPerson:8000,payments:[]},
     plans:[],expenses:[],settlementsPaid:[],reminders:[],notes:[],
     files:[],memories:[],chats:{admins:[],group:[]}
@@ -39,16 +39,17 @@ async function smoke(browser,label,viewport,mobile) {
   await page.locator('[data-action="entry-select-trip"][data-id="m3-browser-smoke"]').click();
   await page.locator('#d4-payment-roster').waitFor({state:'visible'});
   const count=await page.locator('#d4-payment-roster [data-roster-card]').count();
-  assert.equal(count,2,label+' all seeded trip members must appear');
+  assert.equal(count,17,label+' all seeded trip members must appear');
   assert.match(await page.locator('#d4-payment-roster').innerText(),/Member Payment Status/);
   assert.match(await page.locator('#d4-payment-roster').innerText(),/Admin/);
   assert.match(await page.locator('#d4-payment-roster').innerText(),/\bA\b/);
-  assert.equal(await page.locator('#d4-payment-roster [data-roster-group="unpaid"] [data-roster-card]').count(),2,
-    label+' both members initially unpaid');
+  assert.equal(await page.locator('#d4-payment-roster [data-roster-group="unpaid"] [data-roster-card]').count(),17,
+    label+' every member initially unpaid');
   const scroll=await page.locator('#d4-payment-roster [data-roster-scroll]').evaluate(el=>{
     const style=getComputedStyle(el);return {overflow:style.overflowY,scrollHeight:el.scrollHeight,clientHeight:el.clientHeight};
   });
-  assert.ok(['auto','scroll'].includes(scroll.overflow),label+' member list must scroll independently');
+  assert.ok(['auto','scroll'].includes(scroll.overflow),label+' member list must scroll independently, found '+JSON.stringify(scroll));
+  assert.ok(scroll.scrollHeight>scroll.clientHeight+100,label+' 17-member roster must genuinely overflow vertically');
   await capture('payment-status-before');
   // Record a real payment via existing app's modal, verify the financial totals update.
   await page.locator('[data-action="collection-quick-add"]').first().click();
