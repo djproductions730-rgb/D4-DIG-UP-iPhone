@@ -101,6 +101,8 @@ test('home UI renders member balances from collectionTotals with edit only for a
  assert.match(src,/home=function\(\)/);
  assert.match(src,/tripHero\(t\)\+memberAmountPanel\(t\)/);
  assert.match(src,/data-action="collection-member-total"/);
+ assert.match(src,/class="ref-full-payment-history"/,'Full history keeps earlier receipts editable');
+ assert.match(src,/data-action="collection-edit-payment"/,'Each original receipt has an edit action');
  const markup=fs.readFileSync(__dirname+'/index.html','utf8');
  assert.match(markup,/case 'collection-member-total':/);
  assert.match(markup,/case 'collection-payment-edit':/);
