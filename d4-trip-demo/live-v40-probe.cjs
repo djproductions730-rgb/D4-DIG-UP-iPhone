@@ -29,7 +29,9 @@ try{
   rightRail:document.querySelectorAll('.d4-gold-rail').length,
   bottomPremium:document.querySelectorAll('.ref-bottom-nav').length,
   functionTripOverview:typeof tripOverview==='function'?tripOverview.toString().slice(0,220):typeof tripOverview,
+  premiumOverviewActive:typeof tripOverview==='function'&&tripOverview.toString().includes('tripSections'),
   functionBottomNav:typeof bottomNav==='function'?bottomNav.toString().slice(0,220):typeof bottomNav,
+  premiumNavActive:typeof bottomNav==='function'&&bottomNav.toString().includes('ref-bottom-nav'),
   installStatus:typeof window.D4TripInstall,
   mode:location.href,
  }));
@@ -41,8 +43,8 @@ try{
  assert.equal(html.includes('reference-premium.css?build=41'),true,'Live root must load fresh premium CSS');
  assert.equal(html.includes('trip-day-controls.js?build=40'),true,'Live root must load day controls');
  assert.equal(snap.installStatus,'object','Install App feature must be active');
- assert.match(snap.functionTripOverview,/tripSections|memberAmountPanel/,'Premium overview wrapper must be the actual running function');
- assert.match(snap.functionBottomNav,/ref-bottom-nav/,'Premium bottom navigation must be actual running function');
+ assert.equal(snap.premiumOverviewActive,true,'Premium overview wrapper must be the actual running function');
+ assert.equal(snap.premiumNavActive,true,'Premium bottom navigation must be actual running function');
  assert.equal(snap.styles.some(x=>x.includes('reference-premium.css?build=41')),true,'Gold visual stylesheet must be active');
  assert.deepEqual(errors.filter(x=>/SyntaxError|ReferenceError|text\/html|Unexpected token|Failed to load resource/i.test(x)),[],
    'No blocking script errors');
