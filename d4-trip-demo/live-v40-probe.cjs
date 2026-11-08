@@ -35,6 +35,18 @@ try{
  }));
  console.log('LIVE_DOM',JSON.stringify(snap));
  console.log('LIVE_ERRORS',JSON.stringify(errors.slice(0,35)));
+ const assert=require('node:assert/strict');
+ assert.equal(http.status(),200,'Live page must be reachable');
+ assert.equal(html.includes('reference-premium.js?build=41'),true,'Live root must load fresh premium JS');
+ assert.equal(html.includes('reference-premium.css?build=41'),true,'Live root must load fresh premium CSS');
+ assert.equal(html.includes('trip-day-controls.js?build=40'),true,'Live root must load day controls');
+ assert.equal(snap.installStatus,'object','Install App feature must be active');
+ assert.match(snap.functionTripOverview,/tripSections|memberAmountPanel/,'Premium overview wrapper must be the actual running function');
+ assert.match(snap.functionBottomNav,/ref-bottom-nav/,'Premium bottom navigation must be actual running function');
+ assert.equal(snap.styles.some(x=>x.includes('reference-premium.css?build=41')),true,'Gold visual stylesheet must be active');
+ assert.deepEqual(errors.filter(x=>/SyntaxError|ReferenceError|text\/html|Unexpected token|Failed to load resource/i.test(x)),[],
+   'No blocking script errors');
+ console.log('PASS LIVE RUNTIME v40: premium trip sections, bottom navigation, install action, and style loaded');
  await page.screenshot({path:'live-probe.png',fullPage:false});
 }finally{await b.close();}
 })().catch(e=>{console.error('PROBE_FATAL',e.stack);process.exitCode=1});
