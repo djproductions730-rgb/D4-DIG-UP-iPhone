@@ -5,8 +5,8 @@
   "start_url": "./?source=installed",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0d264a",
-  "theme_color": "#087d83",
+  "background_color": "#071422",
+  "theme_color": "#0b1626",
   "orientation": "portrait",
   "icons": [
     {
@@ -33,5 +33,6 @@
       "type": "image/svg+xml",
       "purpose": "any"
     }
-  ]
+  ],
+  "id": "./"
 }
