@@ -26,7 +26,7 @@
    }
    if(changes.length)entry.pxEdits=[...(Array.isArray(old.pxEdits)?old.pxEdits:[]),{at:entry.updatedAt,changes}];
   }
-  apply(old,-1);apply(entry,1);next.entries[index]=entry;return next;
+  apply(old,-1);apply(entry,1);delete entry.balanceBefore;delete entry.balanceAfter;next.entries[index]=entry;return next;
  }
  if(typeof module!=='undefined'&&module.exports){module.exports={editData,entryDate};return}
  const oldHistory=history;
