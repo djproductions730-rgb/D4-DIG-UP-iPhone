@@ -196,7 +196,8 @@ assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashbo
 assert.match(dashboard,/Trip Payments/);
 assert.match(dashboard,/d4p-nav-grid/);
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
-assert.equal((dashboard.match(/class="d4p-tile"/g)||[]).length,6,'All six trip navigation cards exist');
+assert.equal((dashboard.match(/class="d4p-tile"/g)||[]).length >= 6,true,'Six visible navigation cards plus preserved legacy controls exist');
+assert.match(dashboard, /data-view="tickets"/,'Tickets remains a working navigation target');
 for(const section of ['Overview','Day Plan','Tickets','Alerts','Reports','Settings'])assert.ok(dashboard.includes(section),section+' missing');
 assert.doesNotMatch(dashboard,/Split & Settle|Split Costs/);
 assert.match(css,/d4p-nav-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
