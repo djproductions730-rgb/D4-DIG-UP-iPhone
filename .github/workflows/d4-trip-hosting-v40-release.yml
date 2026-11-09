@@ -1,4 +1,4 @@
-name: D4 Trip Tickets Unlimited Add and View-Only Members Release
+name: D4 Trip Admin Ticket Paid Unpaid Quick Edit Release
 on:
   push:
     branches:
