@@ -645,6 +645,7 @@ document.getElementById('sheet').addEventListener('click',e=>{const loan=e.targe
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});render();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
 </script><script src="./loans.js"></script><script src="./migration.js?v=bankless-import-10"></script><script src="./settings.js"></script><script src="./transaction-edit.js?v=family-art-8"></script><script src="./history-filters.js?v=family-art-8"></script><script src="./plans-budget.js?v=plan-history-7"></script><script src="./category-style.js?v=internet-allowance-9"></script><script src="./bank-logos.js?v=family-art-8"></script><script>
+cats.Sports=['⚽','#24a18b'];
 for(const category of officeSpendCategories)cats[category]=cats.Food;
 const openBeforeOffice=openTransaction;
 openTransaction=function(initialType='Expense'){
@@ -678,6 +679,32 @@ openTransaction=function(initialType='Expense'){
   try{input.value=merchantNote(form,original);return submit.call(this,event)}
   catch(error){form.querySelector('#category-save-error').textContent=error.message}
   finally{input.value=original}
+ };
+};
+</script><script>
+// Sports spending options are stored as notes, preserving the existing data schema.
+const openBeforeSports=openTransaction;
+openTransaction=function(initialType='Expense'){
+ openBeforeSports(initialType);
+ const form=document.getElementById('txform');
+ if(!form)return;
+ const category=form.querySelector('#txcat'),type=form.querySelector('#txtype');
+ const sportsBox=document.createElement('div');
+ sportsBox.innerHTML='<label class="field" for="sports-kind">Sports type</label><select class="input" id="sports-kind"><option value="Turf">⚽ Turf</option><option value="Games">🎮 Games</option></select>';
+ const choices=form.querySelector('.category-choices');
+ (choices||category).after(sportsBox);
+ const refresh=()=>{sportsBox.hidden=!(type.value==='Expense'&&category.value==='Sports')};
+ category.addEventListener('change',refresh);
+ type.addEventListener('change',refresh);
+ form.addEventListener('click',refresh);
+ refresh();
+ const submit=form.onsubmit;
+ form.onsubmit=function(event){
+  if(sportsBox.hidden)return submit.call(this,event);
+  const note=form.querySelector('#txnote'),original=note.value;
+  const kind=sportsBox.querySelector('#sports-kind').value;
+  note.value=kind+(original.trim()?' · '+original.trim():'');
+  try{return submit.call(this,event)}finally{note.value=original}
  };
 };
 </script><script src="./navigation-ui.js?v=right-menu-3"></script><script src="./app-update.js?v=update-manager-1"></script></body></html>
