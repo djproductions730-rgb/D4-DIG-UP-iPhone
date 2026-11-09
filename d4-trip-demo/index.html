@@ -255,6 +255,8 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 <link rel="stylesheet" href="./home-circular-luxe.css?build=42" media="screen">
 <link rel="stylesheet" href="./journey-completion.css?build=43" media="screen">
 <script defer src="./intro.js"></script>
+<link rel="stylesheet" href="./modern-card-pdf.css?build=46" media="print">
+<link rel="stylesheet" href="./report-readability.css?build=46">
 </head>
 <body>
   <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip cinematic welcome" hidden>
@@ -849,15 +851,13 @@ function fileDownload(file){if(!file||!file.data)return toast('File not found');
 function downloadText(name,text,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function summary(t){const c=calculations(t);return `🧭 D4 Trip | ${t.name}\n📅 ${fmtDate(t.start)} – ${fmtDate(t.end)}\n👥 ${t.members.length} members\n💸 Total expenses: ${money(c.total)}\n🧾 ${t.expenses.length} bills\n\nGenerated from D4 Trip`}
 async function shareSummary(){const t=current();if(!t)return;const text=summary(t);try{if(navigator.share){await navigator.share({title:'D4 Trip - '+t.name,text});return}}catch(e){if(e.name==='AbortError')return}await navigator.clipboard?.writeText(text).catch(()=>{});toast('Summary copied (if permitted).')}
-function printReport(t){if(!t)return;const c=calculations(t),col=collectionTotals(t),ex=t.expenses.slice().sort((a,b)=>(a.date).localeCompare(b.date));const dayGroups=datesInTrip(t);const rows=(v)=>v||'<tr><td colspan="5">None</td></tr>';const table=(heads,rows)=>`<table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;let report=`<div class="print-report"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="color:#007d7b;font-size:13pt;font-weight:900">🧭 D4 TRIP</div><h1>${esc(t.name)}</h1><p>${esc(t.destination)} · ${fmtDate(t.start)} – ${fmtDate(t.end)}</p></div><div style="font-size:42pt">${t.emoji}</div></div><div class="summary"><div><b>Total Spent</b><h2 style="margin:6px 0">${money(c.total)}</h2></div><div><b>Members</b><h2 style="margin:6px 0">${t.members.length}</h2></div><div><b>Expense Bills</b><h2 style="margin:6px 0">${t.expenses.length}</h2></div><div><b>Trip Days</b><h2 style="margin:6px 0">${dayGroups.length}</h2></div></div>
-<section><h2>Group Trip Contributions · Paid / Pending</h2><p>Trip fee target ${money(col.each)} per person · ${money(col.paid)} received · ${money(col.pending)} pending</p>${table(['Member','Target','Received','Pending','Status'],col.rows.map(r=>`<tr><td>${esc(r.member)}</td><td>${money(r.target)}</td><td>${money(r.paid)}</td><td>${money(r.pending)}</td><td>${esc(r.status)}</td></tr>`).join(''))}<h3>Receipts log</h3>${table(['Date','Member','Amount','Method'],(t.collection?.payments||[]).map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.member)}</td><td>${money(x.amount)}</td><td>${esc(x.method||'Manual')}</td></tr>`).join('')||'<tr><td colspan="4">No contributions recorded</td></tr>')}</section><section><h2>1 · Day-wise Expense Records</h2>${table(['Date','Category / Description','Paid by','Payment','Amount'],rows(ex.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${esc(e.category)} — ${esc(e.note)}</td><td>${esc(e.paidBy)}</td><td>${esc(e.method)}</td><td>${money(e.amount)}</td></tr>`).join('')))}</section>
-<section><h2>2 · Category Summary</h2>${table(['Category','Total'],Object.entries(c.categories).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join(''))}</section>
-<section><h2>3 · Day-by-Day Totals</h2>${table(['Trip Day','Date','Spent'],dayGroups.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${fmtDate(d)}</td><td>${money(c.daily[d]||0)}</td></tr>`).join(''))}</section>
-<section><h2>6 · Trip Itinerary</h2>${table(['Date','Time','Activity','Location'],t.plans.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(p.time)}</td><td>${esc(p.title)} ${p.done?'✓':''}</td><td>${esc(p.place)}</td></tr>`).join(''))}</section>
-<section><h2>7 · Notes</h2>${t.notes.map(n=>`<p><b>${fmtDate(n.date)} — ${esc(n.by)}:</b> ${esc(n.text)}</p>`).join('')||'<p>No notes.</p>'}</section>
-<section><h2>8 · Uploaded Receipts & Files</h2>${[...ex.filter(e=>e.receipt).map(e=>({...e.receipt,desc:e.note})),...t.files.map(f=>({...f,desc:f.name}))].map(f=>`<div style="display:inline-block;vertical-align:top;margin:7px;width:155px"><div style="font-size:9pt">${esc(f.desc)}</div>${f.type.startsWith('image/')?`<img src="${f.data}" alt="${esc(f.name)}">`:'<div style="border:1px solid #ccc;padding:14px">📄 PDF attached in app</div>'}<div class="tiny">${esc(f.name)}</div></div>`).join('')||'<p>No receipts uploaded.</p>'}</section>
-<footer>D4 Trip • Generated ${new Date().toLocaleDateString('en-IN')} • Amounts in INR. Images included where available; PDF attachments must be shared separately. This is a locally created report.</footer></div>`;
-if(!ex.some(e=>e.receipt)&&!t.files.length)report=report.replace(/<section><h2>8 · Uploaded Receipts & Files<\/h2>[\s\S]*?<\/section>/,'');$('#printMount').innerHTML=report;setTimeout(()=>window.print(),250);}
+function printReport(t){
+ if(!t)return;
+ if(!window.D4ModernCardPDF){toast('PDF template is loading. Please refresh and try again.');return;}
+ const report=window.D4ModernCardPDF.render(t,calculations(t),collectionTotals(t),datesInTrip(t));
+ $('#printMount').innerHTML=report;
+ setTimeout(()=>window.print(),250);
+}
 function action(el){const id=el.dataset.action,t=current(),ctx=el.dataset.ctx;switch(id){
 case 'install-help':{const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);const msg=ios?'On iPhone: open this link in Safari, tap Share, then Add to Home Screen.':'On Android: open in Chrome, tap menu, then Install app or Add to Home screen.';alert('D4 Trip App Install\n\n'+msg+'\n\nTo sync between your own devices, open Settings and sign in to Firebase after it has been configured.');break;}
 case 'enter-app':go('home');break;
@@ -950,11 +950,12 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
 if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;db=value;persist();activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=45',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=46',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>
+<script src="./modern-card-pdf.js?build=46"></script>
 <script src="./premium-production.js?build=45"></script>
 <script src="./goa-milestones.js?build=29"></script>
 <script src="./reference-premium.js?build=44"></script>

@@ -36,7 +36,7 @@ for(const [asset,version] of [
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=45/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=46/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
