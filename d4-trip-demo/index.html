@@ -432,7 +432,7 @@ function goaPaymentBreakdown(t,c){const p=goaPaymentPlan(t);if(!p)return '';
  return '<section class="card d4-goa-breakdown"><h3>🚆 Train + Goa Package</h3><div class="d4-goa-breakdown-grid"><span>Train ticket · Paid</span><b>'+money(p.train)+'</b><span>Goa package</span><b>'+money(p.package)+'</b><span>Package advance · Paid</span><b>'+money(p.advance)+'</b><span>Total per person</span><b>'+money(p.total)+'</b><span>Standard paid</span><b>'+money(p.train+p.advance)+'</b><span>Standard pending</span><b>'+money(p.package-p.advance)+'</b></div><h4>Package includes</h4><ul>'+p.inclusions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><small>Exclusions not provided. Existing payment records are preserved; review recorded receipts before adding new payments.</small></section>';
 }
 function collectionTotals(t){
- const plan=goaPaymentPlan(t);
+ const plan=typeof goaPaymentPlan==='function'?goaPaymentPlan(t):null;
  const each=plan?plan.total*100:Math.max(0,Math.round(Number(t.collection?.targetPerPerson||0)*100));
  const items=(t.collection?.payments||[]);
  const rows=t.members.map(member=>{
