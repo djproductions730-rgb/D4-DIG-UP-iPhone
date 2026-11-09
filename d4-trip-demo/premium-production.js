@@ -346,7 +346,10 @@
     const t = current();
     if (!t) return original.tripPage();
     const sync=sharedSyncGuide(t);
-    if (tripTab === 'overview') return sync+tripOverview(t);
+    if (tripTab === 'overview') {
+      const hero=tripOverview(t);
+      return teamId?hero.replace('<span class="ref-palm" aria-hidden="true">🌴</span>','<span class="ref-palm" aria-hidden="true">🌴</span>'+sync):hero+sync;
+    }
     if (tripTab === 'plan') return sync+'<section class="d4p-section">' + tripPlan(t) + '</section>';
     if (tripTab === 'expenses') return sync+'<section class="d4p-section">' + tripExpenses(t) + '</section>';
     if (tripTab === 'members') return sync+'<section class="d4p-section">' + tripMembers(t) + '</section>';
