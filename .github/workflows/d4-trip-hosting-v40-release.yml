@@ -1,4 +1,4 @@
-name: D4 Trip Tickets Home Fix release
+name: D4 Trip Tickets Shortcut Release
 on:
   push:
     branches:
