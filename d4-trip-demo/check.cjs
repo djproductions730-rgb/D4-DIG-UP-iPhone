@@ -37,6 +37,8 @@ const inviteSyntax = spawnSync(process.execPath,['--input-type=module','--check'
 if(inviteSyntax.status!==0)throw Error(inviteSyntax.stderr);
 const inviteTests=spawnSync(process.execPath,['--test',path.join(dir,'team-invites/service.test.cjs')],{stdio:'inherit'});
 if(inviteTests.status!==0)process.exit(inviteTests.status||1);
+const goaTests=spawnSync(process.execPath,[path.join(dir,'goa-payment-v47.test.cjs')],{stdio:'inherit'});
+if(goaTests.status!==0)process.exit(goaTests.status||1);
 const modernPdfTests=spawnSync(process.execPath,['--test',path.join(dir,'modern-card-pdf.test.cjs')],{stdio:'inherit'});
 if(modernPdfTests.status!==0)process.exit(modernPdfTests.status||1);
 const journeyTests = spawnSync(process.execPath, ['--test',path.join(dir,'journey-completion.test.cjs')],{stdio:'inherit'});
