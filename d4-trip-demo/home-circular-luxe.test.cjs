@@ -64,16 +64,16 @@ test('collection amounts and member count come from live trip data, not previews
   assert.match(markup,/>16<\/b><small>Members/);
 });
 
-test('four 3D SVG buttons preserve existing trip navigation actions',()=>{
+test('six hero action buttons preserve existing trip navigation actions',()=>{
   const {show}=setup(),markup=show();
   const actions=markup.match(/<nav class="ref-hero-actions ref-luxe-actions"[\s\S]*?<\/nav>/)?.[0];
-  assert.ok(actions,'Premium four-card navigation must exist');
-  assert.equal((actions.match(/class="ref-action"/g)||[]).length,4);
-  assert.equal((actions.match(/class="ref-luxe-svg"/g)||[]).length,4);
-  for(const action of ['data-ctx="memories"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
+  assert.ok(actions,'Premium six-card navigation must exist');
+  assert.equal((actions.match(/class="ref-action"/g)||[]).length,6);
+  assert.equal((actions.match(/class="ref-luxe-svg"/g)||[]).length >= 5,true);
+  for(const action of ['data-ctx="plan"','data-view="tickets"','data-ctx="memories"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
     assert.ok(actions.includes(action),'Action missing: '+action);
   }
-  for(const title of ['Memories','Members','Payments','Expenses'])assert.ok(actions.includes(title));
+  for(const title of ['Day Plan','Tickets','Memories','Members','Payments','Expenses'])assert.ok(actions.includes(title));
   assert.match(actions,/<linearGradient/);
   assert.match(actions,/<feDropShadow/);
 });
@@ -97,8 +97,8 @@ test('responsive gold card layout loaded and PWA caches fresh JS and CSS',()=>{
   assert.match(css,/@media\(max-width:340px\)/);
   assert.match(css,/ref-luxe-actions \.ref-action-ico/);
   assert.match(css,/focus-visible|ref-action/);
-  assert.match(html,/reference-premium\.js\?build=44/);
+  assert.match(html,/reference-premium\.js\?build=58/);
   assert.match(html,/home-circular-luxe\.css\?build=42/);
-  assert.match(worker,/reference-premium\.js\?build=44/);
+  assert.match(worker,/reference-premium\.js\?build=58/);
   assert.match(worker,/home-circular-luxe\.css\?build=42/);
 });
