@@ -46,16 +46,16 @@ body.d4-premium .ref-luxe-home .ref-luxe-stats b{
 body.d4-premium .ref-luxe-home .ref-luxe-stats small{font-size:10px!important;color:#d6e4ea!important;line-height:1.3!important}
 body.d4-premium .ref-luxe-home .ref-hero-actions.ref-luxe-actions{
   display:grid!important;
-  grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  gap:11px!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:8px!important;
   margin:13px 0 18px!important;
 }
 body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action{
   position:relative!important;isolation:isolate!important;overflow:hidden!important;
   display:flex!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;
-  min-width:0!important;min-height:153px!important;
-  padding:14px 8px 12px!important;gap:4px!important;
-  border:1px solid #f4cb7da3!important;border-radius:23px!important;
+  min-width:0!important;min-height:118px!important;
+  padding:10px 3px 9px!important;gap:3px!important;
+  border:1px solid #f4cb7da3!important;border-radius:18px!important;
   background:
     radial-gradient(circle at 50% 10%,#729eb43a,transparent 66%),
     linear-gradient(150deg,#204a65,#092439 70%,#051726)!important;
@@ -75,19 +75,19 @@ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action::after{
 }
 body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action-ico{
   display:grid!important;place-items:center!important;
-  width:99px!important;height:99px!important;max-width:none!important;
+  width:72px!important;height:72px!important;max-width:none!important;
   border:none!important;border-radius:0!important;
   background:none!important;box-shadow:none!important;
   padding:0!important;overflow:visible!important;
   margin:0 auto!important;
 }
 body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action-ico .ref-luxe-svg{
-  display:block!important;width:93px!important;height:93px!important;
+  display:block!important;width:69px!important;height:69px!important;
   max-width:none!important;overflow:visible!important;
   filter:drop-shadow(0 8px 9px #0009)!important;
 }
 body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action strong{
-  color:#fff7e7!important;font-size:clamp(14px,4vw,20px)!important;
+  color:#fff7e7!important;font-size:clamp(11px,3vw,15px)!important;
   letter-spacing:-.03em!important;line-height:1.18!important;
   font-weight:950!important;margin-top:1px!important;
   text-shadow:0 3px 6px #0008!important;
@@ -220,4 +220,19 @@ body.d4-premium .ref-luxe-home .ref-hero-foot{
 }
 @media(prefers-reduced-motion:reduce){
   body.d4-premium .ref-luxe-home .ref-action{transition:none!important}
+}
+/* Three compact touch-friendly premium action tiles per row on iPhone and Android. */
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action[data-view="tickets"]{
+  border-color:#ffdc7e!important;
+  background:radial-gradient(circle at 50% 24%,#64427a80,transparent 65%),linear-gradient(155deg,#302253,#0b223a 75%)!important;
+  box-shadow:inset 0 2px #ffffff55,0 9px 20px #0009,0 0 15px #efbb6280!important;
+}
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action[data-view="tickets"] .ref-ticket-svg{
+  width:75px!important;height:75px!important;filter:drop-shadow(0 5px 5px #000a)!important;
+}
+@media(max-width:350px){
+ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action{min-height:105px!important}
+ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action-ico{width:60px!important;height:60px!important}
+ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action-ico .ref-luxe-svg{width:58px!important;height:58px!important}
+ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action strong{font-size:10px!important}
 }
