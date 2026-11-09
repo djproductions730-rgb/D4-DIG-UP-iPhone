@@ -163,6 +163,8 @@ body.d4-modal-open{position:fixed;width:100%;overflow:hidden;touch-action:none}
 @media(max-width:340px){.d4-bank-choice-grid{grid-template-columns:1fr}.d4-bank-choice{min-height:54px}}
 
 .d4-bank-choice-icon .bank-logo{width:32px!important;height:32px!important;padding:4px!important;border-radius:8px!important}.d4-bank-choice-icon .bank-logo img{object-fit:contain}.d4-bank-choice-icon{background:#fff!important}.d4-pluxee-logo{font-size:9px;font-weight:950;letter-spacing:-.6px;color:#006e4d;background:#fff;border-radius:5px;padding:4px 1px}
+
+.d4-px-transfer-summary{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(110deg,#06573f,#1d1c49)!important;border-color:#38df9a!important;margin:12px 0!important}.d4-px-transfer-summary strong{color:#fff;font-size:18px}.quick-tile[data-quick='pluxee-to-money']{background:linear-gradient(140deg,#034e38,#192c50)!important;border-color:#4bffa9!important}.quick-tile[data-quick='pluxee-to-money'] .quick-icon{background:#007c54!important;color:#fff!important}
 </style><link rel="stylesheet" href="./assets/savings-portraits.css"><style>.saving-picture{position:relative;width:min(100%,260px);margin:0 auto}.saving-picture .savings-portrait.large{width:100%;margin:0}.saving-dial{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 18px 18px;padding:18px 5px 7px;text-align:center;color:white;background:linear-gradient(transparent,#131926 40%)}.saving-wheel{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:-.08em}.saving-wheel>span,.saving-wheel i{display:block}.saving-wheel i{font-style:normal;height:1em}.saving-wheel>span{animation:savings-spin var(--duration) cubic-bezier(.18,.7,.22,1) forwards}@keyframes savings-spin{to{transform:translateY(var(--travel))}}.saving-dial small{display:block;font:700 10px system-ui;letter-spacing:.16em}.saving-dial strong{display:block;font:bold clamp(18px,6vw,30px) ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#ffda75;overflow-wrap:anywhere}</style><style>
 #d4-intro{display:none}
 html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(ellipse at center,#33235a,#100e1d 72%);animation:d4-exit 3.8s both}
@@ -607,7 +609,7 @@ const inc=summary.income,exp=summary.expense;
 let html=`<div class="d4-screen-intro"><div><h2>Finance Overview</h2><p>Track · Plan · Save · Grow</p></div><span class="d4-hero-art" aria-hidden="true">🪴</span></div><div class="hero px-home-balances"><div><small>🏦 Bank balance</small><strong>${bankAccounts.length?fmt(accountBalance(bankAccounts)):'Add your bank'}</strong><span>${bankAccounts.length} accounts</span></div><button type="button" onclick="go('pluxee')"><small>▣ Pluxee balance</small><strong>${fmt(accountBalance(pluxeeAccounts()))}</strong><span>Meal wallet ›</span></button></div>`;
 html+='<div class="split" style="margin:12px 0"><div class="smallstat"><div class="muted">↙ Income · This month</div><strong class="value" style="color:#08945a">'+fmt(inc)+'</strong></div><div class="smallstat"><div class="muted">↗ Expenses · This month</div><strong class="value" style="color:#df3e62">'+fmt(exp)+'</strong></div></div>';
 html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">One-tap access</span></div>';
-const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink'],['pluxee','▤','Pluxee Wallet','quick-purple'],['pluxee-credit','↙','Pluxee Income','quick-green'],['pluxee-spend','↗','Pluxee Spend','quick-pink']];
+const actions=[['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink'],['pluxee','▤','Pluxee Wallet','quick-purple'],['pluxee-credit','↙','Pluxee Income','quick-green'],['pluxee-spend','↗','Pluxee Spend','quick-pink'],['pluxee-to-money','💳','Pluxee to Money','quick-green']];
 html+='<div class="quick-grid">'+actions.map(([id,icon,name,theme])=>'<button type="button" class="quick-tile '+theme+'" data-quick="'+id+'" aria-label="'+tidy(name)+'"><span class="quick-icon" aria-hidden="true">'+icon+'</span><span class="quick-name">'+name+'</span></button>').join('')+'</div>';
 
 return html;
@@ -673,6 +675,28 @@ function bankChoiceButtons(selectId){
  select.insertAdjacentElement('afterend',grid);select.addEventListener('change',sync);sync();
 }
 function openTransaction(initialType='Expense'){if(!data.banks.length){alert('Add a bank account first.');openBankPicker();return;}showSheet('Add Transaction','<form id="txform"><label class="field">Bank Account</label><select class="input" id="txbank">'+data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('')+'</select><label class="field">Transaction Type</label><select class="input" id="txtype"><option>Expense</option><option>Income</option></select><label class="field">For what?</label><select class="input" id="txcat">'+Object.keys(cats).map(k=>'<option value="'+tidy(k)+'">'+categoryIcon(k)+' '+tidy(k)+'</option>').join('')+'</select><label class="field">Amount (₹)</label><input class="input" type="number" id="txamount" min="0.01" step="0.01" placeholder="Amount" required><label class="field">Notes · What did you spend on?</label><textarea class="input" id="txnote" maxlength="500" placeholder="e.g. Lunch with family"></textarea><button class="button" type="submit" style="width:100%">Save Transaction</button></form>');bankChoiceButtons('txbank');document.getElementById('txtype').value=initialType==='Income'?'Income':'Expense';document.getElementById('txform').onsubmit=e=>{e.preventDefault();const id=document.getElementById('txbank').value,b=data.banks.find(b=>String(b.id)===id),amount=Number(document.getElementById('txamount').value),type=document.getElementById('txtype').value,category=document.getElementById('txcat').value,note=document.getElementById('txnote').value.trim();if(!b||!Number.isFinite(amount)||amount<=0)return alert('Invalid transaction');const balanceBefore=Number(b.balance);b.balance=balanceBefore+(type==='Expense'?-amount:amount);data.entries.push({bankId:b.id,type,amount,category,note,balanceBefore,balanceAfter:Number(b.balance),created:new Date().toISOString()});closeSheet();tab='transactions';save()}}
+function openPluxeeToMoney(){
+ const sources=pluxeeAccounts(),targets=data.banks.filter(b=>!isPluxeeAccount(b));
+ if(!sources.length){alert('Please add a Pluxee wallet first.');go('pluxee');return}
+ if(!targets.length){alert('Please add a bank account first.');openBankPicker();return}
+ const options=targets.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('');
+ showSheet('Pluxee to Money','<p class="muted">Track a transfer from your Pluxee wallet to a bank account. This does not send real money.</p><div class="card d4-px-transfer-summary"><span>▣ Pluxee Balance</span><strong>'+fmt(accountBalance(sources))+'</strong></div><form id="pluxee-to-money-form"><label class="field" for="pxmoneybank">Select destination bank</label><select id="pxmoneybank" class="input" required>'+options+'</select><label class="field" for="pxmoneyamount">Transfer amount (₹)</label><input id="pxmoneyamount" class="input" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Enter amount" required><label class="field" for="pxmoneynote">Note (optional)</label><input id="pxmoneynote" class="input" maxlength="150" placeholder="Pluxee to bank"><button class="button" type="submit">Save Pluxee Transfer</button></form>');
+ bankChoiceButtons('pxmoneybank');
+ document.getElementById('pluxee-to-money-form').onsubmit=e=>{
+  e.preventDefault();
+  const to=data.banks.find(b=>String(b.id)===document.getElementById('pxmoneybank').value);
+  const amount=Number(document.getElementById('pxmoneyamount').value);
+  const note=document.getElementById('pxmoneynote').value.trim();
+  if(!to||isPluxeeAccount(to)||!Number.isFinite(amount)||amount<=0){alert('Select a valid bank and amount.');return}
+  const source=sources[0],available=accountBalance(sources);
+  if(amount>available){alert('Insufficient Pluxee balance.');return}
+  const beforeFrom=Number(source.balance)||0,beforeTo=Number(to.balance)||0;
+  source.balance=Math.round((beforeFrom-amount)*100)/100;
+  to.balance=Math.round((beforeTo+amount)*100)/100;
+  data.entries.push({id:'pluxee-bank-'+Date.now(),bankId:source.id,toBankId:to.id,bank:source.name,fromBank:source.name,toBank:to.name,type:'Transfer',amount,category:'Transfer',note:note||'Pluxee to '+to.name,balanceBefore:beforeFrom,balanceAfter:source.balance,created:new Date().toISOString()});
+  closeSheet();save();
+ };
+}
 function openTransfer(){
 if(data.banks.length<2){alert('Add two bank accounts to transfer between your accounts.');openBankPicker();return;}
 const opts=data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('');
@@ -713,6 +737,7 @@ case 'bank':openBankPicker();break;
 case 'history':go('transactions');break;
 case 'loans':go('loans');break;
 case 'pluxee':go('pluxee');break;
+case 'pluxee-to-money':openPluxeeToMoney();break;
 case 'pluxee-credit':
 case 'pluxee-spend':pxUnit='Day';pxOffset=0;go('pluxee');openPluxee(quick.dataset.quick==='pluxee-credit'?'Income':'Expense');break;
 }return;}
