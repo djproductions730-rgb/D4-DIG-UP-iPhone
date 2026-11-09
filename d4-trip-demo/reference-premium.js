@@ -96,12 +96,12 @@
         '<div><span class="ref-luxe-stat-icon">'+luxeIcon('check')+'</span><b>'+money(c.paid)+'</b><small>Received</small></div>'+
         '<div><span class="ref-luxe-stat-icon">'+luxeIcon('hourglass')+'</span><b>'+money(c.pending)+'</b><small>Pending</small></div></div>'+
       '<nav class="ref-hero-actions ref-luxe-actions" aria-label="Main trip sections">'+
+        iconButton(luxeIcon('calendar'),'Day Plan','open-tab','data-ctx="plan"')+
+        iconButton('🎟️','Tickets','nav','data-view="tickets"')+
         iconButton(luxeIcon('memories'),'Memories','open-tab','data-ctx="memories"')+
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
-        iconButton(luxeIcon('expenses'),'Expenses','nav','data-view="expenses"')+
-        iconButton(luxeIcon('calendar'),'Day Plan','open-tab','data-ctx="plan"')+
-        iconButton('🎟️','Tickets','nav','data-view="tickets"')+'</nav>'+
+        iconButton(luxeIcon('expenses'),'Expenses','nav','data-view="expenses"')+'</nav>'+
       '<section class="ref-luxe-tracker" aria-label="Trip payments circular tracker">'+
         '<div class="ref-luxe-tracker-title"><span class="ref-luxe-coins">'+luxeIcon('coins')+'</span><h3>Trip Payments</h3><span class="ref-luxe-tracker-tag">'+pc+'%</span></div>'+
         '<div class="ref-luxe-money-grid">'+
