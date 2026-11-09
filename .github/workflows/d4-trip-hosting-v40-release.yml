@@ -1,4 +1,4 @@
-name: D4 Trip v53 AI Journey Completion Hosting release
+name: D4 Trip Tickets section Hosting release
 on:
   push:
     branches:
