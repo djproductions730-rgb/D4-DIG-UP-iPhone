@@ -414,7 +414,7 @@ function collectionMemberTotalSave(t,member,value){
   if(!Array.isArray(t.collection.payments))t.collection.payments=[];
   t.collection.payments.push({
    id:uid(),member,amount:difference/100,method:'Manual',date:today(),by:profile,
-   adjustment:true,goaIncremental:!!goaPaymentPlan(t),previousPaid:oldCents/100,newPaid:cents/100,
+   adjustment:true,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),previousPaid:oldCents/100,newPaid:cents/100,
    note:'Corrected total paid from '+money(oldCents/100)+' to '+money(cents/100)
   });
  });
@@ -501,7 +501,7 @@ function collectionSave(t,member,value,method='Manual',note=''){
  if(!Number.isFinite(amount)||cents<=0||cents>10000000000)throw Error('Enter a valid amount above ₹0');const previous=collectionTotals(t).rows.find(r=>r.member===member);if(previous?.target>0&&cents>Math.round(previous.pending*100))throw Error('Amount exceeds remaining '+money(previous.pending)+'. Edit the trip target or previous payment first.');
  if(!t.collection)t.collection={targetPerPerson:0,payments:[]};
  if(!Array.isArray(t.collection.payments))t.collection.payments=[];
- t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile,goaIncremental:!!goaPaymentPlan(t)});
+ t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t))});
  if(!persist()){t.collection.payments.pop();throw Error('Storage full; payment not saved')}
  return collectionTotals(t);
 }
