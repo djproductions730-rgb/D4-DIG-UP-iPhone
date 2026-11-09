@@ -25,7 +25,7 @@ for(const [asset,version] of [
   ['goa-milestones.js',29],
   ['obsidian-luxe.css',34],
   ['reference-premium.css',41],
-  ['reference-premium.js',44],
+  ['reference-premium.js',58],
   ['install-app.js',38],
   ['install-app.css',38],
   ['payment-roster.css',40],
