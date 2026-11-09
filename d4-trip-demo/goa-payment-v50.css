@@ -1,0 +1,13 @@
+/* v50: user requested white readable text on the blue report card */
+.report-sheet .d4-goa-breakdown,.compact-collection .d4-goa-breakdown,.d4-goa-breakdown{display:block!important;background:#173e63!important;background-image:none!important;border:2px solid #69a8d5!important;border-radius:20px!important;color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;filter:none!important;text-shadow:none!important;box-shadow:0 8px 22px rgba(0,0,0,.2)!important;padding:18px!important;line-height:1.6!important}
+.report-sheet .d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small,summary),.compact-collection .d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small,summary),.d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small,summary){color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important;filter:none!important;text-shadow:none!important}
+.d4-goa-breakdown h3{font-size:19px!important;font-weight:900!important;line-height:1.4!important;margin:0 0 16px!important}
+.d4-goa-breakdown h4{font-size:16px!important;font-weight:800!important}
+.d4-goa-breakdown-grid{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:12px!important}
+.d4-goa-breakdown-grid span{font-size:13px!important;font-weight:650!important}
+.d4-goa-breakdown-grid b{font-size:15px!important;font-weight:900!important;white-space:nowrap!important;text-align:right!important}
+.d4-goa-breakdown details{border-top:1px solid #81a7c8;margin-top:16px;padding-top:10px}.d4-goa-breakdown summary{cursor:pointer;font-weight:800!important}.d4-goa-breakdown li{font-size:13px!important;margin:7px 0!important}
+.d4-goa-breakdown .notice{background:#28587c!important;color:#fff!important;border:1px solid #8fb4d2!important;-webkit-text-fill-color:#fff!important}
+.d4-goa-dashboard-mini{display:grid;gap:8px;margin:10px 0}.d4-goa-dashboard-mini strong{background:#173e63;color:#fff;-webkit-text-fill-color:#fff;padding:10px 12px;border-radius:12px;font-size:13px}
+.cc-reset{padding:10px 12px;background:#fff;color:#8b2635;border:1px solid #dbaab1;border-radius:12px;font-weight:800}
+@media print{.d4-goa-breakdown{break-inside:avoid!important;background:#fff!important;color:#10283c!important;-webkit-text-fill-color:#10283c!important}.d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small,summary){color:#10283c!important;-webkit-text-fill-color:#10283c!important}}
