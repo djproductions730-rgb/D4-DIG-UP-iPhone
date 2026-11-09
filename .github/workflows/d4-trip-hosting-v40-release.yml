@@ -50,7 +50,7 @@ jobs:
           ]) assert.ok(html.includes('./'+asset),'Missing release asset '+asset);
           for (const file of ['journey-completion.js','journey-completion.css',
             'milestone-day1.svg','milestone-day2.svg','milestone-day3.svg',
-            'modern-card-pdf.js','modern-card-pdf.css','report-readability.css','goa-payment-v48.css']){
+            'modern-card-pdf.js','modern-card-pdf.css','report-readability.css','goa-payment-v47.css']){
             assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
           }
           console.log('PASS: v48 Hosting-only build and AI milestone illustrations');
@@ -91,7 +91,7 @@ jobs:
               continue
             fi
             status=0
-            for file in goa-payment-v48.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
+            for file in goa-payment-v47.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
               curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-$file" || { status=1; break; }
               if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-$file"; then
                 echo "Mismatch in LIVE file: $file"
@@ -103,7 +103,7 @@ jobs:
               grep -Fq 'journey-completion.js?build=45' /tmp/d4-live-index.html
               grep -Fq 'modern-card-pdf.js?build=46' /tmp/d4-live-index.html
               grep -Fq 'report-readability.css?build=46' /tmp/d4-live-index.html
-              grep -Fq 'goa-payment-v48.css?build=47' /tmp/d4-live-index.html
+              grep -Fq 'goa-payment-v47.css?build=47' /tmp/d4-live-index.html
               grep -Fq 'journey-completion.css?build=43' /tmp/d4-live-index.html
               echo "PASS: v48 AI trip milestone/finish flow is LIVE, exact content verified."
               exit 0
