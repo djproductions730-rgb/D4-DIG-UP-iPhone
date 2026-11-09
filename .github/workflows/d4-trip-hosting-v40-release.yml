@@ -1,4 +1,4 @@
-name: D4 Trip Goa 12 Train Tickets Report Release
+name: D4 Trip Fix Train Tickets 12 Label Release
 on:
   push:
     branches:
