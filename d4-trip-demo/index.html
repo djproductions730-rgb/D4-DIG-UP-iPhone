@@ -648,26 +648,26 @@ function d4TicketsPage(){
  const sum=directional.reduce((n,x)=>n+Number(x.price||0),0),paidSum=directional.filter(x=>x.status==='paid').reduce((n,x)=>n+Number(x.price||0),0);
  const icon={train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[d4SelectedTransport]||item[1];
  const directionLabel=d4TicketDirection==='up'?'Up Ticket · Going':'Down Ticket · Return';
- return \`<section class="d4-ticket-page d4-ticket-v62">
+ return `<section class="d4-ticket-page d4-ticket-v62">
  <button class="btn ghost small" data-action="nav" data-view="home">← Home</button>
  <div class="d4-ticket-premium-head"><b>✦ D4 <i>Trip</i></b><span>YOUR TRAVEL TICKETS</span></div>
- <div class="d4-ticket-modes">\${d4TransportModes.map(x=>\`<button class="d4-ticket-mode \${x[0]===d4SelectedTransport?'selected':''}" data-action="d4-ticket-mode" data-mode="\${x[0]}" aria-pressed="\${x[0]===d4SelectedTransport}"><span>\${{train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[x[0]]}</span><b>\${x[2]}</b></button>\`).join('')}</div>
+ <div class="d4-ticket-modes">${d4TransportModes.map(x=>`<button class="d4-ticket-mode ${x[0]===d4SelectedTransport?'selected':''}" data-action="d4-ticket-mode" data-mode="${x[0]}" aria-pressed="${x[0]===d4SelectedTransport}"><span>${{train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[x[0]]}</span><b>${x[2]}</b></button>`).join('')}</div>
  <div class="d4-ticket-stage d4-ticket-stage-premium">
- <div class="d4-ticket-hero-label">🎟️ \${item[2]} Tickets</div>
- <div class="d4-ticket-hero-counts"><div class="d4-paid-number"><small>✓ PAID</small><strong>\${paid}</strong></div><div class="d4-unpaid-number"><small>⌛ UNPAID</small><strong>\${unpaid}</strong></div></div>
- <div class="d4-ticket-vehicle" aria-label="\${item[2]}">\${icon}</div>
- <div class="d4-ticket-hero-caption">\${esc(directionLabel)} · \${directional.length} saved tickets</div></div>
+ <div class="d4-ticket-hero-label">🎟️ ${item[2]} Tickets</div>
+ <div class="d4-ticket-hero-counts"><div class="d4-paid-number"><small>✓ PAID</small><strong>${paid}</strong></div><div class="d4-unpaid-number"><small>⌛ UNPAID</small><strong>${unpaid}</strong></div></div>
+ <div class="d4-ticket-vehicle" aria-label="${item[2]}">${icon}</div>
+ <div class="d4-ticket-hero-caption">${esc(directionLabel)} · ${directional.length} saved tickets</div></div>
  <div class="d4-ticket-stats">
- <div><span>👥</span><small>Total Tickets</small><strong>\${directional.length}</strong></div>
- <div><span>🎟️</span><small>Ticket Price</small><strong>\${directional.length?money(sum/directional.length):money(0)}</strong></div>
- <div><span>💰</span><small>Total Amount</small><strong>\${money(sum)}</strong></div>
- <div><span>✅</span><small>Paid Amount</small><strong>\${money(paidSum)}</strong></div></div>
- \${admin?\`<div class="d4-ticket-admin-actions"><button class="btn sun" data-action="d4-ticket-add">＋ Add Ticket</button><button class="btn mint" data-action="d4-ticket-add">☁ Upload Ticket</button><button class="btn ghost" data-action="d4-ticket-manage">✎ Edit Tickets</button></div>\`:''}
- <div class="d4-ticket-directions" role="group" aria-label="Ticket journey direction"><button class="\${d4TicketDirection==='up'?'active':''}" data-action="d4-ticket-direction" data-direction="up" aria-pressed="\${d4TicketDirection==='up'}">↑ Up Ticket <small>Going</small></button><button class="\${d4TicketDirection==='down'?'active':''}" data-action="d4-ticket-direction" data-direction="down" aria-pressed="\${d4TicketDirection==='down'}">↓ Down Ticket <small>Return</small></button></div>
- <section class="d4-ticket-library"><div class="d4-ticket-library-heading"><h3>🎟️ Your Tickets</h3><button class="btn ghost small" data-action="d4-ticket-files">\${d4TicketListOpen?'Hide':'Show'}</button></div>
- <div class="d4-ticket-filters">\${[['all','All'],['paid','Paid'],['unpaid','Unpaid']].map(x=>\`<button data-action="d4-ticket-filter" data-filter="\${x[0]}" class="\${d4TicketPaymentFilter===x[0]?'active':''}">\${x[1]} (\${x[0]==='all'?directional.length:directional.filter(y=>y.status===x[0]).length})</button>\`).join('')}</div>
- \${d4TicketListOpen?(filtered.length?filtered.map(x=>\`<article class="d4-ticket-entry"><span class="d4-ticket-entry-icon">\${icon}</span><div class="d4-ticket-entry-detail"><b>\${esc(x.title)}</b><p>📅 \${esc(x.date||'No date')} · \${money(Number(x.price||0))}</p><span class="\${x.status==='paid'?'d4-ticket-ok':'d4-ticket-due'}">\${x.status==='paid'?'✓ Paid':'⌛ Unpaid'}</span></div><div class="d4-ticket-entry-actions">\${x.attachment?.data?\`<button class="btn small ghost" data-action="d4-ticket-view" data-id="\${esc(x.id)}" aria-label="View ticket">👁</button>\`:''}\${admin?\`<button class="btn small ghost" data-action="d4-ticket-edit" data-id="\${esc(x.id)}" aria-label="Edit ticket">✎</button><button class="btn small ghost" data-action="d4-ticket-delete" data-id="\${esc(x.id)}" aria-label="Delete ticket">🗑</button>\`:''}</div></article>\`).join(''):'<p class="d4-ticket-empty">No \${d4TicketDirection==='up'?'going':'return'} tickets \${d4TicketPaymentFilter==='all'?'uploaded yet':'in this status'}.</p>'):'<p class="d4-ticket-empty">Tap Show to view your saved tickets.</p>'}</section>
- \${!t?'<p class="muted">Open a trip to view its tickets.</p>':''}</section>\`;
+ <div><span>👥</span><small>Total Tickets</small><strong>${directional.length}</strong></div>
+ <div><span>🎟️</span><small>Ticket Price</small><strong>${directional.length?money(sum/directional.length):money(0)}</strong></div>
+ <div><span>💰</span><small>Total Amount</small><strong>${money(sum)}</strong></div>
+ <div><span>✅</span><small>Paid Amount</small><strong>${money(paidSum)}</strong></div></div>
+ ${admin?`<div class="d4-ticket-admin-actions"><button class="btn sun" data-action="d4-ticket-add">＋ Add Ticket</button><button class="btn mint" data-action="d4-ticket-add">☁ Upload Ticket</button><button class="btn ghost" data-action="d4-ticket-manage">✎ Edit Tickets</button></div>`:''}
+ <div class="d4-ticket-directions" role="group" aria-label="Ticket journey direction"><button class="${d4TicketDirection==='up'?'active':''}" data-action="d4-ticket-direction" data-direction="up" aria-pressed="${d4TicketDirection==='up'}">↑ Up Ticket <small>Going</small></button><button class="${d4TicketDirection==='down'?'active':''}" data-action="d4-ticket-direction" data-direction="down" aria-pressed="${d4TicketDirection==='down'}">↓ Down Ticket <small>Return</small></button></div>
+ <section class="d4-ticket-library"><div class="d4-ticket-library-heading"><h3>🎟️ Your Tickets</h3><button class="btn ghost small" data-action="d4-ticket-files">${d4TicketListOpen?'Hide':'Show'}</button></div>
+ <div class="d4-ticket-filters">${[['all','All'],['paid','Paid'],['unpaid','Unpaid']].map(x=>`<button data-action="d4-ticket-filter" data-filter="${x[0]}" class="${d4TicketPaymentFilter===x[0]?'active':''}">${x[1]} (${x[0]==='all'?directional.length:directional.filter(y=>y.status===x[0]).length})</button>`).join('')}</div>
+ ${d4TicketListOpen?(filtered.length?filtered.map(x=>`<article class="d4-ticket-entry"><span class="d4-ticket-entry-icon">${icon}</span><div class="d4-ticket-entry-detail"><b>${esc(x.title)}</b><p>📅 ${esc(x.date||'No date')} · ${money(Number(x.price||0))}</p><span class="${x.status==='paid'?'d4-ticket-ok':'d4-ticket-due'}">${x.status==='paid'?'✓ Paid':'⌛ Unpaid'}</span></div><div class="d4-ticket-entry-actions">${x.attachment?.data?`<button class="btn small ghost" data-action="d4-ticket-view" data-id="${esc(x.id)}" aria-label="View ticket">👁</button>`:''}${admin?`<button class="btn small ghost" data-action="d4-ticket-edit" data-id="${esc(x.id)}" aria-label="Edit ticket">✎</button><button class="btn small ghost" data-action="d4-ticket-delete" data-id="${esc(x.id)}" aria-label="Delete ticket">🗑</button>`:''}</div></article>`).join(''):'<p class="d4-ticket-empty">No ${d4TicketDirection==='up'?'going':'return'} tickets ${d4TicketPaymentFilter==='all'?'uploaded yet':'in this status'}.</p>'):'<p class="d4-ticket-empty">Tap Show to view your saved tickets.</p>'}</section>
+ ${!t?'<p class="muted">Open a trip to view its tickets.</p>':''}</section>`;
 }
 
 function home(){const vt=visibleTrips(),t=current(),totalExpenses=totalAll(),pending=vt.reduce((s,x)=>s+collectionTotals(x).pending,0);
