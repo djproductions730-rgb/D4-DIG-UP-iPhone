@@ -1,0 +1,11 @@
+/* v49: report is inside a dark themed mobile app; enforce a high contrast light island. */
+.report-sheet .d4-goa-breakdown,.d4-goa-breakdown{display:block!important;background:#ffffff!important;color:#10283c!important;border:2px solid #b8d3e7!important;box-shadow:none!important;opacity:1!important;filter:none!important;border-radius:18px!important;padding:18px!important;line-height:1.55!important;text-shadow:none!important}
+.report-sheet .d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small),.d4-goa-breakdown :is(h3,h4,p,strong,span,b,li,small){color:#10283c!important;opacity:1!important;filter:none!important;text-shadow:none!important;-webkit-text-fill-color:#10283c!important}
+.report-sheet .d4-goa-breakdown h3,.d4-goa-breakdown h3{font-size:19px!important;font-weight:900!important;line-height:1.4!important}
+.report-sheet .d4-goa-breakdown h4,.d4-goa-breakdown h4{font-size:16px!important;font-weight:800!important;margin:16px 0 8px!important}
+.report-sheet .d4-goa-breakdown-grid,.d4-goa-breakdown-grid{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;align-items:center!important}
+.report-sheet .d4-goa-breakdown-grid span,.d4-goa-breakdown-grid span{font-size:13px!important;font-weight:600!important}
+.report-sheet .d4-goa-breakdown-grid b,.d4-goa-breakdown-grid b{font-size:15px!important;font-weight:900!important;text-align:right!important;white-space:nowrap!important}
+.report-sheet .d4-goa-breakdown li,.d4-goa-breakdown li{font-size:13px!important;margin:6px 0!important}
+.report-sheet .d4-goa-breakdown .notice,.d4-goa-breakdown .notice{color:#17374e!important;background:#eaf4fc!important;border:1px solid #b8d3e7!important}
+@media print{.d4-goa-breakdown{break-inside:avoid!important;box-shadow:none!important}}
