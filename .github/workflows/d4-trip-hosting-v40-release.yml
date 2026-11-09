@@ -1,4 +1,4 @@
-name: D4 Trip v51 AI Journey Completion Hosting release
+name: D4 Trip v53 AI Journey Completion Hosting release
 on:
   push:
     branches:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: d4-trip-v51-hosting-release
+  group: d4-trip-v53-hosting-release
   cancel-in-progress: false
 
 jobs:
@@ -53,7 +53,7 @@ jobs:
             'modern-card-pdf.js','modern-card-pdf.css','report-readability.css','goa-payment-v50.css','goa-train-v51.css']){
             assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
           }
-          console.log('PASS: v51 Hosting-only build and AI milestone illustrations');
+          console.log('PASS: v53 Hosting-only build and AI milestone illustrations');
           NODE
 
       - name: Verify approved keyless GitHub deployment identity
@@ -84,14 +84,14 @@ jobs:
           set -euo pipefail
           URL="https://d4-trip.web.app"
           for attempt in {1..12}; do
-            echo "Verify LIVE v51 attempt: $attempt"
+            echo "Verify LIVE v53 attempt: $attempt"
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}" -o /tmp/d4-live-index.html || true
             if ! cmp -s d4-trip-demo/index.html /tmp/d4-live-index.html; then
               sleep 5
               continue
             fi
             status=0
-            for file in goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
+            for file in goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
               curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-$file" || { status=1; break; }
               if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-$file"; then
                 echo "Mismatch in LIVE file: $file"
@@ -105,8 +105,9 @@ jobs:
               grep -Fq 'report-readability.css?build=46' /tmp/d4-live-index.html
               grep -Fq 'goa-payment-v50.css?build=50' /tmp/d4-live-index.html
               grep -Fq 'goa-train-v51.css?build=51' /tmp/d4-live-index.html
+              grep -Fq 'goa-train-v53.css?build=53' /tmp/d4-live-index.html
               grep -Fq 'journey-completion.css?build=43' /tmp/d4-live-index.html
-              echo "PASS: v51 AI trip milestone/finish flow is LIVE, exact content verified."
+              echo "PASS: v53 AI trip milestone/finish flow is LIVE, exact content verified."
               exit 0
             fi
             sleep 5
