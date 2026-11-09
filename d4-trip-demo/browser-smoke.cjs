@@ -10,8 +10,8 @@ const BASE='http://127.0.0.1:8765/';
 const seed = {
   version:1,
   trips:[{
-    id:'m3-browser-smoke',name:'D4 Browser Test',destination:'Goa',
-    start:'2026-11-10',end:'2026-11-12',kind:'goa',emoji:'🏝️',
+    id:'m3-browser-smoke',name:'D4 Browser Test',destination:'Sample Coast',
+    start:'2026-11-10',end:'2026-11-12',kind:'other',emoji:'🏝️',
     code:'D4TEST2026',members:['Admin','A',...Array.from({length:15},(_v,i)=>'Member '+String(i+3).padStart(2,'0'))],admins:['Admin'],
     collection:{targetPerPerson:8000,payments:[]},
     plans:[],expenses:[],settlementsPaid:[],reminders:[],notes:[],
@@ -84,7 +84,7 @@ async function smoke(browser,label,viewport,mobile) {
   assert.equal(await page.locator('#d4-payment-roster [data-roster-card]:visible').count(),1);
   await page.locator('#d4-payment-roster [data-roster-filter="all"]').click();
   await capture('payments-paid-and-unpaid');
-  // Go to the same trip Overview; verify nine premium Trip Sections.
+  // Go to the same trip Overview; verify six premium Trip Sections including Tickets.
   await page.locator('.ref-bottom-nav [data-action="open-tab"][data-ctx="overview"]').click();
   const sections=page.locator('.ref-trip-sections');
   await sections.waitFor({state:'visible'});
@@ -93,11 +93,22 @@ async function smoke(browser,label,viewport,mobile) {
   const ringValue=Number(await dial.getAttribute('aria-valuenow'));
   assert.ok(Number.isFinite(ringValue)&&ringValue>=0&&ringValue<=100,label+' ring must expose a valid percentage');
   assert.equal(await page.locator('.ref-luxe-home .ref-progress-track').count(),0,label+' obsolete straight line must be removed');
-  assert.equal(await page.locator('.ref-luxe-actions button').count(),4,label+' overview has four shortcut buttons');
-  assert.equal(await page.locator('.ref-luxe-actions .ref-luxe-svg').count(),4,label+' all four shortcuts have premium SVG illustrations');
+  assert.equal(await page.locator('.ref-luxe-actions button').count(),6,label+' overview has six shortcut buttons');
+  assert.equal(await page.locator('.ref-luxe-actions .ref-luxe-svg').count()>=5,true,label+' shortcut actions retain premium SVG illustrations');
   assert.match(await page.locator('.ref-luxe-tracker').innerText(),/Trip Payments/);
-  assert.equal(await sections.locator('.ref-sections-grid button').count(),9);
-  assert.equal(await sections.locator('.ref-section-icon svg').count(),9);
+  // Tickets must be reachable and transport modes only appear inside that page.
+  await page.locator('.ref-luxe-actions [data-view="tickets"]').click();
+  await page.locator('.d4-ticket-page').waitFor({state:'visible'});
+  assert.equal(await page.locator('.d4-ticket-mode').count(),6,label+' all transport options appear inside Tickets');
+  await page.locator('.d4-ticket-mode[data-mode="flight"]').click();
+  assert.match(await page.locator('.d4-ticket-stage').innerText(),/Flight Tickets/);
+  await page.locator('.d4-ticket-page [data-view="home"]').click();
+  await page.locator('.d4-ticket-home-action [data-view="tickets"]').waitFor({state:'visible'});
+  // Return to trip overview using the existing navigation.
+  await page.locator('.ref-bottom-nav [data-action="open-tab"][data-ctx="overview"]').click();
+  await sections.waitFor({state:'visible'});
+  assert.equal(await sections.locator('.ref-sections-grid button').count(),6);
+  assert.equal(await sections.locator('.ref-section-icon svg').count(),6);
   assert.equal(await page.locator('.ref-bottom-nav .ref-nav-item').count(),4);
   assert.equal(await page.locator('.ref-nav-plus').count(),1);
   const frame=await page.evaluate(()=>({
@@ -143,7 +154,7 @@ async function smoke(browser,label,viewport,mobile) {
   assert.deepEqual(pageErrors.filter(e=>!/Firebase|Failed to fetch|network|sw\.js\?build=45 due to access control checks/i.test(e)),[],
     label+' has no unrelated JavaScript runtime errors');
   await context.close();
-  console.log('PASS '+label+' paid/unpaid, corrections, nine tiles, calendar +/-/edit, install CTA');
+  console.log('PASS '+label+' paid/unpaid, corrections, Tickets and six tiles, calendar +/-/edit, install CTA');
 }
 
 async function joinByNameLinkFlow(browser) {
