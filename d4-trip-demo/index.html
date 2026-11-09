@@ -414,7 +414,7 @@ function collectionMemberTotalSave(t,member,value){
   if(!Array.isArray(t.collection.payments))t.collection.payments=[];
   t.collection.payments.push({
    id:uid(),member,amount:difference/100,method:'Manual',date:today(),by:profile,
-   adjustment:true,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),previousPaid:oldCents/100,newPaid:cents/100,
+   adjustment:true,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),goaResetV50:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),previousPaid:oldCents/100,newPaid:cents/100,
    note:'Corrected total paid from '+money(oldCents/100)+' to '+money(cents/100)
   });
  });
