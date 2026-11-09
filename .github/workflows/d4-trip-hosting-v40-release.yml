@@ -1,4 +1,4 @@
-name: D4 Trip Upgrade Sync Button Release
+name: D4 Trip Upgrade Sync Button Verified Release
 on:
   push:
     branches:
