@@ -50,8 +50,8 @@
   function sharedSyncGuide(t) {
     if (!t) return '';
     if (teamId) {
-      return '<section class="d4-team-sync-guide shared d4-sync-minimal" aria-label="Refresh shared trip data">'+
-        '<button type="button" class="d4-refresh-mini" data-team="refresh-shared" aria-label="Refresh shared trip data" title="Refresh shared trip data">↻</button></section>';
+      return '<section class="d4-team-sync-guide shared d4-sync-minimal" aria-label="Upgrade and sync trip">'+
+        '<button type="button" class="d4-refresh-mini d4-upgrade-btn" data-team="refresh-shared" aria-label="Upgrade: sync latest trip data" title="Upgrade: sync latest trip data"><span aria-hidden="true">⬆</span><strong>Upgrade</strong></button></section>';
     }
     if (!isMain()) return '<section class="d4-team-sync-guide private"><strong>📱 Device-only trip</strong><p>This local copy does not automatically show changes to other devices. Open an approved Firebase shared trip link to view the group trip.</p></section>';
     return '<section class="d4-team-sync-guide private" aria-label="Device-only trip notice">'+
