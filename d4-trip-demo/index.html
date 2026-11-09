@@ -426,34 +426,37 @@ function collectionMemberTotalSave(t,member,value){
 function goaPaymentPlan(t){
  const goa=/goa/i.test(String(t.destination||'')+' '+String(t.name||''));
  if(!goa)return null;
- return {train:1150,package:8500,advance:1000,total:9650,fullNames:['blessy','deepak'],inclusions:['Railway station / airport pickup and drop by car','2 nights / 3 days in a 3-star property (5 rooms)','5 scooters and rental car for 3 days','2 dinners, 2 breakfasts, 1 lunch','One day water activities','One night dinner cruise party','24/7 personal tour assistance']};
+ return {train:1150,package:8500,advance:1000,total:8500,expectedMembers:16,fullNames:['blessy','deepak'],inclusions:['Railway station / airport pickup and drop by car','2 nights / 3 days in a 3-star property (5 rooms)','5 scooters and rental car for 3 days','2 dinners, 2 breakfasts, 1 lunch','One day water activities','One night dinner cruise party','24/7 personal tour assistance']};
 }
 function goaPaymentBreakdown(t,c){const p=goaPaymentPlan(t);if(!p)return '';
- return '<section class="card d4-goa-breakdown"><h3>🚆 Train + Goa Package</h3><div class="d4-goa-breakdown-grid"><span>Train ticket · Paid</span><b>'+money(p.train)+'</b><span>Goa package</span><b>'+money(p.package)+'</b><span>Package advance · Paid</span><b>'+money(p.advance)+'</b><span>Total per person</span><b>'+money(p.total)+'</b><span>Standard paid</span><b>'+money(p.train+p.advance)+'</b><span>Standard pending</span><b>'+money(p.package-p.advance)+'</b></div><h4>Package includes</h4><ul>'+p.inclusions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><small>Exclusions not provided. Existing payment records are preserved; review recorded receipts before adding new payments.</small></section>';
+ const n=p.expectedMembers,trainTotal=n*p.train,advanceTotal=n*p.advance;
+ return '<section class="card d4-goa-breakdown"><h3>🏝️ Goa Package · Train Separate</h3><div class="d4-goa-breakdown-grid"><span>Goa package / person (includes advance)</span><b>'+money(p.package)+'</b><span>Package total · '+n+' members</span><b>'+money(p.package*n)+'</b><span>Package advance paid · '+n+' × '+money(p.advance)+'</span><b>'+money(advanceTotal)+'</b><span>Full package paid · Blessy & Deepak</span><b>'+money(2*p.package)+'</b><span>Package collected</span><b>'+money((n-2)*p.advance+2*p.package)+'</b><span>Package pending · 14 × '+money(p.package-p.advance)+'</span><b>'+money((n-2)*(p.package-p.advance))+'</b><span>🚆 Train ticket · per person (PAID)</span><b>'+money(p.train)+'</b><span>🚆 Train total · '+n+' members (PAID)</span><b>'+money(trainTotal)+'</b><span>Train ticket pending</span><b>'+money(0)+'</b></div><p><strong>Per person: ₹8,500 package = ₹1,000 advance + ₹7,500 remaining. Train ₹1,150 is separate and already paid.</strong></p>'+ (t.members.length!==n?'<p class="notice">16 members confirmed; '+t.members.length+' currently listed in this trip. Add missing members to sync the individual roster.</p>':'')+'<h4>Package includes</h4><ul>'+p.inclusions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul><small>Exclusions not provided. Earlier receipts remain in history; only newly recorded package payments adjust this confirmed baseline. Advance is part of the package, not added to it.</small></section>';
 }
 function collectionTotals(t){
  const plan=typeof goaPaymentPlan==='function'?goaPaymentPlan(t):null;
- const each=plan?plan.total*100:Math.max(0,Math.round(Number(t.collection?.targetPerPerson||0)*100));
+ const each=plan?plan.package*100:Math.max(0,Math.round(Number(t.collection?.targetPerPerson||0)*100));
  const items=(t.collection?.payments||[]);
  const rows=t.members.map(member=>{
    const ledgerCents=items.filter(p=>p.member===member).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0);
    const isFull=!!plan&&plan.fullNames.includes(member.trim().toLowerCase());
-   const baseCents=plan?(isFull?each:(plan.train+plan.advance)*100):0;
-   const oldLedgerCents=plan?items.filter(p=>p.member===member&&!p.goaIncremental&&!p.adjustment).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0):0;
+   const baseCents=plan?(isFull?each:plan.advance*100):0;
+   // Pre-confirmation receipts remain in history but are not added again to the confirmed advance/full baseline.
    const newCents=plan?items.filter(p=>p.member===member&&(p.goaIncremental||p.adjustment)).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0):0;
-   const paidCents=plan?Math.max(0,Math.max(baseCents,oldLedgerCents)+newCents):ledgerCents;
+   const paidCents=plan?Math.max(0,baseCents+newCents):ledgerCents;
    const dueCents=Math.max(0,each-paidCents),overCents=Math.max(0,paidCents-each);
    const status=!each?'Not set':paidCents>=each?'Paid':paidCents>0?'Partial':'Pending';
    return {member,target:each/100,paid:paidCents/100,pending:dueCents/100,extra:overCents/100,status,trainPaid:plan?plan.train:0,packageAdvancePaid:plan?plan.advance:0,ledgerPaid:ledgerCents/100};
  });
- const totalTarget=each*t.members.length/100;
- const paid=rows.reduce((a,r)=>a+r.paid,0),pending=rows.reduce((a,r)=>a+r.pending,0);
+ const expected=plan?Math.max(plan.expectedMembers,t.members.length):t.members.length;
+ const missing=expected-t.members.length;
+ const totalTarget=each*expected/100;
+ const paid=rows.reduce((a,r)=>a+r.paid,0)+(plan?missing*plan.advance:0),pending=rows.reduce((a,r)=>a+r.pending,0)+(plan?missing*(plan.package-plan.advance):0);
  // Keep historical contributions by removed travellers in the receipts ledger, not the active scoreboard.
  const archivedPaid=items.filter(p=>!t.members.includes(p.member)).reduce((sum,p)=>sum+Math.round(Number(p.amount||0)*100),0)/100;
  return {each:each/100,target:totalTarget,paid,pending,archivedPaid,totalRecorded:paid+archivedPaid,extra:rows.reduce((a,r)=>a+r.extra,0),
    progress:totalTarget?Math.min(100,Math.round(paid/totalTarget*100)):0,
-   full:rows.filter(r=>r.status==='Paid').length,partial:rows.filter(r=>r.status==='Partial').length,
-   unpaid:rows.filter(r=>r.status==='Pending').length,rows};
+   full:rows.filter(r=>r.status==='Paid').length,partial:rows.filter(r=>r.status==='Partial').length+(plan?missing:0),
+   unpaid:rows.filter(r=>r.status==='Pending').length,rows,expectedMembers:expected,unlistedMembers:missing,trainTotal:plan?expected*plan.train:0,trainPaid:plan?expected*plan.train:0,trainPending:0};
 }
 function collectionPill(status){return `<span class="collection-pill ${status.toLowerCase().replace(' ','-')}">${status==='Paid'?'✓ ':status==='Partial'?'◐ ':status==='Pending'?'● ':''}${esc(status)}</span>`}
 function collectionMetrics(c){return `<div class="collection-metrics"><div class="collection-metric"><small>Total target</small><strong>${money(c.target)}</strong></div><div class="collection-metric"><small>Amount paid</small><strong class="col-green">${money(c.paid)}</strong></div><div class="collection-metric"><small>Pending</small><strong class="col-orange">${money(c.pending)}</strong></div></div>`}
@@ -477,7 +480,7 @@ return `<section class="compact-collection">
 <div class="cc-banner"><div><small>YOUR TRIP COLLECTION</small><h2>💳 Paid & Pending</h2><p>${t.members.length} travellers · ${money(c.each)} per member</p></div><div class="cc-sun">🌴</div></div>
 ${goaPaymentBreakdown(t,c)}
 <div class="cc-plain-summary"><div><small>🎯 Target</small><b>${money(c.target)}</b></div><div><small>✓ Paid</small><b>${money(c.paid)}</b></div><div><small>⏳ Remaining</small><b>${money(c.pending)}</b></div></div><div class="d4-payment-counts"><b>🟢 Paid ${c.full}</b><b>🟠 Advance / Partial ${c.partial}</b><b>🔴 Unpaid ${c.unpaid}</b></div><div class="cc-actions"><button class="cc-primary" data-action="enter-selected-trip">✈️ Enter Trip →</button>${admin?'<button class="cc-add" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':''}</div>
-<div class="d4-gold-members"><div class="d4-gold-members-heading"><h3>👥 Member Payments</h3><span>${c.rows.length} travellers</span></div><div class="d4-gold-member-list">${c.rows.map(r=>`<article class="d4-gold-member"><span class="d4-gold-avatar">${esc(r.member.slice(0,1).toUpperCase())}</span><div class="d4-gold-person"><strong>${esc(r.member)}</strong><small>Paid ${money(r.paid)} / ${money(r.target)}</small>${goaPaymentPlan(t)?'<small>🚆 Train ₹1,150 paid · Advance ₹1,000 paid</small>':''}</div><div class="d4-gold-member-status"><b class="${r.status.toLowerCase()}">${r.status==='Pending'?'Unpaid':esc(r.status)}</b><small>Due ${money(r.pending)}</small></div>${admin?`<span class="ref-inline-amount-actions"><button class="d4-gold-pay" data-action="collection-member-total" data-member="${esc(r.member)}" aria-label="Edit total paid for ${esc(r.member)}">✎</button><button class="d4-gold-pay" data-action="collection-member-pay" data-member="${esc(r.member)}" aria-label="Add payment for ${esc(r.member)}">＋</button></span>`:''}</article>`).join('')}</div></div>
+<div class="d4-gold-members"><div class="d4-gold-members-heading"><h3>👥 Member Payments</h3><span>${c.rows.length} travellers</span></div><div class="d4-gold-member-list">${c.rows.map(r=>`<article class="d4-gold-member"><span class="d4-gold-avatar">${esc(r.member.slice(0,1).toUpperCase())}</span><div class="d4-gold-person"><strong>${esc(r.member)}</strong><small>Paid ${money(r.paid)} / ${money(r.target)}</small>${goaPaymentPlan(t)?'<small>🚆 Train ₹1,150 paid (separate) · Package advance ₹1,000 paid</small>':''}</div><div class="d4-gold-member-status"><b class="${r.status.toLowerCase()}">${r.status==='Pending'?'Unpaid':esc(r.status)}</b><small>Due ${money(r.pending)}</small></div>${admin?`<span class="ref-inline-amount-actions"><button class="d4-gold-pay" data-action="collection-member-total" data-member="${esc(r.member)}" aria-label="Edit total paid for ${esc(r.member)}">✎</button><button class="d4-gold-pay" data-action="collection-member-pay" data-member="${esc(r.member)}" aria-label="Add payment for ${esc(r.member)}">＋</button></span>`:''}</article>`).join('')}</div></div>
 <button class="cc-open-members" data-action="collection-members">👥 View All ${t.members.length} Members <span>Paid ${c.full} · Partial ${c.partial} · Unpaid ${c.unpaid}</span> <b>↗</b></button>
 ${c.archivedPaid?`<p class="notice">Historical payments from removed members: ${money(c.archivedPaid)} (kept in payment records; excluded from active-member progress).</p>`:''}<div class="cc-footnote">Payments are manually recorded. They are not bank-verified. Members can view; Main Admin and assigned Trip Admin can edit.</div>
 </section>`;
