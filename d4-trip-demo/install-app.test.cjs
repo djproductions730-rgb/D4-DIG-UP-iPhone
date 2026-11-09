@@ -59,7 +59,7 @@ test('manifest is installable and has real Home Screen icon links',()=>{
    assert.ok(html.includes(file+'?build='+version),'Missing HTML asset '+file);
    assert.ok(sw.includes(file+'?build='+version),'Missing SW asset '+file);
  }
- assert.match(html,/sw\.js\?build=49/);
+ assert.match(html,/sw\.js\?build=50/);
  assert.match(css,/d4-install-button/);
 });
 
