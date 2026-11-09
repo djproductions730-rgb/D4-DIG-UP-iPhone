@@ -995,6 +995,19 @@ render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibili
 <script src="./premium-production.js?build=45"></script>
 <script src="./goa-milestones.js?build=29"></script>
 <script src="./reference-premium.js?build=54"></script>
+<script>
+/* Tickets shortcut: attach to the visible premium Goa dashboard, not the legacy home. */
+(function(){
+  function ensureTickets(){
+    var root=document.querySelector('.ref-hero-actions.ref-luxe-actions');
+    if(!root||root.querySelector('[data-view="tickets"]'))return;
+    var btn=document.createElement('button');btn.type='button';btn.className='ref-action';btn.dataset.action='nav';btn.dataset.view='tickets';
+    btn.innerHTML='<span class="ref-action-ico" aria-hidden="true">🎟️</span><strong>Tickets</strong>';
+    root.appendChild(btn);
+  }
+  document.addEventListener('DOMContentLoaded',function(){ensureTickets();new MutationObserver(ensureTickets).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});});
+})();
+</script>
 <script src="./trip-day-controls.js?build=40"></script>
 <script src="./journey-completion.js?build=45"></script>
 <script src="./install-app.js?build=38"></script>
