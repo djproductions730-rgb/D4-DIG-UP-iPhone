@@ -25,13 +25,13 @@ for(const [asset,version] of [
   ['goa-milestones.js',29],
   ['obsidian-luxe.css',34],
   ['reference-premium.css',41],
-  ['reference-premium.js',58],
+  ['reference-premium.js',60],
   ['install-app.js',38],
   ['install-app.css',38],
   ['payment-roster.css',40],
   ['trip-day-controls.js',40],
   ['trip-day-controls.css',40],
-  ['home-circular-luxe.css',42]
+  ['home-circular-luxe.css',60]
 ]){
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
