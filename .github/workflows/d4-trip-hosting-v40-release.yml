@@ -1,4 +1,4 @@
-name: D4 Trip Unlimited Tickets Role Access Hosting release
+name: D4 Trip Unlimited Tickets Member View Only Release
 on:
   push:
     branches:
