@@ -147,16 +147,14 @@
     'Reports':'<path d="M4 3h16v18H4zM8 17v-5m4 5V8m4 9v-7"/>',
     'Settings':'<circle cx="12" cy="12" r="3"/><path d="M10 2h4l.8 3 2 1 2.8-1.4 2.4 3.4-2.2 2.3v3.4l2.2 2.3-2.4 3.4-2.8-1.4-2 1-.8 3h-4l-.8-3-2-1-2.8 1.4L2 16l2.2-2.3v-3.4L2 8l2.4-3.4L7.2 6l2-1z"/>'
   };
+  sectionIconPaths['Tickets']='<path d="M3 7h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4V7z"/><path d="M12 7v12" stroke-dasharray="2 2"/>';
   const sectionDefs=[
     ['Overview','open-tab','data-ctx="overview"',0],
     ['Day Plan','open-tab','data-ctx="plan"',1],
-    ['Expenses','open-tab','data-ctx="expenses"',2],
-    ['Paid / Pending','nav','data-view="collections"',3],
-    ['Members','open-tab','data-ctx="members"',4],
-    ['Alerts','open-tab','data-ctx="reminders"',5],
-    ['Memories','open-tab','data-ctx="memories"',6],
-    ['Reports','open-tab','data-ctx="report"',7],
-    ['Settings','nav','data-view="profile"',8]
+    ['Tickets','nav','data-view="tickets"',2],
+    ['Alerts','open-tab','data-ctx="reminders"',3],
+    ['Reports','open-tab','data-ctx="report"',4],
+    ['Settings','nav','data-view="profile"',5]
   ];
   function tripSections(){
     const tiles=sectionDefs.map(([name,action,attrs,i])=>{
@@ -167,7 +165,7 @@
     }).join('');
     return '<details class="ref-trip-sections" '+(sectionsOpen?'open':'')+'>'+
       '<summary class="ref-sections-head" aria-label="Show or hide Trip Sections">'+
-      '<span class="ref-sections-head-copy"><small>EXPLORE THE JOURNEY</small><strong>Trip Sections</strong><span>All 9 sections · premium quick access</span></span>'+
+      '<span class="ref-sections-head-copy"><small>EXPLORE THE JOURNEY</small><strong>Trip Sections</strong><span>6 sections · premium quick access</span></span>'+
       '<span class="ref-sections-visibility"><span class="ref-visible-hide">Hide</span><span class="ref-visible-show">Show</span><span aria-hidden="true">⌄</span></span></summary>'+
       '<nav class="d4p-grid d4p-nav-grid ref-sections-grid" aria-label="Trip section navigation">'+tiles+'</nav></details>';
   }
