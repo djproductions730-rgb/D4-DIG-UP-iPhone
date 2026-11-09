@@ -1,4 +1,4 @@
-name: D4 Trip 3-Column Tickets Premium Hosting release
+name: D4 Trip Your Tickets Admin Upload Hosting release
 on:
   push:
     branches:
