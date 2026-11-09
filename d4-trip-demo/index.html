@@ -414,7 +414,7 @@ function collectionMemberTotalSave(t,member,value){
   if(!Array.isArray(t.collection.payments))t.collection.payments=[];
   t.collection.payments.push({
    id:uid(),member,amount:difference/100,method:'Manual',date:today(),by:profile,
-   adjustment:true,previousPaid:oldCents/100,newPaid:cents/100,
+   adjustment:true,goaIncremental:!!goaPaymentPlan(t),previousPaid:oldCents/100,newPaid:cents/100,
    note:'Corrected total paid from '+money(oldCents/100)+' to '+money(cents/100)
   });
  });
@@ -438,7 +438,10 @@ function collectionTotals(t){
  const rows=t.members.map(member=>{
    const ledgerCents=items.filter(p=>p.member===member).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0);
    const isFull=!!plan&&plan.fullNames.includes(member.trim().toLowerCase());
-   const paidCents=plan?Math.max(ledgerCents,isFull?each:(plan.train+plan.advance)*100):ledgerCents;
+   const baseCents=plan?(isFull?each:(plan.train+plan.advance)*100):0;
+   const oldLedgerCents=plan?items.filter(p=>p.member===member&&!p.goaIncremental&&!p.adjustment).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0):0;
+   const newCents=plan?items.filter(p=>p.member===member&&(p.goaIncremental||p.adjustment)).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0):0;
+   const paidCents=plan?Math.max(0,Math.max(baseCents,oldLedgerCents)+newCents):ledgerCents;
    const dueCents=Math.max(0,each-paidCents),overCents=Math.max(0,paidCents-each);
    const status=!each?'Not set':paidCents>=each?'Paid':paidCents>0?'Partial':'Pending';
    return {member,target:each/100,paid:paidCents/100,pending:dueCents/100,extra:overCents/100,status,trainPaid:plan?plan.train:0,packageAdvancePaid:plan?plan.advance:0,ledgerPaid:ledgerCents/100};
@@ -498,7 +501,7 @@ function collectionSave(t,member,value,method='Manual',note=''){
  if(!Number.isFinite(amount)||cents<=0||cents>10000000000)throw Error('Enter a valid amount above ₹0');const previous=collectionTotals(t).rows.find(r=>r.member===member);if(previous?.target>0&&cents>Math.round(previous.pending*100))throw Error('Amount exceeds remaining '+money(previous.pending)+'. Edit the trip target or previous payment first.');
  if(!t.collection)t.collection={targetPerPerson:0,payments:[]};
  if(!Array.isArray(t.collection.payments))t.collection.payments=[];
- t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile});
+ t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile,goaIncremental:!!goaPaymentPlan(t)});
  if(!persist()){t.collection.payments.pop();throw Error('Storage full; payment not saved')}
  return collectionTotals(t);
 }
