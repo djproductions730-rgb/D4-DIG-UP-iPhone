@@ -424,7 +424,7 @@ function collectionMemberTotalSave(t,member,value){
 // Entering an amount is a recorded contribution, not a verified bank transaction.
 // Goa tour confirmed breakdown. This is a display reconciliation only: no payment ledger writes.
 function goaPaymentPlan(t){
- const goa=/goa/i.test(String(t.destination||'')+' '+String(t.name||''))||(!!teamId&&t.id===teamId&&Array.isArray(t.members)&&t.members.length<=16);
+ const goa=/goa/i.test(String(t.destination||'')+' '+String(t.name||''));
  if(!goa)return null;
  return {train:1150,package:8500,advance:1000,total:8500,expectedMembers:16,fullNames:[],inclusions:['Railway station / airport pickup and drop by car','2 nights / 3 days in a 3-star property (5 rooms)','5 scooters and rental car for 3 days','2 dinners, 2 breakfasts, 1 lunch','One day water activities','One night dinner cruise party','24/7 personal tour assistance']};
 }
