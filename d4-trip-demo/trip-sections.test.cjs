@@ -29,13 +29,13 @@ function makeFixture(saved){
  return {context,events,preferences,t};
 }
 
-test('nine beautiful, accessible navigation tiles replace the old emoji grid, keeping admin controls',()=>{
+test('six beautiful, accessible navigation tiles replace the old emoji grid, keeping admin controls',()=>{
  const {context,t}=makeFixture(null),board=context.tripOverview(t);
  const grid=board.match(/<nav class="d4p-grid d4p-nav-grid ref-sections-grid"[^>]*>([\s\S]*?)<\/nav>/);
  assert.ok(grid,'Trip Sections remains a normal navigable grid');
- assert.equal((grid[1].match(/<button type="button" class="d4p-tile"/g)||[]).length,9);
- assert.equal((grid[1].match(/<svg /g)||[]).length,9);
- for(const name of ['Overview','Day Plan','Expenses','Paid / Pending','Members','Alerts','Memories','Reports','Settings']){
+ assert.equal((grid[1].match(/<button type="button" class="d4p-tile"/g)||[]).length,6);
+ assert.equal((grid[1].match(/<svg /g)||[]).length,6);
+ for(const name of ['Overview','Day Plan','Tickets','Alerts','Reports','Settings']){
    assert.ok(grid[1].includes('aria-label="'+name+'"'),name+' is accessible');
  }
  assert.doesNotMatch(board,/Old section/,'Duplicate previous grid is removed');
@@ -57,11 +57,10 @@ test('Hide and Show preference is optional, persistent, and never deletes button
  assert.match(context.tripOverview(t),/ref-sections-grid/,'Hidden sections are not deleted');
 });
 
-test('all nine tiles preserve delegated click targets',()=>{
+test('all six tiles preserve delegated click targets',()=>{
  const {context,t}=makeFixture(null),board=context.tripOverview(t);
- for(const action of ['data-ctx="overview"','data-ctx="plan"','data-ctx="expenses"',
-   'data-view="collections"','data-ctx="members"','data-ctx="reminders"',
-   'data-ctx="memories"','data-ctx="report"','data-view="profile"']){
+ for(const action of ['data-ctx="overview"','data-ctx="plan"','data-view="tickets"',
+   'data-ctx="reminders"','data-ctx="report"','data-view="profile"']){
   assert.ok(board.includes(action),'Route missing: '+action);
  }
 });
