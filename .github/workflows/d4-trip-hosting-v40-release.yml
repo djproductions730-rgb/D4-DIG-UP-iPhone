@@ -1,4 +1,4 @@
-name: D4 Trip Transport Section Deployment
+name: D4 Trip Tickets & Transport Hosting release
 on:
   push:
     branches:
@@ -39,6 +39,7 @@ jobs:
           assert.equal(cfg.hosting.site,'d4-trip');
           assert.equal(cfg.hosting.public,'.');
           const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
+          for (const required of ['function d4TicketsPage()', 'd4-ticket-home-action', 'data-view="tickets"', 'd4TransportModes']) assert.ok(html.includes(required),'Missing Tickets / Transport UI: '+required);
           assert.ok(html.includes('./premium-production.js?build=45'));
           assert.ok(html.includes('./premium-production.css?build=45'));
           assert.ok(html.includes('./goa-payment-v50.css?build=50'));
