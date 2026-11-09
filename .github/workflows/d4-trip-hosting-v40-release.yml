@@ -1,4 +1,4 @@
-name: D4 Trip Payment Dashboard Sync Fix release
+name: D4 Trip Tickets Home Fix release
 on:
   push:
     branches:
@@ -44,7 +44,7 @@ jobs:
           assert.ok(html.includes('./goa-payment-v50.css?build=50'));
           for(const asset of ['modern-card-pdf.js?build=46','modern-card-pdf.css?build=46','report-readability.css?build=46'])assert.ok(html.includes('./'+asset),'Missing PDF asset '+asset);
           for(const asset of [
-            'reference-premium.js?build=44','goa-milestones.js?build=29',
+            'reference-premium.js?build=54','goa-milestones.js?build=29',
             'trip-day-controls.js?build=40','journey-completion.js?build=45',
             'journey-completion.css?build=43'
           ]) assert.ok(html.includes('./'+asset),'Missing release asset '+asset);
