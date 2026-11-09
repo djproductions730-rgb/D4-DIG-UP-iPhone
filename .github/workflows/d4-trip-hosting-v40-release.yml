@@ -1,4 +1,4 @@
-name: D4 Trip Tickets Directional View Hosting release
+name: D4 Trip Unlimited Tickets Role Access Hosting release
 on:
   push:
     branches:
