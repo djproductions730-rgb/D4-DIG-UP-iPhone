@@ -1,4 +1,4 @@
-name: D4 Trip Your Tickets Admin Upload Hosting release
+name: D4 Trip Tickets Directional View Hosting release
 on:
   push:
     branches:
