@@ -29,8 +29,8 @@
   apply(old,-1);apply(entry,1);delete entry.balanceBefore;delete entry.balanceAfter;next.entries[index]=entry;return next;
  }
  if(typeof module!=='undefined'&&module.exports){module.exports={editData,entryDate};return}
- const oldHistory=history;
- history=function(){let html=oldHistory();let index=data.entries.length-1;return html.replace(/<div class="card row">/g,()=>{const i=index--;return '<div class="card row" style="flex-wrap:wrap"><button type="button" class="button ghost mini" style="margin-left:auto;order:5" data-edit-entry="'+i+'" aria-label="Edit transaction '+(i+1)+'">✎ Edit</button>'})};
+ const oldHistory=transactionHistory;
+ transactionHistory=function(){let html=oldHistory();let index=data.entries.length-1;return html.replace(/<div class="card row">/g,()=>{const i=index--;return '<div class="card row" style="flex-wrap:wrap"><button type="button" class="button ghost mini" style="margin-left:auto;order:5" data-edit-entry="'+i+'" aria-label="Edit transaction '+(i+1)+'">✎ Edit</button>'})};
  const options=()=>data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+(b.nick?' · '+b.nick:''))+'</option>').join('');
  window.openTransactionEditor=function(index){const entry=data.entries[index];if(!entry)return;if(linked(entry)){showSheet('Linked Transaction','<p class="muted">This transaction is linked to a loan or plan. Use its loan or plan history to make changes so payment totals stay correct.</p><button class="button" onclick="go(\'loans\')">Open Loans</button>');return}
  let from,to;try{from=bankFor(data,entry.bankId,entry.type==='Transfer'?entry.fromBank:entry.bank);if(entry.type==='Transfer')to=bankFor(data,entry.toBankId,entry.toBank)}catch(e){alert(e.message);return}
