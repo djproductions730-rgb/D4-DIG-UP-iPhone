@@ -161,6 +161,8 @@ body.d4-modal-open{position:fixed;width:100%;overflow:hidden;touch-action:none}
 .d4-bank-choice-name{font-weight:800;font-size:clamp(11px,3vw,14px);line-height:1.25;overflow-wrap:anywhere;padding-right:3px}
 .d4-bank-choice-check{position:absolute;top:4px;right:6px;font-size:13px;opacity:0;color:#4dffbf}.d4-bank-choice.selected .d4-bank-choice-check{opacity:1}
 @media(max-width:340px){.d4-bank-choice-grid{grid-template-columns:1fr}.d4-bank-choice{min-height:54px}}
+
+.d4-bank-choice-icon .bank-logo{width:32px!important;height:32px!important;padding:4px!important;border-radius:8px!important}.d4-bank-choice-icon .bank-logo img{object-fit:contain}.d4-bank-choice-icon{background:#fff!important}.d4-pluxee-logo{font-size:9px;font-weight:950;letter-spacing:-.6px;color:#006e4d;background:#fff;border-radius:5px;padding:4px 1px}
 </style><link rel="stylesheet" href="./assets/savings-portraits.css"><style>.saving-picture{position:relative;width:min(100%,260px);margin:0 auto}.saving-picture .savings-portrait.large{width:100%;margin:0}.saving-dial{position:absolute;bottom:0;left:0;right:0;border-radius:0 0 18px 18px;padding:18px 5px 7px;text-align:center;color:white;background:linear-gradient(transparent,#131926 40%)}.saving-wheel{display:inline-block;height:1em;line-height:1;overflow:hidden;vertical-align:-.08em}.saving-wheel>span,.saving-wheel i{display:block}.saving-wheel i{font-style:normal;height:1em}.saving-wheel>span{animation:savings-spin var(--duration) cubic-bezier(.18,.7,.22,1) forwards}@keyframes savings-spin{to{transform:translateY(var(--travel))}}.saving-dial small{display:block;font:700 10px system-ui;letter-spacing:.16em}.saving-dial strong{display:block;font:bold clamp(18px,6vw,30px) ui-monospace,monospace;font-variant-numeric:tabular-nums;color:#ffda75;overflow-wrap:anywhere}</style><style>
 #d4-intro{display:none}
 html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:radial-gradient(ellipse at center,#33235a,#100e1d 72%);animation:d4-exit 3.8s both}
@@ -658,11 +660,11 @@ function bankChoiceButtons(selectId){
  const select=document.getElementById(selectId);if(!select||select.dataset.bankButtons==='1')return;
  select.dataset.bankButtons='1';select.classList.add('d4-bank-select-hidden');
  const grid=document.createElement('div');grid.className='d4-bank-choice-grid';grid.setAttribute('role','group');grid.setAttribute('aria-label','Choose bank account');
- const labels={hdfc:'🏦',axis:'🔺',kotak:'🔴',pluxee:'🍱',icici:'🟠',sbi:'🔵'};
+ const fallbackLogo=name=>String(name).toLowerCase().includes('pluxee')?'<span class="d4-pluxee-logo">pluxee</span>':badge(name);
  const buttons=Array.from(select.options).map(opt=>{
   const b=document.createElement('button');b.type='button';b.className='d4-bank-choice';
-  const name=opt.textContent.split(' — ')[0];const key=Object.keys(labels).find(k=>name.toLowerCase().includes(k));
-  b.innerHTML='<span class="d4-bank-choice-icon" aria-hidden="true">'+(labels[key]||'🏦')+'</span><span class="d4-bank-choice-name">'+tidy(name)+'</span><span class="d4-bank-choice-check" aria-hidden="true">✓</span>';
+  const name=opt.textContent.split(' — ')[0];
+  b.innerHTML='<span class="d4-bank-choice-icon" aria-hidden="true">'+fallbackLogo(name)+'</span><span class="d4-bank-choice-name">'+tidy(name)+'</span><span class="d4-bank-choice-check" aria-hidden="true">✓</span>';
   b.setAttribute('aria-label',opt.textContent);b.addEventListener('click',()=>{
    select.value=opt.value;select.dispatchEvent(new Event('change',{bubbles:true}));sync();
   });grid.appendChild(b);return b;
