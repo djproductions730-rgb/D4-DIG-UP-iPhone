@@ -1,4 +1,4 @@
-name: D4 Trip Fix Train Tickets 12 Label Release
+name: D4 Trip Upgrade Sync Button Release
 on:
   push:
     branches:
