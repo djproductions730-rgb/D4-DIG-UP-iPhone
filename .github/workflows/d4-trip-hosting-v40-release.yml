@@ -1,4 +1,4 @@
-name: D4 Trip Admin Ticket Paid Unpaid Quick Edit Release
+name: D4 Trip Ticket Member Count Options Release
 on:
   push:
     branches:
