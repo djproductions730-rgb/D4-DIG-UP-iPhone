@@ -1,4 +1,4 @@
-name: D4 Trip Tickets section Hosting release
+name: D4 Trip Payment Dashboard Sync Fix release
 on:
   push:
     branches:
