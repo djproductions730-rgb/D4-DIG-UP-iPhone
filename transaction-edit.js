@@ -26,7 +26,7 @@
    }
    if(changes.length)entry.pxEdits=[...(Array.isArray(old.pxEdits)?old.pxEdits:[]),{at:entry.updatedAt,changes}];
   }
-  apply(old,-1);apply(entry,1);delete entry.balanceBefore;delete entry.balanceAfter;next.entries[index]=entry;return next;
+  apply(old,-1);apply(entry,1);if(entry.type!==old.type||Number(entry.amount)!==Number(old.amount)||String(entry.bankId)!==String(old.bankId)||date!==entryDate(old)){delete entry.balanceBefore;delete entry.balanceAfter;}next.entries[index]=entry;return next;
  }
  if(typeof module!=='undefined'&&module.exports){module.exports={editData,entryDate};return}
  const oldHistory=transactionHistory;
