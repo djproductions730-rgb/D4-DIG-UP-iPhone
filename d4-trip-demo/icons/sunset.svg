@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+  <linearGradient id="b" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#5A1E0D"/><stop offset="1" stop-color="#BA451A"/></linearGradient>
+  <linearGradient id="teal" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#FF9D3D"/><stop offset="1" stop-color="#FFE4B2"/></linearGradient>
+  <linearGradient id="orange" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#FFC342"/><stop offset="1" stop-color="#FFF0AC"/></linearGradient>
+</defs>
+<rect width="512" height="512" rx="117" fill="url(#b)"/>
+<circle cx="374" cy="137" r="80" fill="#FCA22D" opacity=".12"/>
+<path d="M95 302V123h90q58 0 91 38t33 98q0 63-35 96t-92 33H95V302Zm72 18h18q51 0 51-61t-51-61h-18v122Z" fill="url(#teal)"/>
+<path d="M168 299l49-73 31 35 39-52 68 90H168Z" fill="#F5FEFD"/>
+<path d="M213 271l18-15 17 5 39-52 18 23-18-7-27 40-20-9-27 15Z" fill="#0C5D68"/>
+<path d="M344 123h73v165h44v54h-44v46h-66v-46H257v-54l87-165Zm7 165v-79l-43 79h43Z" fill="url(#orange)"/>
+<path d="M54 329C130 393 254 368 359 270" stroke="url(#orange)" stroke-width="20" stroke-linecap="round" fill="none"/>
+<path d="M348 117l56 13 26-30c9-12 27-19 36-9s3 23-10 34l-25 22 5 58-16 7-17-47-29 23-1 29-13 5-13-41-42-7 14-13 29 6Z" fill="#FFFFFF"/>
+<text x="256" y="453" font-size="76" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-style="italic" fill="#FFFFFF">Trip</text>
+</svg>

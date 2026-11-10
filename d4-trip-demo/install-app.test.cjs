@@ -54,7 +54,7 @@ test('manifest is installable and has real Home Screen icon links',()=>{
  assert.equal(manifest.start_url,'./?source=installed');
  assert.ok(manifest.icons.some(x=>x.sizes==='192x192'));
  assert.ok(manifest.icons.some(x=>x.sizes==='512x512'));
- assert.match(html,/apple-touch-icon-v28\.png/);
+ assert.match(html,/icons\/turquoise-180\.png/);
  for(const [file,version] of [['install-app.js',38],['install-app.css',38]]){
    assert.ok(html.includes(file+'?build='+version),'Missing HTML asset '+file);
    assert.ok(sw.includes(file+'?build='+version),'Missing SW asset '+file);
