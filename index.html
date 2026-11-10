@@ -733,7 +733,7 @@ if(spend){e.preventDefault();openSpendCategory(spend.dataset.spend);return;}
 const quick=e.target.closest('[data-quick]');
 if(quick){e.preventDefault();switch(quick.dataset.quick){
 case 'expense':openTransaction('Expense');break;
-case 'online-shopping':openTransaction('Expense');if(document.getElementById('txform')){pickTransactionCategory('Online Shopping');document.getElementById('txcat').dispatchEvent(new Event('change'));document.getElementById('shopping-site')?.focus();}break;
+case 'online-shopping':openTransaction('Expense');if(document.getElementById('txform')){pickTransactionCategory('Online Shopping');document.getElementById('txcat').dispatchEvent(new Event('change'));document.getElementById('shopping-search')?.focus();}break;
 case 'income':openTransaction('Income');break;
 case 'transfer':openTransfer();break;
 case 'bank':openBankPicker();break;
@@ -825,7 +825,7 @@ openTransaction=function(initialType='Expense'){
   try{return submit.call(this,event)}finally{note.value=original}
  };
 };
-</script><script src="./online-shopping.js?v=shopping-az-20261111"></script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script></body></html>
+</script><script src="./online-shopping.js?v=shopping-buttons-20261111"></script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script></body></html>
 
 
 
