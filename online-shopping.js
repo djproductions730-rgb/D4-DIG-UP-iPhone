@@ -18,6 +18,192 @@
  const brandHues={'Amazon':34,'Amazon Fresh':115,'Flipkart':215,'Meesho':320,'Myntra':340,'AJIO':205,'Blinkit':52,'Swiggy Instamart':24,'Zepto':278,'BigBasket':96,'JioMart':212,'Nykaa':336,'Swiggy':24,'Zomato':354,'IKEA':215,'Apple':228,'Croma':166,'Tata 1mg':8};
  function hueFor(name){return brandHues[name]??([...name].reduce((sum,c)=>sum+c.charCodeAt(0),0)%300+20)}
  function markFor(name){return ({Amazon:'a',Flipkart:'F',Meesho:'m',Myntra:'M',Zepto:'Z',Blinkit:'b',AJIO:'A',Nykaa:'N','Swiggy Instamart':'S',Apple:'A'})[name]||(name==='__other__'?'+':name.slice(0,2).toUpperCase())}
+ const domains={
+ "Swiggy Instamart": "swiggy.com",
+ "Blinkit": "blinkit.com",
+ "Zepto": "zepto.com",
+ "BigBasket": "bigbasket.com",
+ "BB Now": "bigbasket.com",
+ "JioMart": "jiomart.com",
+ "Amazon Fresh": "amazon.in",
+ "Flipkart Minutes": "flipkart.com",
+ "DMart Ready": "dmart.in",
+ "Nature’s Basket": "naturesbasket.co.in",
+ "FreshToHome": "freshtohome.com",
+ "Licious": "licious.in",
+ "Country Delight": "countrydelight.in",
+ "MilkBasket": "milkbasket.com",
+ "Amazon": "amazon.in",
+ "Flipkart": "flipkart.com",
+ "Meesho": "meesho.com",
+ "Snapdeal": "snapdeal.com",
+ "ShopClues": "shopclues.com",
+ "IndiaMART": "indiamart.com",
+ "Myntra": "myntra.com",
+ "AJIO": "ajio.com",
+ "Nykaa Fashion": "nykaafashion.com",
+ "Tata CLiQ Fashion": "tatacliq.com",
+ "Shopsy": "shopsy.in",
+ "Zudio": "zudio.com",
+ "H&M": "hm.com",
+ "Zara": "zara.com",
+ "UNIQLO": "uniqlo.com",
+ "Westside": "westside.com",
+ "Pantaloons": "pantaloons.com",
+ "Max Fashion": "maxfashion.in",
+ "Bewakoof": "bewakoof.com",
+ "The Souled Store": "thesouledstore.com",
+ "Snitch": "snitch.co.in",
+ "Urbanic": "urbanic.com",
+ "NEWME": "newme.asia",
+ "FirstCry": "firstcry.com",
+ "Hopscotch": "hopscotch.in",
+ "Decathlon": "decathlon.in",
+ "Puma": "puma.com",
+ "Adidas": "adidas.co.in",
+ "Nike": "nike.com",
+ "Bata": "bata.in",
+ "Nykaa": "nykaa.com",
+ "Purplle": "purplle.com",
+ "Tira": "tirabeauty.com",
+ "Mamaearth": "mamaearth.in",
+ "SUGAR Cosmetics": "sugarcosmetics.com",
+ "Minimalist": "beminimalist.co",
+ "Plum": "plumgoodness.com",
+ "mCaffeine": "mcaffeine.com",
+ "WOW Skin Science": "buywow.in",
+ "Croma": "croma.com",
+ "Reliance Digital": "reliancedigital.in",
+ "Vijay Sales": "vijaysales.com",
+ "Samsung": "samsung.com",
+ "Apple": "apple.com",
+ "Mi Store": "mi.com",
+ "OnePlus": "oneplus.in",
+ "boAt": "boat-lifestyle.com",
+ "Noise": "gonoise.com",
+ "Dell": "dell.com",
+ "HP": "hp.com",
+ "Lenovo": "lenovo.com",
+ "ASUS": "asus.com",
+ "Acer": "acer.com",
+ "realme": "realme.com",
+ "Vivo": "vivo.com",
+ "OPPO": "oppo.com",
+ "iQOO": "iqoo.com",
+ "IKEA": "ikea.com",
+ "Pepperfry": "pepperfry.com",
+ "Urban Ladder": "urbanladder.com",
+ "Wakefit": "wakefit.co",
+ "Home Centre": "homecentre.in",
+ "HomeTown": "hometown.in",
+ "Ferns N Petals": "fnp.com",
+ "IGP": "igp.com",
+ "Tata 1mg": "1mg.com",
+ "PharmEasy": "pharmeasy.in",
+ "Netmeds": "netmeds.com",
+ "Apollo Pharmacy": "apollopharmacy.in",
+ "MedPlus": "medplusmart.com",
+ "HealthKart": "healthkart.com",
+ "Swiggy": "swiggy.com",
+ "Zomato": "zomato.com",
+ "EatSure": "eatsure.com",
+ "EatClub": "eatclub.in",
+ "Domino’s": "dominos.co.in",
+ "Pizza Hut": "pizzahut.co.in",
+ "KFC": "online.kfc.co.in",
+ "McDelivery": "mcdelivery.co.in",
+ "CaratLane": "caratlane.com",
+ "BlueStone": "bluestone.com",
+ "Tanishq": "tanishq.co.in",
+ "GIVA": "giva.co",
+ "Lenskart": "lenskart.com",
+ "Titan": "titan.co.in",
+ "Fastrack": "fastrack.in",
+ "Bookswagon": "bookswagon.com",
+ "Crossword": "crossword.in",
+ "SapnaOnline": "sapnaonline.com",
+ "Heads Up For Tails": "headsupfortails.com",
+ "Supertails": "supertails.com",
+ "Aachho": "aachho.com",
+ "Allen Solly": "allensolly.com",
+ "Amazon Bazaar": "amazon.in",
+ "Amazon Pharmacy": "amazon.in",
+ "American Eagle": "aeo.in",
+ "AND": "andindia.com",
+ "Arata": "arata.in",
+ "Arrow": "arrow.nnnow.com",
+ "Babyhug": "firstcry.com",
+ "Bajaj Electronics": "bajajelectronics.com",
+ "Biba": "biba.in",
+ "BISSELL": "bissell.com",
+ "Borosil": "myborosil.com",
+ "Campus": "campusshoes.com",
+ "Cilory": "cilory.com",
+ "Clovia": "clovia.com",
+ "DaMENSCH": "damensch.com",
+ "Dot & Key": "dotandkey.com",
+ "Dr. Sheth’s": "drsheths.com",
+ "FabAlley": "faballey.com",
+ "Fabindia": "fabindia.com",
+ "FableStreet": "fablestreet.com",
+ "Fossil": "fossil.com",
+ "Gadgets Now": "gadgetsnow.com",
+ "GOAT": "goat.com",
+ "Good Earth": "goodearth.in",
+ "Happilo": "happilo.com",
+ "Health & Glow": "healthandglow.com",
+ "Himalaya": "himalayawellness.in",
+ "iHerb": "iherb.com",
+ "Jockey": "jockey.in",
+ "Kalyan Jewellers": "kalyanjewellers.net",
+ "Kama Ayurveda": "kamaayurveda.in",
+ "Kushal’s": "kushals.com",
+ "Lakmé": "lakmeindia.com",
+ "Levi’s": "levi.in",
+ "Libas": "libas.in",
+ "Lifestyle": "lifestylestores.com",
+ "Louis Philippe": "louisphilippe.abfrl.in",
+ "Manyavar": "manyavar.com",
+ "Marks & Spencer": "marksandspencer.in",
+ "Metro Shoes": "metroshoes.com",
+ "Mochi": "mochishoes.com",
+ "Mokobara": "mokobara.com",
+ "MyGlamm": "myglamm.com",
+ "Nestasia": "nestasia.in",
+ "Nykaa Man": "nykaaman.com",
+ "ONLY": "only.in",
+ "Orient Electric": "orientelectric.com",
+ "Peter England": "peterengland.com",
+ "Prestige": "ttkprestige.com",
+ "Rare Rabbit": "thehouseofrare.com",
+ "Raymond": "raymond.in",
+ "Reebok": "reebok.com",
+ "Samsung Shop": "samsung.com",
+ "Skechers": "skechers.in",
+ "Smytten": "smytten.com",
+ "Spar India": "sparindia.com",
+ "Spykar": "spykar.com",
+ "SuperBottoms": "superbottoms.com",
+ "Swiss Beauty": "swissbeauty.in",
+ "Tata CLiQ Luxury": "luxury.tatacliq.com",
+ "The Body Shop": "thebodyshop.in",
+ "The Derma Co": "thedermaco.com",
+ "The Man Company": "themancompany.com",
+ "Trent": "trentlimited.com",
+ "U.S. Polo Assn.": "uspoloassn.in",
+ "Ugaoo": "ugaoo.com",
+ "Van Heusen": "vanheusenindia.com",
+ "Vero Moda": "veromoda.in",
+ "Vishal Mega Mart": "vishalmegamart.com",
+ "W for Woman": "wforwoman.com",
+ "Westlife": "westlife.co.in",
+ "Wildcraft": "wildcraft.com",
+ "WoodenStreet": "woodenstreet.com",
+ "Woodland": "woodlandworldwide.com",
+ "Xiaomi": "mi.com",
+ "Zivame": "zivame.com",
+ "Zouk": "zouk.co.in"
+};
  const style=document.createElement('style');
  style.textContent=`
  .shopping-site-box{margin:18px 0 22px}.shopping-site-box[hidden]{display:none!important}
@@ -46,6 +232,15 @@
  @media(prefers-reduced-motion:reduce){.shopping-store,.shopping-bag{transition:none}}
  `;
  document.head.append(style);
+ style.textContent+=`
+ #sheet:has(#txform){width:min(90vw,430px)!important;max-height:min(69dvh,570px)!important}
+ .shopping-store-grid{display:block;max-height:165px;padding:0;border-radius:12px;background:#252038}
+ .shopping-store-grid[hidden],.shopping-selection:empty,#shopping-site-label{display:none!important}
+ .shop-result{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;background:transparent;color:white;text-align:left;border-bottom:1px solid #4d405f;padding:6px 10px}
+ .shop-symbol{display:inline-grid;place-items:center;width:26px;height:26px;background:white;color:#51207b;border-radius:6px;vertical-align:middle;font-weight:bold}
+ .shop-symbol img{width:20px;height:20px;object-fit:contain}
+ #txform [data-category-choice][hidden]{display:none!important}
+ `;
  const openBeforeShopping=openTransaction;
  openTransaction=function(initialType='Expense'){
   openBeforeShopping(initialType);
@@ -54,30 +249,37 @@
   const category=form.querySelector('#txcat'),type=form.querySelector('#txtype');
   const box=document.createElement('div');
   box.className='shopping-site-box';
-  box.innerHTML='<div class="shopping-luxe-hero"><div class="shopping-luxe-copy"><small>D4 SHOPPING</small><h3>Shop it.<br>Track it.</h3><p>Your favourite stores,<br>one beautiful place.</p><div class="shopping-luxe-tags"><span>'+stores.length+' STORES</span><span>A–Z</span></div></div><svg class="shopping-luxe-art" viewBox="0 0 160 160" aria-hidden="true" focusable="false"><defs><linearGradient id="d4-shop-bag" x2=".9" y2="1"><stop stop-color="#ffcbff"/><stop offset=".4" stop-color="#c777ff"/><stop offset="1" stop-color="#7145cb"/></linearGradient><linearGradient id="d4-shop-side" x2="1" y2="1"><stop stop-color="#9360d1"/><stop offset="1" stop-color="#3b256b"/></linearGradient><linearGradient id="d4-shop-card" x2="1" y2="1"><stop stop-color="#ffdc9c"/><stop offset="1" stop-color="#ff9788"/></linearGradient></defs><ellipse cx="84" cy="140" rx="54" ry="11" fill="#0a0528" opacity=".4"/><g transform="rotate(13 118 60)"><rect x="91" y="27" width="53" height="69" rx="11" fill="url(#d4-shop-card)" stroke="#ffe6cf"/><path d="M91 47h53" stroke="#bc5669" stroke-width="10"/><rect x="101" y="64" width="15" height="11" rx="3" fill="#fff5ca"/><path d="M102 83h23" stroke="#b96375" stroke-width="3" stroke-linecap="round"/></g><path d="m39 62 65-8 23 18-7 58-19 12-65-14Z" fill="url(#d4-shop-side)" stroke="#c9a3f3"/><path d="m39 62 65-8-3 88-65-14Z" fill="url(#d4-shop-bag)" stroke="#f2d6ff"/><path d="m104 54 23 18-26 6" fill="#e5b0ff"/><path d="M54 74V47c0-28 37-28 37-4v26" fill="none" stroke="#422169" stroke-width="7" stroke-linecap="round"/><path d="M53 72V45c0-27 36-27 36-3v25" fill="none" stroke="#f2d5ff" stroke-width="5" stroke-linecap="round"/><rect x="51" y="86" width="38" height="30" rx="9" fill="#fff" opacity=".9"/><path d="m58 101 9 8 15-17" fill="none" stroke="#9b43d6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><g fill="#ffdda8"><path d="m26 37 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/><path d="m137 112 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g><circle cx="118" cy="18" r="4" fill="#f8c7ff"/><circle cx="24" cy="108" r="3" fill="#caa0ff"/></svg></div><div class="field" id="shopping-site-label">Shopping app / website · Tap to select</div><input type="hidden" id="shopping-site"><label class="field" for="shopping-search">Search apps / stores</label><input class="input shopping-search" type="search" id="shopping-search" placeholder="Search Amazon, Meesho, Zepto…" autocomplete="off"><p class="shopping-selection" role="status" aria-live="polite">Tap an app below</p><div class="shopping-store-grid" role="group" aria-labelledby="shopping-site-label"></div><div id="shopping-other-box" hidden><label class="field" for="shopping-other">Website / store name</label><input class="input" id="shopping-other" maxlength="80" placeholder="Enter website or store name" autocomplete="off"></div>';
+  box.innerHTML='<div class="shopping-luxe-hero"><div class="shopping-luxe-copy"><small>D4 SHOPPING</small><h3>Shop it.<br>Track it.</h3><p>Your favourite stores,<br>one beautiful place.</p><div class="shopping-luxe-tags"><span>'+stores.length+' STORES</span><span>A–Z</span></div></div><svg class="shopping-luxe-art" viewBox="0 0 160 160" aria-hidden="true" focusable="false"><defs><linearGradient id="d4-shop-bag" x2=".9" y2="1"><stop stop-color="#ffcbff"/><stop offset=".4" stop-color="#c777ff"/><stop offset="1" stop-color="#7145cb"/></linearGradient><linearGradient id="d4-shop-side" x2="1" y2="1"><stop stop-color="#9360d1"/><stop offset="1" stop-color="#3b256b"/></linearGradient><linearGradient id="d4-shop-card" x2="1" y2="1"><stop stop-color="#ffdc9c"/><stop offset="1" stop-color="#ff9788"/></linearGradient></defs><ellipse cx="84" cy="140" rx="54" ry="11" fill="#0a0528" opacity=".4"/><g transform="rotate(13 118 60)"><rect x="91" y="27" width="53" height="69" rx="11" fill="url(#d4-shop-card)" stroke="#ffe6cf"/><path d="M91 47h53" stroke="#bc5669" stroke-width="10"/><rect x="101" y="64" width="15" height="11" rx="3" fill="#fff5ca"/><path d="M102 83h23" stroke="#b96375" stroke-width="3" stroke-linecap="round"/></g><path d="m39 62 65-8 23 18-7 58-19 12-65-14Z" fill="url(#d4-shop-side)" stroke="#c9a3f3"/><path d="m39 62 65-8-3 88-65-14Z" fill="url(#d4-shop-bag)" stroke="#f2d6ff"/><path d="m104 54 23 18-26 6" fill="#e5b0ff"/><path d="M54 74V47c0-28 37-28 37-4v26" fill="none" stroke="#422169" stroke-width="7" stroke-linecap="round"/><path d="M53 72V45c0-27 36-27 36-3v25" fill="none" stroke="#f2d5ff" stroke-width="5" stroke-linecap="round"/><rect x="51" y="86" width="38" height="30" rx="9" fill="#fff" opacity=".9"/><path d="m58 101 9 8 15-17" fill="none" stroke="#9b43d6" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><g fill="#ffdda8"><path d="m26 37 3 7 7 3-7 3-3 7-3-7-7-3 7-3Z"/><path d="m137 112 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z"/></g><circle cx="118" cy="18" r="4" fill="#f8c7ff"/><circle cx="24" cy="108" r="3" fill="#caa0ff"/></svg></div><div class="field" id="shopping-site-label">Shopping app / website</div><input type="hidden" id="shopping-site"><label class="field" for="shopping-search">Search apps / stores</label><input class="input shopping-search" type="search" id="shopping-search" placeholder="Search Amazon, Meesho, Zepto…" autocomplete="off"><p class="shopping-selection" role="status" aria-live="polite">Tap an app below</p><div class="shopping-store-grid" role="group" aria-labelledby="shopping-site-label"></div><div id="shopping-other-box" hidden><label class="field" for="shopping-other">Website / store name</label><input class="input" id="shopping-other" maxlength="80" placeholder="Enter website or store name" autocomplete="off"></div>';
   form.querySelector('.category-choices').after(box);
   const site=box.querySelector('#shopping-site'),other=box.querySelector('#shopping-other');
   const search=box.querySelector('#shopping-search'),grid=box.querySelector('.shopping-store-grid');
-  const choices=[...stores,'__other__'];
-  const labelFor=name=>name==='__other__'?'Other website / Instagram store':name;
-  function paintStores(){
-   const query=search.value.trim().toLocaleLowerCase('en');
-   const matches=choices.filter(name=>name==='__other__'||labelFor(name).toLocaleLowerCase('en').includes(query));
-   grid.innerHTML=(matches.length===1&&query?'<p class="shopping-no-results">No matching app. Use Other to add your store.</p>':'')+matches.map(name=>'<button type="button" class="shopping-store" style="--shop-hue:'+hueFor(name)+'" data-shopping-store="'+tidy(name)+'" aria-pressed="'+(name===site.value)+'"><span class="shopping-bag" aria-hidden="true"><i>'+tidy(markFor(name))+'</i></span><b>'+tidy(labelFor(name))+'</b><small>'+(name===site.value?'Selected':'Tap to select')+'</small></button>').join('');
-   grid.scrollTop=0;
+  const status=box.querySelector('.shopping-selection');
+  function closeResults(){grid.replaceChildren();grid.hidden=true;}
+  function showMatches(){
+   site.value='';other.value='';status.textContent='';refresh();closeResults();
+   const query=search.value.trim();
+   if(!query)return;
+   const matches=stores.filter(name=>name.toLowerCase().includes(query.toLowerCase())).slice(0,7);
+   for(const name of [...matches,...(matches.some(n=>n.toLowerCase()===query.toLowerCase())?[]:['__other__'])]){
+    const custom=name==='__other__',label=custom?query:name;
+    const button=document.createElement('button');
+    button.type='button';button.className='shop-result';
+    const icon=document.createElement('span');icon.className='shop-symbol';icon.textContent=custom?'🌐':markFor(name);
+    if(!custom){
+     const img=new Image();img.alt='';img.referrerPolicy='no-referrer';
+     img.onload=()=>icon.replaceChildren(img);
+     img.src='https://www.google.com/s2/favicons?sz=64&domain='+domains[name];
+    }
+    button.append(icon,document.createTextNode(custom?'Use “'+label+'”':name));
+    button.onclick=()=>{site.value=name;other.value=custom?query:'';search.value=label;refresh();closeResults();status.replaceChildren(icon,' '+label);};
+    grid.append(button);
+   }
+   grid.hidden=false;
   }
-  search.addEventListener('input',paintStores);
-  grid.addEventListener('click',event=>{
-   const button=event.target.closest('[data-shopping-store]');
-   if(!button)return;
-   site.value=button.dataset.shoppingStore;
-   grid.querySelectorAll('[data-shopping-store]').forEach(item=>{const selected=item.dataset.shoppingStore===site.value;item.setAttribute('aria-pressed',String(selected));item.querySelector('small').textContent=selected?'Selected':'Tap to select'});
-   box.querySelector('.shopping-selection').textContent='✓ Selected: '+labelFor(site.value);
-   form.querySelector('#category-save-error').textContent='';
-   refresh();
-   if(site.value==='__other__')other.focus();
-  });
-  paintStores();
+  search.addEventListener('input',showMatches);
+  search.addEventListener('keydown',e=>{if(e.key==='Escape')closeResults();if(e.key==='ArrowDown'){e.preventDefault();grid.firstElementChild?.focus();}});
+  box.addEventListener('focusout',e=>{if(!box.contains(e.relatedTarget))closeResults();});
+  closeResults();status.textContent='';
   function refresh(){
    const expense=type.value==='Expense';
    if(!expense&&category.value===categoryName)pickTransactionCategory('Food');
@@ -86,8 +288,8 @@
    site.disabled=!enabled;
    search.disabled=!enabled;
    const custom=enabled&&site.value==='__other__';
-   other.disabled=!custom;other.required=custom;
-   box.querySelector('#shopping-other-box').hidden=!custom;
+   other.disabled=!custom;other.required=false;
+   box.querySelector('#shopping-other-box').hidden=true;
    form.querySelector('[data-category-choice="Online Shopping"]').hidden=!expense;
    category.querySelector('option[value="Online Shopping"]').disabled=!expense;
   }

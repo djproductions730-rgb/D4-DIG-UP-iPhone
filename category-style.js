@@ -12,9 +12,11 @@
  Transfer:{color:'#548bca',bg:'#e6f0ff',path:'<path d="M8 14h25l-6-6M34 27H9l6 6"/>'},
  Other:{color:'#8b91ad',bg:'#eef0f8',path:'<rect x="9" y="9" width="24" height="24" rx="7"/><path d="M16 16h2M24 16h2M16 25h2M24 25h2" stroke-width="4"/>'}
  };
- function graphic(name){if(name==='Internet allowance')return '<svg class="category-art" viewBox="0 0 42 42" role="img" aria-label="Internet allowance"><rect width="42" height="42" rx="12" fill="#e7f4ff"/><g fill="none" stroke="#4f99cc" stroke-width="3" stroke-linecap="round"><path d="M9 17a18 18 0 0 1 24 0M14 23a11 11 0 0 1 14 0M19 29a3 3 0 0 1 4 0"/></g><circle cx="21" cy="33" r="2" fill="#4f99cc"/></svg>';const names=['Food','Family','Petrol','Movies','Shopping','Travel','Bills','Love','Brother','Sister','Other'];const key=name==='Online Shopping'?'Shopping':names.find(k=>k.toLowerCase()===String(name).toLowerCase())||(/loan|emi/i.test(name)?'Bills':'Other');return '<img class="category-art category-raster" src="./assets/categories/'+key.toLowerCase()+'.png" alt="'+key+' illustration" loading="lazy">'}
+ function graphic(name){if(name==='PF Advance'||name==='MG Shop Income')return '<span aria-hidden="true">'+(name==='PF Advance'?'🏦':'🏪')+'</span>';if(name==='Internet allowance')return '<svg class="category-art" viewBox="0 0 42 42" role="img" aria-label="Internet allowance"><rect width="42" height="42" rx="12" fill="#e7f4ff"/><g fill="none" stroke="#4f99cc" stroke-width="3" stroke-linecap="round"><path d="M9 17a18 18 0 0 1 24 0M14 23a11 11 0 0 1 14 0M19 29a3 3 0 0 1 4 0"/></g><circle cx="21" cy="33" r="2" fill="#4f99cc"/></svg>';const names=['Food','Family','Petrol','Movies','Shopping','Travel','Bills','Love','Brother','Sister','Other'];const key=name==='Online Shopping'?'Shopping':names.find(k=>k.toLowerCase()===String(name).toLowerCase())||(/loan|emi/i.test(name)?'Bills':'Other');return '<img class="category-art category-raster" src="./assets/categories/'+key.toLowerCase()+'.png" alt="'+key+' illustration" loading="lazy">'}
  function createTransaction(current,change,now=new Date()){const bank=current.banks.find(b=>String(b.id)===String(change.bankId)),amount=Number(change.amount);if(!bank||!Number.isFinite(Number(bank.balance)))throw Error('Choose a valid bank account.');if(!Number.isFinite(amount)||amount<=0||amount>1e11||Math.abs(amount*100-Math.round(amount*100))>0.0001)throw Error('Enter a positive amount with up to two decimal places.');if(!['Expense','Income'].includes(change.type))throw Error('Invalid transaction type.');const category=String(change.category||'Other').trim().slice(0,80)||'Other',loveName=['Love','Brother','Sister'].includes(category)?String(change.personName||change.loveName||'').trim().slice(0,70):'';if(['Love','Brother','Sister'].includes(category)&&!loveName)throw Error('Enter the person’s name.');const next=JSON.parse(JSON.stringify(current)),account=next.banks.find(b=>String(b.id)===String(bank.id));account.balance=Math.round((Number(account.balance)+(change.type==='Income'?amount:-amount))*100)/100;next.entries.push({id:'local-'+now.getTime()+'-'+Math.random().toString(36).slice(2,8),bankId:String(bank.id),bank:bank.name,type:change.type,amount:Math.round(amount*100)/100,category,note:String(change.note||'').trim().slice(0,500),created:now.toISOString(),...(loveName?{personName:loveName,...(category==='Love'?{loveName}:{})}:{})});return next}
  if(typeof module!=='undefined'&&module.exports){module.exports={createTransaction};return}
+ const incomeCategories=['Internet allowance','PF Advance','MG Shop Income'];
+ cats['PF Advance']=['🏦','#49a389'];cats['MG Shop Income']=['🏪','#cc9053'];
  cats['Internet allowance']=['📶','#4f99cc'];cats.Love=['♥','#d85480'];cats.Brother=['Brother','#409aa4'];cats.Sister=['Sister','#ab79d4'];categoryIcon=graphic;
  const style=document.createElement('style');style.textContent=`
  .category-raster{object-fit:cover;border-radius:12px;box-shadow:0 4px 12px #151a3c12}.category-choices .category-choice{padding:9px 5px;gap:8px}.category-choices .category-choice .category-art{width:64px;height:64px;max-width:100%;max-height:64px}
@@ -28,9 +30,11 @@
  const typeSelect=document.getElementById('txtype');
  function refreshIncomeCategory(){
   const income=typeSelect.value==='Income';
-  form.querySelector('[data-category-choice="Internet allowance"]').hidden=!income;
-  select.querySelector('option[value="Internet allowance"]').disabled=!income;
-  if(!income&&select.value==='Internet allowance')pickTransactionCategory('Food');
+  for(const name of incomeCategories){
+   form.querySelector('[data-category-choice="'+name+'"]').hidden=!income;
+   select.querySelector('option[value="'+name+'"]').disabled=!income;
+  }
+  if(!income&&incomeCategories.includes(select.value))pickTransactionCategory('Food');
  }
  typeSelect.addEventListener('change',refreshIncomeCategory);
  refreshIncomeCategory();
