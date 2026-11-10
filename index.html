@@ -227,7 +227,7 @@ const LOGOUT_KEY='d4-local-logged-out-v1';
 let loggedOut=false;try{loggedOut=localStorage.getItem(LOGOUT_KEY)==='1'}catch(_){}
 const KEY='d4webv15', fmt=n=>'₹'+Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}), tidy=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const catalog=['State Bank of India','HDFC Bank','ICICI Bank','Axis Bank','Punjab National Bank','Bank of Baroda','Canara Bank','Union Bank of India','Indian Bank','Bank of India','Indian Overseas Bank','UCO Bank','Central Bank of India','Bank of Maharashtra','Punjab & Sind Bank','Kotak Mahindra Bank','Federal Bank','IDFC FIRST Bank','IndusInd Bank','YES BANK','RBL Bank','Bandhan Bank','DCB Bank','City Union Bank','Karur Vysya Bank','Tamilnad Mercantile Bank','South Indian Bank','Karnataka Bank','CSB Bank','Jammu & Kashmir Bank','Nainital Bank','Dhanlaxmi Bank','AU Small Finance Bank','Equitas Small Finance Bank','Ujjivan Small Finance Bank','Utkarsh Small Finance Bank','Suryoday Small Finance Bank','ESAF Small Finance Bank','Jana Small Finance Bank','Shivalik Small Finance Bank','Capital Small Finance Bank','Airtel Payments Bank','India Post Payments Bank','Fino Payments Bank','Jio Payments Bank'];
-const cats={Food:['🍔','#fa9e48'],Family:['👨‍👩‍👧','#6d7dff'],Petrol:['⛽','#ef5d62'],Movies:['🎬','#9059d7'],Shopping:['🛍️','#f58ab1'],Travel:['🚗','#54aaf5'],Bills:['🧾','#3dbb97'],Other:['📦','#9295ab']};
+const cats={Food:['🍔','#fa9e48'],Family:['👨‍👩‍👧','#6d7dff'],Petrol:['⛽','#ef5d62'],Movies:['🎬','#9059d7'],Shopping:['🛍️','#f58ab1'],'Online Shopping':['🛒','#be63ee'],Travel:['🚗','#54aaf5'],Bills:['🧾','#3dbb97'],Other:['📦','#9295ab']};
 const tabs=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Spends'],['plans','◈','Plans'],['savings','🌱','Savings'],['loans','🪙','Loans'],['pluxee','▤','Pluxee'],['settings','⚙','Settings']];
 
 // Each row is a savings threshold in rupees and a Fibonacci age.
@@ -611,7 +611,7 @@ const inc=summary.income,exp=summary.expense;
 let html=`<div class="d4-screen-intro"><div><h2>Finance Overview</h2><p>Track · Plan · Save · Grow</p></div><span class="d4-hero-art" aria-hidden="true">🪴</span></div><div class="hero px-home-balances"><div><small>🏦 Bank balance</small><strong>${bankAccounts.length?fmt(accountBalance(bankAccounts)):'Add your bank'}</strong><span>${bankAccounts.length} accounts</span></div><button type="button" onclick="go('pluxee')"><small>▣ Pluxee balance</small><strong>${fmt(accountBalance(pluxeeAccounts()))}</strong><span>Meal wallet ›</span></button></div>`;
 html+='<div class="split" style="margin:12px 0"><div class="smallstat"><div class="muted">↙ Income · This month</div><strong class="value" style="color:#08945a">'+fmt(inc)+'</strong></div><div class="smallstat"><div class="muted">↗ Expenses · This month</div><strong class="value" style="color:#df3e62">'+fmt(exp)+'</strong></div></div>';
 html+='<div class="section-head"><h2>⚡ Quick Actions</h2><span class="pill">One-tap access</span></div>';
-const actions=[['pluxee-to-money','💳','Pluxee to Money','quick-green'],['expense','💸','Add Expense','quick-purple'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink'],['pluxee','▤','Pluxee Wallet','quick-purple'],['pluxee-credit','↙','Pluxee Income','quick-green'],['pluxee-spend','↗','Pluxee Spend','quick-pink']];
+const actions=[['pluxee-to-money','💳','Pluxee to Money','quick-green'],['expense','💸','Add Expense','quick-purple'],['online-shopping','🛒','Online Shopping','quick-pink'],['income','💰','Add Income','quick-green'],['transfer','🔁','Transfer','quick-blue'],['bank','🏦','Add Bank','quick-orange'],['history','🧾','History','quick-slate'],['loans','🪙','Loans & EMI','quick-pink'],['pluxee','▤','Pluxee Wallet','quick-purple'],['pluxee-credit','↙','Pluxee Income','quick-green'],['pluxee-spend','↗','Pluxee Spend','quick-pink']];
 html+='<div class="quick-grid">'+actions.map(([id,icon,name,theme])=>'<button type="button" class="quick-tile '+theme+'" data-quick="'+id+'" aria-label="'+tidy(name)+'"><span class="quick-icon" aria-hidden="true">'+(id==='pluxee-to-money'?'<span class="d4-transfer-art"><span class="d4-transfer-pluxee">P</span><span class="d4-transfer-arrow">➜</span><span class="d4-transfer-bank">🏦</span></span>':icon)+'</span><span class="quick-name">'+name+'</span>'+(id==='pluxee-to-money'?'<span class="d4-transfer-subtitle">PLUXEE → BANK</span>':'')+'</button>').join('')+'</div>';
 
 return html;
@@ -733,6 +733,7 @@ if(spend){e.preventDefault();openSpendCategory(spend.dataset.spend);return;}
 const quick=e.target.closest('[data-quick]');
 if(quick){e.preventDefault();switch(quick.dataset.quick){
 case 'expense':openTransaction('Expense');break;
+case 'online-shopping':openTransaction('Expense');if(document.getElementById('txform')){pickTransactionCategory('Online Shopping');document.getElementById('txcat').dispatchEvent(new Event('change'));document.getElementById('shopping-site')?.focus();}break;
 case 'income':openTransaction('Income');break;
 case 'transfer':openTransfer();break;
 case 'bank':openBankPicker();break;
@@ -824,6 +825,7 @@ openTransaction=function(initialType='Expense'){
   try{return submit.call(this,event)}finally{note.value=original}
  };
 };
-</script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script></body></html>
+</script><script src="./online-shopping.js?v=shopping-20261110"></script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script></body></html>
+
 
 
