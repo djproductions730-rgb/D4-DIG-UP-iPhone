@@ -13,6 +13,9 @@
   'Jewellery & accessories':['CaratLane','BlueStone','Tanishq','GIVA','Lenskart','Titan','Fastrack'],
   'Books, stationery & pets':['Bookswagon','Crossword','SapnaOnline','Heads Up For Tails','Supertails']
  };
+ // A single deduplicated A–Z catalog keeps every store easy to find.
+ const stores=[...new Set([...Object.values(groups).flat(),...["Aachho","Allen Solly","Amazon Bazaar","Amazon Pharmacy","American Eagle","AND","Arata","Arrow","Babyhug","Bajaj Electronics","Biba","BISSELL","Borosil","Campus","Cilory","Clovia","DaMENSCH","Dot & Key","Dr. Sheth’s","FabAlley","Fabindia","FableStreet","Fossil","Gadgets Now","GOAT","Good Earth","Happilo","Health & Glow","Himalaya","iHerb","Jockey","Kalyan Jewellers","Kama Ayurveda","Kushal’s","Lakmé","Levi’s","Libas","Lifestyle","Louis Philippe","Manyavar","Marks & Spencer","Metro Shoes","Mochi","Mokobara","MyGlamm","Nestasia","Nykaa Man","ONLY","Orient Electric","Peter England","Prestige","Rare Rabbit","Raymond","Reebok","Samsung Shop","Skechers","Smytten","Spar India","Spykar","SuperBottoms","Swiss Beauty","Tata CLiQ Luxury","The Body Shop","The Derma Co","The Man Company","Trent","U.S. Polo Assn.","Ugaoo","Van Heusen","Vero Moda","Vishal Mega Mart","W for Woman","Westlife","Wildcraft","WoodenStreet","Woodland","Xiaomi","Zivame","Zouk"]])].sort((a,b)=>a.localeCompare(b,'en',{sensitivity:'base'}));
+ const alphabet=stores.reduce((letters,name)=>{const letter=name[0].toUpperCase();(letters[letter]||(letters[letter]=[])).push(name);return letters},{});
  const openBeforeShopping=openTransaction;
  openTransaction=function(initialType='Expense'){
   openBeforeShopping(initialType);
@@ -21,7 +24,7 @@
   const category=form.querySelector('#txcat'),type=form.querySelector('#txtype');
   const box=document.createElement('div');
   box.className='shopping-site-box';
-  box.innerHTML='<label class="field" for="shopping-site">Shopping app / website</label><select class="input" id="shopping-site" required><option value="">Choose an app / website</option>'+Object.entries(groups).map(([label,names])=>'<optgroup label="'+tidy(label)+'">'+names.map(name=>'<option value="'+tidy(name)+'">'+tidy(name)+'</option>').join('')+'</optgroup>').join('')+'<option value="__other__">Other website / Instagram store</option></select><div id="shopping-other-box" hidden><label class="field" for="shopping-other">Website / store name</label><input class="input" id="shopping-other" maxlength="80" placeholder="Enter website or store name" autocomplete="off"></div>';
+  box.innerHTML='<label class="field" for="shopping-site">Shopping app / website</label><select class="input" id="shopping-site" required><option value="">Choose an app / website (A–Z)</option>'+Object.entries(alphabet).map(([label,names])=>'<optgroup label="'+tidy(label)+'">'+names.map(name=>'<option value="'+tidy(name)+'">'+tidy(name)+'</option>').join('')+'</optgroup>').join('')+'<option value="__other__">Other website / Instagram store</option></select><div id="shopping-other-box" hidden><label class="field" for="shopping-other">Website / store name</label><input class="input" id="shopping-other" maxlength="80" placeholder="Enter website or store name" autocomplete="off"></div>';
   form.querySelector('.category-choices').after(box);
   const site=box.querySelector('#shopping-site'),other=box.querySelector('#shopping-other');
   function refresh(){
