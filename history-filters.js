@@ -27,6 +27,10 @@
  .history-statement-card:is(.expense-card,.income-card) :is(.badge-icon,.premium-balance,.premium-edit){background:var(--base)!important;border-color:var(--edge)!important;color:#fff}
  .history-statement-card:is(.expense-card,.income-card) :is(.muted,.premium-card-footer,.premium-bank-corner){color:var(--tint)}
  .balance-estimate{grid-column:1/-1;font-size:10px;color:inherit}
+ .premium-bank-corner{display:flex;align-items:center;gap:7px}
+ .premium-bank-corner .bank-logo{width:32px;height:32px;padding:4px;border-radius:8px}
+ .premium-bank-corner .bank-logo>span:not([hidden]){font-size:0}
+ .premium-bank-corner .bank-logo>span:not([hidden])::after{content:'🏦';font-size:16px}
  `;document.head.appendChild(style);
  function historyBalances(banks, entries){
   const valid=value=>value!=null&&String(value).trim()!==''&&Number.isFinite(Number(value));
@@ -57,6 +61,12 @@
   }
   return balances;
  }
+ function bankMark(name){
+  if(/pluxee|sodexo/i.test(name))return '<span class="bank-logo" role="img" aria-label="Pluxee"><img src="./assets/brands/pluxee-symbol.png" alt=""></span>';
+  const mark=badge(name);
+  if(mark.includes('class="bank-logo"'))return mark;
+  return '<span class="bank-logo" role="img" aria-label="'+tidy(name)+'">🏦</span>';
+ }
  function dayKey(date){return date?[date.getFullYear(),date.getMonth()+1,date.getDate()].join('-'):'unknown'}
  function dayLabel(date){if(!date)return 'Date unavailable';const now=new Date(),yesterday=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1);if(dayKey(date)===dayKey(now))return 'Today';if(dayKey(date)===dayKey(yesterday))return 'Yesterday';return date.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'})}
  transactionHistory=function(){const rows=filterEntries(data.entries,range,selectedYear);const years=Array.from(new Set([new Date().getFullYear(),selectedYear,...data.entries.map(entry=>entryDate(entry)?.getFullYear()).filter(Boolean)])).sort((a,b)=>b-a);let html='<div class="history-premium-head"><div><h2>Transaction History</h2><p>All your money movements</p></div><button class="history-add" type="button" onclick="openTransaction()">+ Add</button></div><div class="history-filters" role="group" aria-label="Filter transaction history">'+Object.entries(labels).map(([key,label])=>'<button class="history-filter" type="button" aria-pressed="'+(range===key)+'" data-history-range="'+key+'">'+label+'</button>').join('')+'</div>'+(range==='year'?'<div class="history-year"><label class="field" for="history-year">Choose year</label><select class="input" id="history-year" onchange="setHistoryYear(this.value)">'+years.map(y=>'<option '+(y===selectedYear?'selected':'')+'>'+y+'</option>').join('')+'</select></div>':'')+'<p class="history-result-note" role="status">'+rows.length+' transaction'+(rows.length===1?'':'s')+' · '+(range==='year'?selectedYear:labels[range])+(range==='week'?' (Monday–Sunday)':'')+'</p>';
@@ -64,14 +74,14 @@
  const balances=historyBalances(data.banks,data.entries);let group='';for(const {entry:e,index,date} of rows){const key=dayKey(date);if(key!==group){html+='<h3 class="history-date-heading">▣ &nbsp;'+tidy(dayLabel(date))+(date?', '+date.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'')+'</h3>';group=key}const b=data.banks.find(b=>String(b.id)===String(e.bankId));
  const balance=balances[index];
  const isExpense=e.type==='Expense',isIncome=e.type==='Income';
- const bankName=e.type==='Transfer'?(e.fromBank+' → '+e.toBank):(b?.name||e.bank||'Unassigned original entry');
- const bankKind=/hdfc/i.test(bankName)?'hdfc':/kotak/i.test(bankName)?'kotak':/axis/i.test(bankName)?'axis':/icici/i.test(bankName)?'icici':/\\bsbi\\b|state bank/i.test(bankName)?'sbi':/pluxee|sodexo/i.test(bankName)?'pluxee':'other';
- const bankGlyph={hdfc:'',kotak:'K',axis:'A',icici:'i',sbi:'SBI',pluxee:'P',other:'🏦'}[bankKind];
+ const sourceName=b?.name||e.fromBank||e.bank||'Bank';
+ const destinationName=data.banks.find(bank=>String(bank.id)===String(e.toBankId))?.name||e.toBank||'Bank';
+ const marks=e.type==='Transfer'?bankMark(sourceName)+'<span aria-label="to">→</span>'+bankMark(destinationName):bankMark(sourceName);
  const title=['Love','Brother','Sister'].includes(e.category)&&(e.personName||e.loveName)?e.category+' · '+(e.personName||e.loveName):e.category||'Other';
  const amountText=(isExpense?'↓ −':isIncome?'↑ +':'⇄')+fmt(e.amount);
  const dateText=date?date.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'Date unavailable';
  const balanceHtml=balance?'<div class="premium-balance"><span>Before <strong>'+fmt(balance.before)+'</strong></span><span>After <strong>'+fmt(balance.after)+'</strong></span>'+(balance.estimated?'<small class="balance-estimate">Estimated from bank history</small>':'')+'</div>':'';
- html+='<article class="card history-statement-card '+(isExpense?'expense-card':isIncome?'income-card':'transfer-card')+'"><div class="premium-bank-corner" title="'+tidy(bankName)+'"><span class="statement-bank-icon '+bankKind+'" role="img" aria-label="'+tidy(bankName)+' bank symbol">'+bankGlyph+'</span> '+tidy(bankName)+'</div><div class="history-row"><div class="badge-icon">'+categoryIcon(e.category)+'</div><div class="grow"><div class="label">'+tidy(e.category==='Online Shopping'&&e.note?String(e.note).split(' · ')[0]:title)+'</div><div class="muted">'+tidy(e.category==='Online Shopping'?[e.category,...String(e.note||'').split(' · ').slice(1)].join(' · '):e.note||e.type||'Transaction')+'</div></div><div class="right"><div class="statement-amount '+(isExpense?'txamount expense':isIncome?'txamount income':'')+'">'+amountText+'</div><div class="muted">'+tidy(e.type||'')+'</div></div></div>'+balanceHtml+'<div class="premium-card-footer"><span>'+tidy(dateText)+'</span><button type="button" class="premium-edit" data-edit-entry="'+index+'" aria-label="Edit transaction '+(index+1)+'">✎ Edit</button></div></article>'}return html};
+ html+='<article class="card history-statement-card '+(isExpense?'expense-card':isIncome?'income-card':'transfer-card')+'"><div class="premium-bank-corner">'+marks+'</div><div class="history-row"><div class="badge-icon">'+categoryIcon(e.category)+'</div><div class="grow"><div class="label">'+tidy(e.category==='Online Shopping'&&e.note?String(e.note).split(' · ')[0]:title)+'</div><div class="muted">'+tidy(e.category==='Online Shopping'?[e.category,...String(e.note||'').split(' · ').slice(1)].join(' · '):e.note||e.type||'Transaction')+'</div></div><div class="right"><div class="statement-amount '+(isExpense?'txamount expense':isIncome?'txamount income':'')+'">'+amountText+'</div><div class="muted">'+tidy(e.type||'')+'</div></div></div>'+balanceHtml+'<div class="premium-card-footer"><span>'+tidy(dateText)+'</span><button type="button" class="premium-edit" data-edit-entry="'+index+'" aria-label="Edit transaction '+(index+1)+'">✎ Edit</button></div></article>'}return html};
  window.setHistoryYear=function(year){const y=Number(year);if(!Number.isInteger(y)||y<1900||y>9999)return;selectedYear=y;range='year';render()};
  document.getElementById('view').addEventListener('click',e=>{const target=e.target.closest('[data-history-range]');if(target&&Object.hasOwn(labels,target.dataset.historyRange)){range=target.dataset.historyRange;render()}});
 })();
