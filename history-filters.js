@@ -38,9 +38,20 @@
  .premium-bank-corner .bank-logo{width:32px;height:32px;padding:4px;border-radius:8px}
  .premium-bank-corner .bank-logo>span:not([hidden]){font-size:0}
  .premium-bank-corner .bank-logo>span:not([hidden])::after{content:'🏦';font-size:16px}
- .sad-spends{margin:18px 0;padding:13px;border:1px solid #ff68d4;border-radius:19px;background:linear-gradient(145deg,#330c25,#170c22 55%,#201538);color:#fff;box-shadow:0 0 12px #ef379951,inset 0 0 12px #e52b8336}
- .sad-spends header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px;padding:0}.sad-spends h2{margin:0;color:white;font-size:17px}.sad-spends header div{display:flex;border:1px solid #9c569c;border-radius:14px;overflow:hidden}.sad-spends button{background:#221129;color:white;padding:6px 10px;font-size:12px}.sad-spends button[aria-pressed=true]{background:#a31e79}
- .sad-spends ol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0;list-style:none}.sad-spends li{--warning:#ff575f;position:relative;text-align:center;border:1px solid var(--warning);border-radius:13px;box-shadow:inset 0 0 13px color-mix(in srgb,var(--warning) 26%,transparent),0 0 6px var(--warning);background:#211019;padding:12px 3px 8px;overflow-wrap:anywhere}.sad-spends li:nth-child(2){--warning:#ff9a55}.sad-spends li:nth-child(3){--warning:#f476e9}.sad-spends li b,.sad-spends li strong,.sad-spends li small{display:block}.sad-spends li small{color:var(--warning);font-weight:bold}.spend-face{position:absolute;right:2px;top:-5px;font-size:20px}.spend-art{font-size:30px;height:39px}.spend-art :is(img,svg){width:40px;height:38px;object-fit:contain}.sad-spends footer{border-top:1px solid #9d3f75;padding-top:9px;font-size:13px}.bank-period-totals>div{display:flex;gap:5px 14px;flex-wrap:wrap;border-bottom:1px solid #98619a66;padding:8px 0;font-size:13px}.bank-period-totals b{width:100%}
+
+ .sad-spends{margin:18px 0;padding:14px;border:1px solid #f46add;border-radius:18px;background:radial-gradient(ellipse at 12% 70%,#41103e,transparent 56%),#180a1d;color:#fff;box-shadow:0 0 14px #eb3bbe44}
+ .sad-spends header{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;padding:0}
+ .sad-spends h2{margin:0;color:white;font-size:19px}.sad-spends header div{display:flex;border:1px solid #8c4a90;border-radius:12px;overflow:hidden}.sad-spends button{background:#231029;color:white;padding:7px 10px;font-size:12px}.sad-spends button[aria-pressed=true]{background:#aa167d}
+ .sad-spends footer{padding:5px 0 9px;color:#dfc7dc;font-size:13px}.sad-spends footer b{color:#ff90d7}
+ .spend-spotlight{display:grid;grid-template-columns:minmax(68px,28%) minmax(0,1fr);gap:9px;align-items:center}
+ .spotlight-wallet{display:block;width:100%;height:auto;mask-image:radial-gradient(ellipse 71% 71%,black 64%,transparent 100%)}
+ .sad-spends ol{display:grid;gap:6px;margin:0;padding:0;list-style:none;min-width:0}
+ .sad-spends li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:2px 6px;background:#241124;border:1px solid #75416d;border-radius:10px;padding:5px 8px;font-size:13px;overflow-wrap:anywhere}
+ .sad-spends li:first-child{padding-block:10px;background:linear-gradient(105deg,#7e194e,#381029);border-color:#ff72af;box-shadow:0 0 8px #ed398348}
+ .spend-art{grid-row:span 2}.spend-art :is(svg,img){display:block;width:26px;height:26px;object-fit:contain}
+ .sad-spends li b{grid-row:span 2}.sad-spends li strong,.sad-spends li small{text-align:right}.sad-spends li strong{font-size:14px}.sad-spends li:first-child strong{font-size:18px}.sad-spends li small{color:#ffc0d8}
+ @media(max-width:420px){.sad-spends{padding:10px}.spend-spotlight{grid-template-columns:22% minmax(0,1fr);gap:5px}.sad-spends li{grid-template-columns:20px minmax(0,1fr) minmax(0,auto);gap:2px 4px;padding-inline:5px}.spend-art :is(svg,img){width:20px;height:20px}}
+ .bank-period-totals>div{display:flex;gap:5px 14px;flex-wrap:wrap;border-bottom:1px solid #98619a66;padding:8px 0;font-size:13px}.bank-period-totals b{width:100%}
  `;document.head.appendChild(style);
  function historyBalances(banks, entries){
   const valid=value=>value!=null&&String(value).trim()!==''&&Number.isFinite(Number(value));
@@ -95,8 +106,8 @@
   const period={today:'Today',week:'This Week',month:'This Month'}[spendRange];
   const tabs=Object.entries(spendLabels).map(([key,label])=>`<button type="button" data-spend-range="${key}" aria-pressed="${key===spendRange}">${label}</button>`).join('');
   const share=amount=>Math.round(amount*100/total)+'%';
-  const cards=top.map(([name,paise],i)=>`<li><span class="spend-face" aria-hidden="true">${['😢','😟','😞'][i]}</span><div class="spend-art" aria-hidden="true">${categoryIcon(name)}</div><b>${tidy(name)}</b><strong>${fmt(paise/100)}</strong><small>${share(paise)} of spend</small></li>`).join('');
-  return `<section class="sad-spends"><header><h2>📉 Top Spends ${period}</h2><div role="group" aria-label="Top spends period">${tabs}</div></header>${cards?`<ol>${cards}</ol>`:'<p>No expenses in this period.</p>'}<footer>😟 Total spent <b>${fmt(total/100)}</b>${top.length?` · Highest <b>${tidy(top[0][0])} (${share(top[0][1])})</b>`:''}</footer></section>`;
+  const cards=top.map(([name,paise])=>`<li><span class="spend-art" aria-hidden="true">${categoryIcon(name)}</span><b>${tidy(name)}</b><strong>${fmt(paise/100)}</strong><small>${share(paise)}</small></li>`).join('');
+  return `<section class="sad-spends"><header><h2>Top 3 Spends</h2><div role="group" aria-label="Top spends period">${tabs}</div></header><footer>${period} · Total spent <b>${fmt(total/100)}</b></footer><div class="spend-spotlight"><img class="spotlight-wallet" src="./assets/spotlight-wallet.webp" width="295" height="246" alt="">${cards?`<ol>${cards}</ol>`:'<p>No expenses in this period.</p>'}</div></section>`;
  };
  function bankLabel(name){
   const label=String(name||'').trim();
