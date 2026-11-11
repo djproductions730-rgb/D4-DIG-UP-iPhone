@@ -43,14 +43,19 @@
  .sad-spends header{display:flex;align-items:center;justify-content:space-between;gap:7px;flex-wrap:wrap;padding:0}
  .sad-spends h2{margin:0;color:white;font-size:19px}.sad-spends header div{display:flex;border:1px solid #8c4a90;border-radius:12px;overflow:hidden}.sad-spends button{background:#231029;color:white;padding:7px 10px;font-size:12px}.sad-spends button[aria-pressed=true]{background:#aa167d}
  .sad-spends footer{padding:5px 0 9px;color:#dfc7dc;font-size:13px}.sad-spends footer b{color:#ff90d7}
- .spend-spotlight{display:grid;grid-template-columns:minmax(68px,28%) minmax(0,1fr);gap:9px;align-items:center}
+ .spend-spotlight{display:grid;grid-template-columns:minmax(90px,33%) minmax(0,1fr);gap:9px;align-items:center}
  .spotlight-wallet{display:block;width:100%;height:auto;mask-image:radial-gradient(ellipse 71% 71%,black 64%,transparent 100%)}
  .sad-spends ol{display:grid;gap:6px;margin:0;padding:0;list-style:none;min-width:0}
- .sad-spends li{display:grid;grid-template-columns:26px minmax(0,1fr) auto;align-items:center;gap:2px 6px;background:#241124;border:1px solid #75416d;border-radius:10px;padding:5px 8px;font-size:13px;overflow-wrap:anywhere}
+ .sad-spends li{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:2px 6px;background:#241124;border:1px solid #75416d;border-radius:10px;padding:5px 8px;font-size:13px;overflow-wrap:anywhere}
  .sad-spends li:first-child{padding-block:10px;background:linear-gradient(105deg,#7e194e,#381029);border-color:#ff72af;box-shadow:0 0 8px #ed398348}
- .spend-art{grid-row:span 2}.spend-art :is(svg,img){display:block;width:26px;height:26px;object-fit:contain}
+ .spend-art{grid-row:span 2}.spend-art :is(svg,img){display:block;width:48px;height:48px;object-fit:contain}
  .sad-spends li b{grid-row:span 2}.sad-spends li strong,.sad-spends li small{text-align:right}.sad-spends li strong{font-size:14px}.sad-spends li:first-child strong{font-size:18px}.sad-spends li small{color:#ffc0d8}
- @media(max-width:420px){.sad-spends{padding:10px}.spend-spotlight{grid-template-columns:22% minmax(0,1fr);gap:5px}.sad-spends li{grid-template-columns:20px minmax(0,1fr) minmax(0,auto);gap:2px 4px;padding-inline:5px}.spend-art :is(svg,img){width:20px;height:20px}}
+ @media(max-width:520px){
+  .sad-spends{padding:10px}.spend-spotlight{grid-template-columns:32% minmax(0,1fr);gap:7px}
+  .sad-spends li{grid-template-columns:44px minmax(0,1fr);gap:2px 6px;padding:6px}
+  .sad-spends .spend-art{grid-row:1 / span 3}.sad-spends .spend-art :is(svg,img){width:44px;height:44px}
+  .sad-spends li b,.sad-spends li strong,.sad-spends li small{grid-column:2;grid-row:auto;text-align:left}
+ }
  
  `;document.head.appendChild(style);
  function historyBalances(banks, entries){
