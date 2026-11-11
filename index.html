@@ -559,7 +559,13 @@ function pluxeePage(embedded=false){
   const detail=pxSpendChannel(e)?[pxSpendChannel(e),e.note].filter(Boolean).join(' · '):e.note||'Meal wallet';
   const date=new Date(e.created||e.when||e.date);
   const when=Number.isFinite(date.getTime())?date.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'';
-  const icon=incoming?'↙':(pxMerchantLogo(merchant||e.category)||'♨');
+  const description=[e.category,e.note].join(' ');
+  let art='';
+  if(transfer||/pluxee\s*to\s*(money|bank)|money transfer/i.test(description))art='transfer';
+  else if(incoming)art='allowance';
+  else if(/bread|pasta|sandwich/i.test(description))art='sandwich';
+  else if(/om[be]*l[e]*tt?e?|podimass?|podimas/i.test(description))art='omelette';
+  const icon=art?'<span class="px-illustration '+art+'"></span>':(pxMerchantLogo(merchant||e.category)||categoryIcon(e.category||'Other'));
   return '<div class="pxrow px-activity-row"><span class="px-activity-icon '+(incoming?'credit':'')+'" aria-hidden="true">'+icon+'</span><span class="px-activity-copy"><strong>'+tidy(label)+'</strong><small>'+tidy([when,detail].filter(Boolean).join(' · '))+'</small></span><b class="'+(incoming?'pxin':'pxout')+'">'+(incoming?'+':'−')+fmt(e.amount)+'</b><button type="button" data-edit-entry="'+entryIndices.get(e)+'" aria-label="Edit '+tidy(label)+' transaction">Edit</button></div>'+pxEditLog(e);
  }).join('')||'<div class="px-empty-activity"><span aria-hidden="true">▤</span><strong>No activity for these filters</strong><p>Add income or a spend to start your meal wallet history.</p></div>';
  return `<section class="pxwallet px-wallet-focus"><div class="pxhero"><small class="px-eyebrow">YOUR MEAL WALLET</small><h2>Pluxee</h2><span class="px-balance-caption">Available balance</span><strong class="px-available">${fmt(accountBalance(pluxeeAccounts()))}</strong><span class="px-wallet-art" aria-hidden="true"><span></span></span><div class="pxhero-bottom"><span>Separate from your banks</span><button type="button" onclick="editPluxeeBalance()">Edit balance ✎</button></div></div><div class="pxactions"><button type="button" onclick="openPluxee('Income')"><span class="px-action-sign" aria-hidden="true">＋</span><span>Pluxee Income</span></button><button type="button" onclick="openPluxee('Expense')"><span class="px-action-sign" aria-hidden="true">−</span><span>Pluxee Spend</span></button></div><div class="pxstats"><div><span>↙ Received</span><b>${fmt(received)}</b></div><div><span>↗ Spent</span><b class="pxout">${fmt(spent)}</b></div></div>${embedded?'':periodPanel}${embedded?'':'<h3>Top Spends <small>Selected period</small></h3>'+pxRankingSection(items)}<details class="px-history" ${historyOpen?'open':'' }><summary>${embedded?'Recent Transactions':'Recent activity'}</summary>${historyControls}<div class="px-activity-list">${rows}</div></details></section>`;
