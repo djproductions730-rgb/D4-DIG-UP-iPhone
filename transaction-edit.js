@@ -14,7 +14,11 @@
   if(!Number.isFinite(Number(old.amount))||Number(old.amount)<0)throw Error('Original transaction amount is invalid.');
   const adjust=(bank,delta)=>{if(!Number.isFinite(Number(bank.balance)))throw Error('Invalid bank balance.');bank.balance=round(Number(bank.balance)+delta);if(Math.abs(bank.balance)>1e12)throw Error('Balance is outside supported limits.')};
   const apply=(e,direction)=>{const amount=Number(e.amount);if(e.type==='Transfer'){const from=bankFor(next,e.bankId,e.fromBank),to=bankFor(next,e.toBankId,e.toBank);if(String(from.id)===String(to.id))throw Error('Choose two different accounts.');adjust(from,-amount*direction);adjust(to,amount*direction)}else if(e.type==='Income'||e.type==='Expense'){adjust(bankFor(next,e.bankId,e.bank),(e.type==='Income'?amount:-amount)*direction)}else throw Error('Unsupported original transaction type.')};
-  const entry={...old,type,amount:round(amount),date,created:date+'T12:00:00',note:String(change.note||'').trim().slice(0,500),updatedAt:new Date().toISOString()};
+  const priorStamp=old.created||old.when;
+  const clock=new Date(priorStamp);
+  const time=Number.isFinite(clock.getTime())?clock.toTimeString().slice(0,8)+'.'+String(clock.getMilliseconds()).padStart(3,'0'):'12:00:00';
+  const created=date===entryDate(old)&&priorStamp?priorStamp:date+'T'+time;
+  const entry={...old,type,amount:round(amount),date,created,note:String(change.note||'').trim().slice(0,500),updatedAt:new Date().toISOString()};
   if(type==='Transfer'){const from=bankFor(next,change.bankId,''),to=bankFor(next,change.toBankId,'');entry.bankId=String(from.id);entry.toBankId=String(to.id);entry.bank=from.name;entry.fromBank=from.name;entry.toBank=to.name;entry.category='Transfer'}else{const bank=bankFor(next,change.bankId,'');entry.bankId=String(bank.id);entry.bank=bank.name;entry.category=String(change.category||'Other').trim().slice(0,80)||'Other';delete entry.toBankId;delete entry.fromBank;delete entry.toBank}
   if(['Love','Brother','Sister'].includes(entry.category)){entry.personName=String(change.loveName??old.personName??old.loveName??'').trim().slice(0,70);if(entry.category==='Love')entry.loveName=entry.personName;else delete entry.loveName}else{delete entry.loveName;delete entry.personName}
   if(next.banks.some(b=>/^pluxee$/i.test(String(b.name).trim())&&[String(old.bankId),String(entry.bankId)].includes(String(b.id)))){
