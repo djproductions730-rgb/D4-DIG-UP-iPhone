@@ -27,7 +27,7 @@
   document.querySelector('.app>header .subtitle').textContent=tabs.find(([id])=>id===tab)?.[2]||'Your finance buddy';
   const pluxeeHeading=tab==='pluxee'?document.querySelector('.pxhero h2'):document.querySelector('.px-home-balances button span');
   if(pluxeeHeading)pluxeeHeading.insertAdjacentHTML('afterbegin','<span class="pluxee-brand-symbol">'+symbol('pluxee')+'</span>');
-  if(tab==='pluxee'){const heading=document.querySelector('.pxhero h2');if(heading)heading.innerHTML='<span class="pluxee-original-wordmark"><img src="./assets/brands/pluxee-logo.png" alt="Pluxee" width="158" height="30"></span>'; }
+  if(tab==='pluxee'||tab==='banks'){const heading=document.querySelector('.pxhero h2');if(heading)heading.innerHTML='<span class="pluxee-original-wordmark"><img src="./assets/brands/pluxee-logo.png" alt="Pluxee" width="158" height="30"></span>'; }
   // Keep the frequent entry actions; every section remains available in the rail.
   if(tab==='home')document.querySelectorAll('.quick-tile[data-quick]').forEach(button=>{button.hidden=!['pluxee-to-money','expense','online-shopping','income','transfer','pluxee-credit','pluxee-spend'].includes(button.dataset.quick)});
   document.querySelectorAll('.quick-tile[data-quick="pluxee"],.quick-tile[data-quick="pluxee-credit"],.quick-tile[data-quick="pluxee-spend"]').forEach(button=>{const icon=button.querySelector('.quick-icon');if(icon)icon.innerHTML=symbol('pluxee')+'<span class="pluxee-action-direction" aria-hidden="true">'+(button.dataset.quick==='pluxee-credit'?'＋':'−')+'</span>'});
