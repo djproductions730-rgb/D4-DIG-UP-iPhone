@@ -271,14 +271,32 @@
      img.src='https://www.google.com/s2/favicons?sz=64&domain='+domains[name];
     }
     button.append(icon,document.createTextNode(custom?'Use “'+label+'”':name));
-    button.onclick=()=>{site.value=name;other.value=custom?query:'';search.value=label;refresh();closeResults();status.replaceChildren(icon,' '+label);};
+    // Keep the input focused through the compatibility mouse events on iOS.
+    button.addEventListener('mousedown',event=>event.preventDefault());
+    button.onclick=()=>{
+     site.value=name;
+     other.value=custom?query:'';
+     search.value=label;
+     refresh();
+     closeResults();
+     status.replaceChildren(icon,' ✓ '+label);
+     form.querySelector('#category-save-error').textContent='';
+     search.blur();
+    };
     grid.append(button);
    }
    grid.hidden=false;
   }
   search.addEventListener('input',showMatches);
   search.addEventListener('keydown',e=>{if(e.key==='Escape')closeResults();if(e.key==='ArrowDown'){e.preventDefault();grid.firstElementChild?.focus();}});
-  box.addEventListener('focusout',e=>{if(!box.contains(e.relatedTarget))closeResults();});
+  // Safari may provide no relatedTarget during a tap. Removing the row on
+  // that blur loses its upcoming click. Dismiss only on a known outside target.
+  box.addEventListener('focusout',event=>{
+   if(event.relatedTarget&&!box.contains(event.relatedTarget))closeResults();
+  });
+  form.addEventListener('pointerdown',event=>{
+   if(!box.contains(event.target))closeResults();
+  });
   closeResults();status.textContent='';
   function refresh(){
    const expense=type.value==='Expense';
