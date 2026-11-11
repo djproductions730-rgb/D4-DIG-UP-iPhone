@@ -13,12 +13,42 @@
   if(/goa|trip|travel|holiday/i.test(p.name))return 'Travel';
   return /business|shop setup/i.test(p.name)?'Business':'Custom';
  }
- function picture(p){
+ const galleries={
+  Travel:[['travel','Flight'],['goa','Beach'],['petrol','Road trip']],
+  Business:[['mg-shop-income','Shop'],['in-office','Office'],['online-shopping','Online store']],
+  Home:[['home','House'],['bills','Bills'],['shopping','Home shopping']],
+  Family:[['family','Family'],['relatives','Relatives'],['love','Love']],
+  Shopping:[['shopping','Shopping bags'],['online-shopping','Online order'],['food','Groceries']],
+  Savings:[['pf-advance','Savings'],['allowance','Allowance'],['home','Home goal']]
+ };
+ const allImages=[['other','Custom'],...Object.values(galleries).flat()].filter(([id],i,rows)=>rows.findIndex(([other])=>other===id)===i);
+ const imageIds=new Set(allImages.map(([id])=>id));
+ function imagePath(id){return id==='goa'?'./assets/plan-goa.webp':'./assets/category-art/'+id+'.webp'}
+ function defaultImage(p){
   const key=p.cover||category(p);
-  if(key==='Travel'&&/goa/i.test(p.name))return './assets/plan-goa.webp';
-  return './assets/category-art/'+(Object.hasOwn(covers,key)?covers[key]:'other')+'.webp';
+  if(key==='Travel'&&/goa/i.test(p.name))return 'goa';
+  return Object.hasOwn(covers,key)?covers[key]:'other';
+ }
+ function validPhoto(src){return typeof src==='string'&&src.length<200000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(src)}
+ function picture(p){
+  if(p.coverImage==='photo'&&validPhoto(p.coverPhoto))return p.coverPhoto;
+  return imagePath(imageIds.has(p.coverImage)?p.coverImage:defaultImage(p));
+ }
+ async function resizePhoto(file){
+  const url=URL.createObjectURL(file);
+  try{
+   const img=new Image();img.src=url;await img.decode();
+   const scale=Math.min(1,540/Math.max(img.naturalWidth,img.naturalHeight));
+   const canvas=document.createElement('canvas');
+   canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+   const ctx=canvas.getContext('2d');ctx.fillStyle='#23142f';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+   const result=canvas.toDataURL('image/jpeg',0.75);
+   if(!validPhoto(result))throw Error('Choose a smaller photo.');
+   return result;
+  }finally{URL.revokeObjectURL(url)}
  }
  const style=document.createElement('style');style.textContent=`
+ .fp-pictures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-height:225px;overflow:auto}.fp-pictures label{display:grid;gap:3px;position:relative;cursor:pointer;text-align:center;padding:5px;border:2px solid transparent;border-radius:10px;color:white;background:#362344;font-size:12px}.fp-pictures label:has(:checked){border-color:#e6a2ff;background:#603378}.fp-pictures input{position:absolute;top:3px;left:3px}.fp-pictures img{width:100%;height:50px;object-fit:contain}
  .fp{margin:16px 0;padding:16px;border:1px solid #895197;border-radius:22px;background:linear-gradient(140deg,#31143f,#190b28 72%);color:white}
  .fp-head{display:grid;grid-template-columns:minmax(0,1fr) 48%;align-items:center;gap:6px}.fp-head img{width:100%;height:140px;object-fit:cover;border-radius:14px;mask-image:linear-gradient(90deg,transparent,#000 16%)}
  .fp h2{font-size:clamp(23px,6vw,34px);line-height:1.1;margin:8px 0;overflow-wrap:anywhere}.fp small{color:#e8c9f4}
@@ -69,13 +99,34 @@
   const c=creating?'Travel':category(p),custom=!Object.hasOwn(covers,c)||c==='Custom';
   const options=key=>Object.keys(covers).map(k=>'<option '+(k===key?'selected':'')+'>'+k+'</option>').join('');
   const spent=total(log(p).filter(r=>r.kind==='expense')),saved=total(log(p).filter(r=>r.kind==='saving'));
-  const form=sheet(creating?'New future plan':'Edit future plan',field('Plan name','name','text',p.name,'required maxlength="100"')+'<label class="field">Category<select class="input" name="category">'+options(custom?'Custom':c)+'</select></label><div id="fp-custom">'+field('Custom category','custom','text',custom&&c!=='Custom'?c:'','maxlength="60"')+'<label class="field">Cover image<select class="input" name="cover">'+options(p.cover||'Custom')+'</select></label></div>'+money('Estimate (₹)','target',p.target||0)+money('Previously recorded expenses (₹)','openingSpend',Math.max(0,Math.round(((p.actualSpent||0)-spent)*100)/100))+money('Previously saved (₹)','openingSave',Math.max(0,Math.round(((p.saved||0)-saved)*100)/100))+field('Target date (optional)','dueDate','date',String(p.dueDate||p.targetDate||'').slice(0,10))+field('Notes','note','text',p.note,'maxlength="500"'),f=>{
+  let photo=validPhoto(p.coverPhoto)?p.coverPhoto:'',selected=photo&&p.coverImage==='photo'?'photo':imageIds.has(p.coverImage)?p.coverImage:defaultImage(creating?{category:'Travel'}:p);
+  const form=sheet(creating?'New future plan':'Edit future plan',field('Plan name','name','text',p.name,'required maxlength="100"')+'<label class="field">Category<select class="input" name="category">'+options(custom?'Custom':c)+'</select></label><div id="fp-custom">'+field('Custom category','custom','text',custom&&c!=='Custom'?c:'','maxlength="60"')+'</div><fieldset><legend>Plan image</legend><div class="fp-pictures"></div><label class="field">Add your photo<input class="input" type="file" accept="image/*" id="fp-photo"></label></fieldset>'+money('Estimate (₹)','target',p.target||0)+money('Previously recorded expenses (₹)','openingSpend',Math.max(0,Math.round(((p.actualSpent||0)-spent)*100)/100))+money('Previously saved (₹)','openingSave',Math.max(0,Math.round(((p.saved||0)-saved)*100)/100))+field('Target date (optional)','dueDate','date',String(p.dueDate||p.targetDate||'').slice(0,10))+field('Notes','note','text',p.note,'maxlength="500"'),f=>{
    const base=creating?{...data,plans:[...data.plans,{}]}:data,i=creating?data.plans.length:index;
    const next=editPlan(base,i,{...f,actualSpent:(Math.round(value(f.openingSpend,'amount')*100)+Math.round(spent*100))/100,saved:(Math.round(value(f.openingSave,'amount')*100)+Math.round(saved*100))/100});
-   Object.assign(next.plans[i],{category:f.category==='Custom'?(f.custom.trim()||'Custom'):f.category,cover:f.category==='Custom'?f.cover:f.category});return next;
+   Object.assign(next.plans[i],{category:f.category==='Custom'?(f.custom.trim()||'Custom'):f.category,cover:f.category,coverImage:f.picture});
+   if(f.picture==='photo'&&photo)next.plans[i].coverPhoto=photo;else delete next.plans[i].coverPhoto;
+   return next;
   });
-  const refresh=()=>form.querySelector('#fp-custom').hidden=form.elements.category.value!=='Custom';
-  form.elements.category.onchange=refresh;refresh();
+  function refresh(){
+   const key=form.elements.category.value;
+   form.querySelector('#fp-custom').hidden=key!=='Custom';
+   const choices=[...(galleries[key]||allImages)];
+   if(photo)choices.push(['photo','Your photo']);
+   if(!choices.some(([id])=>id===selected))selected=choices[0][0];
+   form.querySelector('.fp-pictures').innerHTML=choices.map(([id,label])=>`<label><input type="radio" name="picture" value="${id}" ${selected===id?'checked':''}><img alt="" src="${id==='photo'?photo:imagePath(id)}"><span>${label}</span></label>`).join('');
+  }
+  form.elements.category.onchange=refresh;
+  form.querySelector('.fp-pictures').onchange=e=>{selected=e.target.value};
+  const upload=form.querySelector('#fp-photo');
+  upload.onchange=async()=>{
+   const file=upload.files[0];if(!file)return;
+   const save=form.querySelector('[type=submit]'),error=form.querySelector('[role=alert]');
+   upload.disabled=save.disabled=true;error.textContent='Preparing photo…';
+   try{photo=await resizePhoto(file);selected='photo';refresh();error.textContent=''}
+   catch(e){error.textContent='Choose a smaller JPEG, PNG or WebP photo.'}
+   finally{upload.disabled=save.disabled=false;upload.value=''}
+  };
+  refresh();
  };
  window.openPlanEntry=function(index,kind){
   const p=data.plans[index],expense=kind==='expense';if(!p||(!expense&&kind!=='saving'))return;
