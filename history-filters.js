@@ -51,7 +51,7 @@
  .spend-art{grid-row:span 2}.spend-art :is(svg,img){display:block;width:26px;height:26px;object-fit:contain}
  .sad-spends li b{grid-row:span 2}.sad-spends li strong,.sad-spends li small{text-align:right}.sad-spends li strong{font-size:14px}.sad-spends li:first-child strong{font-size:18px}.sad-spends li small{color:#ffc0d8}
  @media(max-width:420px){.sad-spends{padding:10px}.spend-spotlight{grid-template-columns:22% minmax(0,1fr);gap:5px}.sad-spends li{grid-template-columns:20px minmax(0,1fr) minmax(0,auto);gap:2px 4px;padding-inline:5px}.spend-art :is(svg,img){width:20px;height:20px}}
- .bank-period-totals>div{display:flex;gap:5px 14px;flex-wrap:wrap;border-bottom:1px solid #98619a66;padding:8px 0;font-size:13px}.bank-period-totals b{width:100%}
+ 
  `;document.head.appendChild(style);
  function historyBalances(banks, entries){
   const valid=value=>value!=null&&String(value).trim()!==''&&Number.isFinite(Number(value));
@@ -116,7 +116,7 @@
   }
   return label||'Unassigned';
  }
- function bankSummary(periodRows){
+ function filterHistoryByBank(periodRows){
   const names=new Map(),accounts=new Map();
   function register(name){
    const label=bankLabel(name),key=label.toLowerCase();
@@ -132,23 +132,9 @@
   }
   for(const entry of data.entries)sides(entry);
   if(!names.has(selectedBankName))selectedBankName='';
-  const totals=new Map(),rows=[];
-  function add(key,field,value){
-   if(!totals.has(key))totals.set(key,{Income:0,Expense:0,incoming:0,outgoing:0});
-   totals.get(key)[field]+=value;
-  }
-  for(const row of periodRows){
-   const {entry}=row,[source,target]=sides(entry);
-   if(selectedBankName&&selectedBankName!==source&&selectedBankName!==target)continue;
-   rows.push(row);
-   const amount=Math.round(Number(entry.amount)*100);
-   if(!Number.isFinite(amount))continue;
-   if(target){add(source,'outgoing',amount);add(target,'incoming',amount)}
-   else if(['Income','Expense'].includes(entry.type))add(source,entry.type,amount);
-  }
+  const rows=selectedBankName?periodRows.filter(({entry})=>sides(entry).includes(selectedBankName)):periodRows;
   const options=[['','All'],...names].map(([key,label])=>`<button class="history-filter" type="button" data-history-bank="${tidy(key)}" aria-pressed="${key===selectedBankName}">${tidy(label)}</button>`).join('');
-  const summaries=[...totals].filter(([key])=>!selectedBankName||key===selectedBankName).map(([key,t])=>`<div><b>${tidy(names.get(key))}</b><span>Income ${fmt(t.Income/100)}</span><span>Expenses ${fmt(t.Expense/100)}</span>${t.incoming||t.outgoing?`<span>Transfer in ${fmt(t.incoming/100)}</span><span>Transfer out ${fmt(t.outgoing/100)}</span>`:''}</div>`).join('');
-  return {rows,html:`<h3>Bank</h3><div class="history-filters" role="group" aria-label="Filter by bank">${options}</div><h3>Bank-wise totals</h3><div class="bank-period-totals">${summaries||'No activity for this selection.'}</div>`};
+  return {rows,html:`<h3>Bank</h3><div class="history-filters" role="group" aria-label="Filter by bank">${options}</div>`};
  }
  document.getElementById('view').addEventListener('click',event=>{
   const button=event.target.closest('[data-spend-range],[data-history-bank]');
@@ -157,7 +143,7 @@
   else spendRange=button.dataset.spendRange;
   render();
  });
- transactionHistory=function(){const {rows,html:bankControls}=bankSummary(filterEntries(data.entries,range,selectedYear));const years=Array.from(new Set([new Date().getFullYear(),selectedYear,...data.entries.map(entry=>entryDate(entry)?.getFullYear()).filter(Boolean)])).sort((a,b)=>b-a);let html='<div class="history-premium-head"><div><h2>Transaction History</h2><p>All your money movements</p></div><button class="history-add" type="button" onclick="openTransaction()">+ Add</button></div><div class="history-filters" role="group" aria-label="Filter transaction history">'+Object.entries(labels).map(([key,label])=>'<button class="history-filter" type="button" aria-pressed="'+(range===key)+'" data-history-range="'+key+'">'+label+'</button>').join('')+'</div>'+(range==='year'?'<div class="history-year"><label class="field" for="history-year">Choose year</label><select class="input" id="history-year" onchange="setHistoryYear(this.value)">'+years.map(y=>'<option '+(y===selectedYear?'selected':'')+'>'+y+'</option>').join('')+'</select></div>':'')+bankControls+'<p class="history-result-note" role="status">'+rows.length+' transaction'+(rows.length===1?'':'s')+' · '+(range==='year'?selectedYear:labels[range])+(range==='week'?' (Monday–Sunday)':'')+'</p>';
+ transactionHistory=function(){const {rows,html:bankControls}=filterHistoryByBank(filterEntries(data.entries,range,selectedYear));const years=Array.from(new Set([new Date().getFullYear(),selectedYear,...data.entries.map(entry=>entryDate(entry)?.getFullYear()).filter(Boolean)])).sort((a,b)=>b-a);let html='<div class="history-premium-head"><div><h2>Transaction History</h2><p>All your money movements</p></div><button class="history-add" type="button" onclick="openTransaction()">+ Add</button></div><div class="history-filters" role="group" aria-label="Filter transaction history">'+Object.entries(labels).map(([key,label])=>'<button class="history-filter" type="button" aria-pressed="'+(range===key)+'" data-history-range="'+key+'">'+label+'</button>').join('')+'</div>'+(range==='year'?'<div class="history-year"><label class="field" for="history-year">Choose year</label><select class="input" id="history-year" onchange="setHistoryYear(this.value)">'+years.map(y=>'<option '+(y===selectedYear?'selected':'')+'>'+y+'</option>').join('')+'</select></div>':'')+bankControls+'<p class="history-result-note" role="status">'+rows.length+' transaction'+(rows.length===1?'':'s')+' · '+(range==='year'?selectedYear:labels[range])+(range==='week'?' (Monday–Sunday)':'')+'</p>';
  if(!rows.length)return html+'<div class="card empty"><div class="symbol">🧾</div><b>No transactions in this period</b><p class="muted">Choose another date range or tap All to see your history.</p></div>';
  const balances=historyBalances(data.banks,data.entries);let group='';for(const {entry:e,index,date} of rows){const key=dayKey(date);if(key!==group){html+='<h3 class="history-date-heading">▣ &nbsp;'+tidy(dayLabel(date))+(date?', '+date.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'')+'</h3>';group=key}const b=data.banks.find(b=>String(b.id)===String(e.bankId));
  const balance=balances[index];
