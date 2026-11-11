@@ -56,6 +56,7 @@
  .fp-state{color:#b0ffe3;background:#173d36;border-radius:12px;padding:12px;font-weight:bold}.fp-state.over{background:#532034;color:#ffb2bd}.fp-state.near,.fp-state.limit{background:#483429;color:#ffda9c}
  .fp-meter{height:7px;background:#40284c;margin:12px 0;border-radius:6px;overflow:hidden}.fp-meter span{display:block;height:100%;background:#ba89ff}.fp-meter.over{background:#ff738b}
  .fp details{border-bottom:1px solid #663e74}.fp summary,.fp-bank>summary{cursor:pointer;padding:12px 0;font-weight:bold}.fp-line{display:flex;justify-content:space-between;gap:10px;padding:5px 0;overflow-wrap:anywhere}.fp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.fp-actions button{flex:1 1 auto}
+ .fp{background:linear-gradient(125deg,#242842,#161c35);border-color:#394163}.fp-goal progress{width:100%;accent-color:#5ce6b0}.fp-reached{display:block;color:#82efb5}.fp .fp-actions .button:not(.ghost){background:#55e8d4!important;color:#10252a!important}
  `;document.head.appendChild(style);
  const log=p=>Array.isArray(p.planEntries)?p.planEntries:[];
  const total=rows=>rows.reduce((sum,row)=>sum+Math.round(row.amount*100),0)/100;
@@ -67,14 +68,16 @@
   const groups=new Map();
   if(opening>0)groups.set('Previously recorded',opening);
   for(const r of expenses)groups.set(r.category,(groups.get(r.category)||0)+Number(r.amount));
-  const message={unset:'Estimate not set',safe:fmt(diff)+' left',near:fmt(diff)+' left · Near limit',limit:'Budget reached',over:fmt(-diff)+' over budget · '+Number(((ratio-1)*100).toFixed(1))+'% above estimate'}[status];
-  const width=budget?(ratio>1?1/ratio:ratio)*100:0;
   const timeline=rows=>rows.slice().reverse().map(r=>line(r.date+' · '+(r.note||r.category),r.amount)).join('');
-  return `<article class="fp"><div class="fp-head"><div><small>${tidy(category(p))}</small><h2>${tidy(p.name)}</h2><button class="button ghost" onclick="openPlanEditor(${i})">Edit plan</button></div><img src="${picture(p)}" alt=""></div><div class="fp-stats"><div><small>Estimate</small><b>${fmt(budget)}</b></div><div><small>Actual spent</small><b>${fmt(spent)}</b></div></div><div class="fp-state ${status}">${message}</div><div class="fp-meter ${status}"><span style="width:${width}%"></span></div>${p.dueDate||p.targetDate?'<p>Target date · '+tidy(String(p.dueDate||p.targetDate).slice(0,10))+'</p>':''}${p.note?'<p>'+tidy(p.note)+'</p>':''}<details><summary>Category breakdown</summary>${[...groups].map(([name,n])=>line(name,n)).join('')||'No expenses yet.'}</details><details><summary>Spend timeline</summary>${timeline(expenses)}${opening>0?line('Previously recorded',opening):''}${!expenses.length&&!opening?'No expenses yet.':''}</details>${p.saved||savings.length?'<details><summary>Plan savings · '+fmt(p.saved||0)+'</summary>'+timeline(savings)+(Number(p.saved)>total(savings)?line('Previously saved',p.saved-total(savings)):'')+'</details>':''}<div class="fp-actions"><button class="button" onclick="openPlanEntry(${i},'expense')">+ Add expense</button><button class="button ghost" onclick="openPlanEntry(${i},'saving')">+ Add savings</button></div></article>`;
+  return `<article class="fp"><div class="fp-head"><div><small>${tidy(category(p))}</small><h2>${tidy(p.name)}</h2><button class="button ghost" onclick="openPlanEditor(${i})">Edit plan</button></div><img src="${picture(p)}" alt=""></div><div class="fp-stats"><div><small>Target</small><b>${fmt(budget)}</b></div><div><small>Actual spent</small><b>${fmt(spent)}</b></div></div>${status==='over'?'<div class="fp-state over">Exceeded by '+fmt(-diff)+'</div>':''}${p.dueDate||p.targetDate?'<p>Target date · '+tidy(String(p.dueDate||p.targetDate).slice(0,10))+'</p>':''}${p.note?'<p>'+tidy(p.note)+'</p>':''}<details><summary>Category breakdown</summary>${[...groups].map(([name,n])=>line(name,n)).join('')||'No expenses yet.'}</details><details><summary>Spend timeline</summary>${timeline(expenses)}${opening>0?line('Previously recorded',opening):''}${!expenses.length&&!opening?'No expenses yet.':''}</details>${p.saved||savings.length?'<details><summary>Plan savings · '+fmt(p.saved||0)+'</summary>'+timeline(savings)+(Number(p.saved)>total(savings)?line('Previously saved',p.saved-total(savings)):'')+'</details>':''}<div class="fp-actions"><button class="button" onclick="openPlanEntry(${i},'expense')">+ Add expense</button><button class="button ghost" onclick="openPlanEntry(${i},'saving')">+ Add savings</button></div></article>`;
+ }
+ function goalCard(p,i){
+  const saved=Number(p.saved)||0,target=Number(p.target)||0;
+  return `<article class="fp fp-goal"><div class="fp-head"><div><small>${tidy(category(p))}</small><h2>${tidy(p.name)}</h2><p>${fmt(saved)} saved${target?' of '+fmt(target):''}</p>${target?`<progress aria-label="Savings progress" value="${Math.min(saved,target)}" max="${target}"></progress>`:''}${target>0&&saved>=target?'<b class="fp-reached">✓ Goal reached</b>':''}</div><img src="${picture(p)}" alt=""></div><div class="fp-actions"><button class="button ghost" onclick="openPlanEditor(${i})">Edit</button><button class="button" onclick="openPlanEntry(${i},'saving')">+ Save</button></div></article>`;
  }
  plans=function(){
   const open=document.querySelector('.fp-bank')?.open||false;
-  return '<div class="section-head"><h2>Future Plans</h2><button class="button" onclick="openPlanEditor()">+ New plan</button></div>'+(data.plans.map(card).join('')||'<p>Create a plan to track your estimate, expenses and savings.</p>')+'<details class="card fp-bank" '+(open?'open':'')+'><summary>Bank savings · '+savingsMoney(growthState(data.savings).paise)+'</summary>'+savingsPage()+'</details>';
+  return '<div class="section-head"><h2>Future Plans</h2><button class="button" onclick="openPlanEditor()">+ New plan</button></div>'+(data.plans.map((p,i)=>p.kind==='savingGoal'?'':card(p,i)).join('')||'<p>Create a plan to track your estimate, expenses and savings.</p>')+'<div class="section-head"><h2>Savings</h2><button class="button" onclick="openPlanEditor(undefined,true)">+ Category</button></div>'+data.plans.map((p,i)=>p.kind==='savingGoal'?goalCard(p,i):'').join('')+'<details class="card fp-bank" '+(open?'open':'')+'><summary>Bank savings · '+savingsMoney(growthState(data.savings).paise)+'</summary>'+savingsPage()+'</details>';
  };
  function field(label,name,type,val,attrs=''){
   return `<label class="field">${label}<input class="input" name="${name}" type="${type}" value="${tidy(val??'')}" ${attrs}></label>`;
@@ -94,16 +97,18 @@
   };
   return form;
  }
- window.openPlanEditor=function(index){
+ window.openPlanEditor=function(index,goal=false){
   const creating=index===undefined,p=creating?{}:data.plans[index];if(!p)return;
-  const c=creating?'Travel':category(p),custom=!Object.hasOwn(covers,c)||c==='Custom';
+  const isGoal=creating?goal:p.kind==='savingGoal';
+  const c=creating?(isGoal?'Business':'Travel'):category(p),custom=!Object.hasOwn(covers,c)||c==='Custom';
   const options=key=>Object.keys(covers).map(k=>'<option '+(k===key?'selected':'')+'>'+k+'</option>').join('');
   const spent=total(log(p).filter(r=>r.kind==='expense')),saved=total(log(p).filter(r=>r.kind==='saving'));
-  let photo=validPhoto(p.coverPhoto)?p.coverPhoto:'',selected=photo&&p.coverImage==='photo'?'photo':imageIds.has(p.coverImage)?p.coverImage:defaultImage(creating?{category:'Travel'}:p);
-  const form=sheet(creating?'New future plan':'Edit future plan',field('Plan name','name','text',p.name,'required maxlength="100"')+'<label class="field">Category<select class="input" name="category">'+options(custom?'Custom':c)+'</select></label><div id="fp-custom">'+field('Custom category','custom','text',custom&&c!=='Custom'?c:'','maxlength="60"')+'</div><fieldset><legend>Plan image</legend><div class="fp-pictures"></div><label class="field">Add your photo<input class="input" type="file" accept="image/*" id="fp-photo"></label></fieldset>'+money('Estimate (₹)','target',p.target||0)+money('Previously recorded expenses (₹)','openingSpend',Math.max(0,Math.round(((p.actualSpent||0)-spent)*100)/100))+money('Previously saved (₹)','openingSave',Math.max(0,Math.round(((p.saved||0)-saved)*100)/100))+field('Target date (optional)','dueDate','date',String(p.dueDate||p.targetDate||'').slice(0,10))+field('Notes','note','text',p.note,'maxlength="500"'),f=>{
+  let photo=validPhoto(p.coverPhoto)?p.coverPhoto:'',selected=photo&&p.coverImage==='photo'?'photo':imageIds.has(p.coverImage)?p.coverImage:defaultImage(creating?{category:c}:p);
+  const form=sheet(isGoal?(creating?'New savings category':'Edit savings category'):(creating?'New future plan':'Edit future plan'),field(isGoal?'Savings goal name':'Plan name','name','text',p.name,'required maxlength="100"')+'<label class="field">Category<select class="input" name="category">'+options(custom?'Custom':c)+'</select></label><div id="fp-custom">'+field('Custom category','custom','text',custom&&c!=='Custom'?c:'','maxlength="60"')+'</div><fieldset><legend>Plan image</legend><div class="fp-pictures"></div><label class="field">Add your photo<input class="input" type="file" accept="image/*" id="fp-photo"></label></fieldset>'+money(isGoal?'Savings target (₹)':'Spending target (₹)','target',p.target||0)+(isGoal?'':money('Previously recorded expenses (₹)','openingSpend',Math.max(0,Math.round(((p.actualSpent||0)-spent)*100)/100)))+money('Previously saved (₹)','openingSave',Math.max(0,Math.round(((p.saved||0)-saved)*100)/100))+field('Target date (optional)','dueDate','date',String(p.dueDate||p.targetDate||'').slice(0,10))+field('Notes','note','text',p.note,'maxlength="500"'),f=>{
    const base=creating?{...data,plans:[...data.plans,{}]}:data,i=creating?data.plans.length:index;
-   const next=editPlan(base,i,{...f,actualSpent:(Math.round(value(f.openingSpend,'amount')*100)+Math.round(spent*100))/100,saved:(Math.round(value(f.openingSave,'amount')*100)+Math.round(saved*100))/100});
+   const next=editPlan(base,i,{...f,actualSpent:(Math.round(value(f.openingSpend||0,'amount')*100)+Math.round(spent*100))/100,saved:(Math.round(value(f.openingSave,'amount')*100)+Math.round(saved*100))/100});
    Object.assign(next.plans[i],{category:f.category==='Custom'?(f.custom.trim()||'Custom'):f.category,cover:f.category,coverImage:f.picture});
+   if(isGoal)next.plans[i].kind='savingGoal';
    if(f.picture==='photo'&&photo)next.plans[i].coverPhoto=photo;else delete next.plans[i].coverPhoto;
    return next;
   });
