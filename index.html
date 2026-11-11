@@ -477,6 +477,10 @@ function pxChange(button){
  else{pxOffset=Math.min(0,pxOffset+Number(button.dataset.pxStep))}
 }
 document.addEventListener('click',event=>{
+ if(event.target.closest('[data-px-filter-toggle]')){
+  if(pxBankFilters.open)resetBankWalletFilters();else pxBankFilters.open=true;
+  render();document.querySelector('[data-px-filter-toggle]')?.focus({preventScroll:true});return
+ }
  const office=event.target.closest('.pxwallet [data-px-office]');
  if(office){pxTopOffice=office.dataset.pxOffice;render();return}
  const day=event.target.closest('.pxwallet [data-px-day]');
@@ -492,8 +496,9 @@ function pxEditLog(entry){
  return '<details><summary>Edit history ('+edits.length+')</summary>'+ (edits.slice().reverse().map(edit=>'<p>'+tidy(new Date(edit.at).toLocaleString('en-IN'))+'<br>'+(Array.isArray(edit.changes)?edit.changes:[]).map(c=>tidy(c.field+': '+(c.before||'—')+' → '+(c.after||'—'))).join('<br>')+'</p>').join('')||'<p>No recorded edits.</p>')+'</details>';
 }
 const pxHistoryFilters={type:'All',office:'',merchant:''};
-function pxFilteredHistory(records){
- const filters=pxHistoryFilters;
+const pxBankFilters={type:'All',office:'',merchant:'',open:false,period:false};
+function resetBankWalletFilters(){Object.assign(pxBankFilters,{type:'All',office:'',merchant:'',open:false,period:false})}
+function pxFilteredHistory(records,filters=pxHistoryFilters){
  const expenses=records.filter(r=>r.type==='Expense');
  const merchants=[...new Set(expenses.filter(r=>!filters.office||r.office===filters.office).map(r=>r.merchant).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
  if(!merchants.includes(filters.merchant))filters.merchant='';
@@ -501,20 +506,21 @@ function pxFilteredHistory(records){
  const subtotal=visible.reduce((n,r)=>n+(r.type==='Expense'?r.paise:0),0);
  return {visible,merchants,subtotal};
 }
-function filtersOfficeLabel(){return pxHistoryFilters.office==='In Office'?'Office shop':'Merchant'}
-function pxHistoryControls(result,escape,amount){
+function filtersOfficeLabel(filters){return filters.office==='In Office'?'Office shop':'Merchant'}
+function pxHistoryControls(result,escape,amount,filters=pxHistoryFilters,embedded=false){
  function select(key,label,options){
-  return '<label>'+label+'<select class="input" data-history-key="'+key+'">'+options.map(([value,title])=>'<option value="'+escape(value)+'"'+(pxHistoryFilters[key]===value?' selected':'')+'>'+escape(title)+'</option>').join('')+'</select></label>';
+  return '<label>'+label+'<select class="input" data-history-key="'+key+'">'+options.map(([value,title])=>'<option value="'+escape(value)+'"'+(filters[key]===value?' selected':'')+'>'+escape(title)+'</option>').join('')+'</select></label>';
  }
- let html=select('type','Transaction type',[['All','All transactions'],['Expense','Expense'],['Income','Money credited']]);
- if(pxHistoryFilters.type==='Expense'){
-  html+=select('office','Spend channel',[['','All locations'],['In Office','In Office'],['Out of Office','Out of Office']])+select('merchant',filtersOfficeLabel(),[['',pxHistoryFilters.office==='In Office'?'All office shops':'All merchants'],...result.merchants.map(name=>[name,name])]);
+ let html=select('type','Transaction type',[['All','All transactions'],['Expense','Expense'],['Income','Money credited'],...(embedded?[['Transfer','Transfer']]:[])]);
+ if(filters.type==='Expense'){
+  html+=select('office','Spend channel',[['','All locations'],['In Office','In Office'],['Out of Office','Out of Office']])+select('merchant',filtersOfficeLabel(filters),[['',filters.office==='In Office'?'All office shops':'All merchants'],...result.merchants.map(name=>[name,name])]);
  }
- if(pxHistoryFilters.type!=='Income')html+='<div class="pxrow"><span>Expense subtotal</span><b class="pxout">'+amount+'</b></div>';
+ if(filters.type!=='Income')html+='<div class="pxrow"><span>Expense subtotal</span><b class="pxout">'+amount+'</b></div>';
  return html;
 }
 document.addEventListener('change',e=>{
- if(e.target.matches('.pxwallet [data-history-key]')){pxHistoryFilters[e.target.dataset.historyKey]=e.target.value;render()}
+ if(e.target.matches('[data-px-use-period]')){pxBankFilters.period=e.target.checked;render();return}
+ if(e.target.matches('.pxwallet [data-history-key]')){const filters=tab==='banks'?pxBankFilters:pxHistoryFilters;filters[e.target.dataset.historyKey]=e.target.value;render()}
 });
 function pxMerchantLogo(name){
  const logos={"swiggy":"data:image/svg+xml,%3Csvg%20role%3D%22img%22%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctitle%3ESwiggy%3C%2Ftitle%3E%3Cpath%20fill%3D%22%23e85e06%22%20d%3D%22M12.034%2024c-.376-.411-2.075-2.584-3.95-5.513-.547-.916-.901-1.63-.833-1.814.178-.48%203.355-.743%204.333-.308.298.132.29.307.29.409%200%20.44-.022%201.619-.022%201.619a.441.441%200%201%200%20.883-.002l-.005-2.939c0-.255-.278-.319-.331-.329-.511-.002-1.548-.006-2.661-.006-2.457%200-3.006.101-3.423-.172-.904-.591-2.383-4.577-2.417-6.819C3.849%204.964%205.723%202.225%208.362.868A8.13%208.13%200%200%201%2012.026%200c4.177%200%207.617%203.153%208.075%207.209l.001.011c.084.981-5.321%201.189-6.39.904-.164-.044-.206-.212-.206-.284L13.5%204.996a.442.442%200%200%200-.884.002l.009%203.866a.33.33%200%200%200%20.268.32l3.354-.001c1.79%200%202.542.207%203.042.588.333.254.461.739.349%201.37C18.633%2016.755%2012.273%2023.71%2012.034%2024z%22%2F%3E%3C%2Fsvg%3E","zomato":"data:image/svg+xml,%3Csvg%20role%3D%22img%22%20viewBox%3D%220%200%2024%2024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ctitle%3EZomato%3C%2Ftitle%3E%3Cpath%20fill%3D%22%23d92e42%22%20d%3D%22M19.615%209.45l-1.258.473-.167.71-.446.021-.115.978h.408l-.211%201.51c-.131.939.036%201.381.865%201.381.488%200%20.91-.175%201.135-.297l.145-.9c-.167.083-.436.19-.618.19-.247%200-.276-.13-.225-.488l.189-1.396h.843c.03-.206.131-.877.16-1h-.865zm-3.779%201.002c-.115.002-.236.01-.361.026a3.592%203.592%200%200%200-1.347.432l.26.789c.269-.15.615-.28.978-.326.538-.066.757.1.79.375.014.109.004.199-.005.289l-.014.056a3.46%203.46%200%200%200-1.097-.036c-.518.063-.943.273-1.204.6a1.324%201.324%200%200%200-.225%201.034c.127.583.553.84%201.199.76.45-.055.812-.27%201.076-.63a2.665%202.665%200%200%201-.03.304%201.74%201.74%200%200%201-.072.29l1.244.001a3.657%203.657%200%200%201-.001-.365c.036-.459.118-1.143.247-2.051a2.397%202.397%200%200%200-.002-.59c-.08-.644-.628-.969-1.436-.958zm6.536.063c-1.194%200-2.107%201.067-2.107%202.342%200%20.959.552%201.693%201.628%201.693%201.2%200%202.107-1.067%202.107-2.35%200-.95-.538-1.685-1.628-1.685zm-11.777.041c-.538%200-1.12.465-1.52%201.236.102-.504.08-1.076.051-1.198a8.964%208.964%200%200%201-1.287.122%206.9%206.9%200%200%201-.073%201.243l-.167%201.145c-.066.45-.138.969-.211%201.297h1.353c.007-.199.058-.511.094-.786l.116-.786c.095-.511.502-1.114.815-1.114.182%200%20.175.176.124.504l-.131.885c-.066.45-.138.969-.211%201.297h1.367c.008-.199.051-.512.088-.786l.116-.786c.094-.512.502-1.114.814-1.114.182%200%20.175.168.146.396l-.327%202.29H13l.438-2.609c.095-.649.044-1.236-.676-1.236-.523%200-1.09.443-1.49%201.182.087-.61.036-1.182-.677-1.182zm-4.88.008c-1.177%200-2.08%201.053-2.08%202.312%200%20.946.546%201.67%201.608%201.67%201.185%200%202.08-1.052%202.08-2.319%200-.938-.531-1.663-1.607-1.663zm-5.126.091c-.05.39-.102.778-.175%201.13.328-.008.619-.016%201.411-.016l-1.81%201.96-.015.703c.444-.03.997-.039%201.63-.039.566%200%201.134.008%201.497.039.065-.458.13-.763.21-1.137-.275.015-.755.023-1.512.023l1.81-1.969.023-.694c-.437.023-.83.03-1.52.03-.749%200-.975-.007-1.549-.03zm4.988.927c.255%200%20.408.228.408.701%200%20.687-.276%201.251-.626%201.251-.261%200-.414-.236-.414-.702%200-.694.283-1.25.632-1.25zm16.629%200c.254%200%20.407.228.407.701%200%20.687-.276%201.251-.625%201.251-.262%200-.415-.236-.415-.702%200-.694.284-1.25.633-1.25zM15.51%2012.64c.206-.003.403.024.55.058l-.013.118c-.075.44-.39.881-.848.938-.31.037-.578-.148-.608-.39a.538.538%200%200%201%20.114-.41c.117-.159.336-.268.599-.3.069-.009.138-.013.206-.014Z%22%2F%3E%3C%2Fsvg%3E","zepto":"https://upload.wikimedia.org/wikipedia/commons/8/81/Zepto_Logo.svg"};
@@ -532,27 +538,31 @@ function pluxeePage(embedded=false){
  const historyOpen=document.querySelector(".pxwallet .px-history")?.open??true;
  const range=pxRange();
  const ids=new Set(pluxeeAccounts().map(b=>String(b.id)));
- const items=data.entries.filter(e=>{
-  if(!ids.has(String(e.bankId)))return false;
-  const raw=e.created||e.when||e.date;
-  return pxContains(range,raw) && ['Income','Expense'].includes(e.type);
- }).slice().reverse();
+ const walletSide=(id,name)=>id!=null&&id!==''?ids.has(String(id)):/^(pluxee|sodexo)$/i.test(String(name||'').trim());
+ const walletEntries=data.entries.filter(e=>walletSide(e.bankId,e.fromBank||e.bank)||(e.type==='Transfer'&&walletSide(e.toBankId,e.toBank))).reverse();
+ const inPeriod=e=>pxContains(range,e.date||e.created||e.when||e.timestamp);
+ const usePeriod=!embedded||(pxBankFilters.open&&pxBankFilters.period);
+ const historyItems=usePeriod?walletEntries.filter(inPeriod):walletEntries;
+ const items=historyItems.filter(e=>['Income','Expense'].includes(e.type));
  const total=type=>items.filter(e=>e.type===type).reduce((sum,e)=>sum+Number(e.amount),0);
  const received=total('Income'),spent=total('Expense');
  const entryIndices=new Map(data.entries.map((e,i)=>[e,i]));
- const result=pxFilteredHistory(items.slice().sort((a,b)=>new Date(b.created||b.when||b.date)-new Date(a.created||a.when||a.date)).map(e=>({
+ const result=pxFilteredHistory((embedded?historyItems:items).slice().sort((a,b)=>new Date(b.created||b.when||b.date)-new Date(a.created||a.when||a.date)).map(e=>({
   entry:e,type:e.type,paise:Math.round(Number(e.amount)*100),office:pxSpendChannel(e),merchant:pxSpendChannel(e)?String(e.note||'').split(' · ')[0].trim():''
- })));
- const controls=pxHistoryControls(result,tidy,fmt(result.subtotal/100));
+ })),embedded?pxBankFilters:pxHistoryFilters);
+ const controls=pxHistoryControls(result,tidy,fmt(result.subtotal/100),embedded?pxBankFilters:pxHistoryFilters,embedded);
+ const periodPanel='<div class="px-period-panel">'+pxControls(range.label)+'</div>';
+ const historyControls=embedded?`<button type="button" class="button" data-px-filter-toggle aria-expanded="${pxBankFilters.open}">Filter</button>${pxBankFilters.open?`<div class="px-history-options"><label><input type="checkbox" data-px-use-period ${pxBankFilters.period?'checked':''}> Filter by date</label>${pxBankFilters.period?periodPanel:''}${controls}</div>`:''}`:controls;
  const rows=result.visible.map(({entry:e,merchant})=>{
-  const incoming=e.type==='Income',label=merchant||(incoming?'Meal allowance':e.note||'Meal spend');
+  const transfer=e.type==='Transfer';
+  const incoming=transfer?walletSide(e.toBankId,e.toBank):e.type==='Income',label=transfer?(e.note||'Transfer'):merchant||(incoming?'Meal allowance':e.note||'Meal spend');
   const detail=pxSpendChannel(e)?[pxSpendChannel(e),e.note].filter(Boolean).join(' · '):e.note||'Meal wallet';
   const date=new Date(e.created||e.when||e.date);
   const when=Number.isFinite(date.getTime())?date.toLocaleDateString('en-IN',{day:'numeric',month:'short'}):'';
   const icon=incoming?'↙':(pxMerchantLogo(merchant||e.category)||'♨');
   return '<div class="pxrow px-activity-row"><span class="px-activity-icon '+(incoming?'credit':'')+'" aria-hidden="true">'+icon+'</span><span class="px-activity-copy"><strong>'+tidy(label)+'</strong><small>'+tidy([when,detail].filter(Boolean).join(' · '))+'</small></span><b class="'+(incoming?'pxin':'pxout')+'">'+(incoming?'+':'−')+fmt(e.amount)+'</b><button type="button" data-edit-entry="'+entryIndices.get(e)+'" aria-label="Edit '+tidy(label)+' transaction">Edit</button></div>'+pxEditLog(e);
  }).join('')||'<div class="px-empty-activity"><span aria-hidden="true">▤</span><strong>No activity for these filters</strong><p>Add income or a spend to start your meal wallet history.</p></div>';
- return `<section class="pxwallet px-wallet-focus"><div class="pxhero"><small class="px-eyebrow">YOUR MEAL WALLET</small><h2>Pluxee</h2><span class="px-balance-caption">Available balance</span><strong class="px-available">${fmt(accountBalance(pluxeeAccounts()))}</strong><span class="px-wallet-art" aria-hidden="true"><span></span></span><div class="pxhero-bottom"><span>Separate from your banks</span><button type="button" onclick="editPluxeeBalance()">Edit balance ✎</button></div></div><div class="pxactions"><button type="button" onclick="openPluxee('Income')"><span class="px-action-sign" aria-hidden="true">＋</span><span>Pluxee Income</span></button><button type="button" onclick="openPluxee('Expense')"><span class="px-action-sign" aria-hidden="true">−</span><span>Pluxee Spend</span></button></div><div class="pxstats"><div><span>↙ Received</span><b>${fmt(received)}</b></div><div><span>↗ Spent</span><b class="pxout">${fmt(spent)}</b></div></div><div class="px-period-panel">${pxControls(range.label)}</div>${embedded?'':'<h3>Top Spends <small>Selected period</small></h3>'+pxRankingSection(items)}<details class="px-history" ${historyOpen?'open':'' }><summary>${embedded?'Recent Transactions':'Recent activity'}</summary>${controls}<div class="px-activity-list">${rows}</div></details></section>`;
+ return `<section class="pxwallet px-wallet-focus"><div class="pxhero"><small class="px-eyebrow">YOUR MEAL WALLET</small><h2>Pluxee</h2><span class="px-balance-caption">Available balance</span><strong class="px-available">${fmt(accountBalance(pluxeeAccounts()))}</strong><span class="px-wallet-art" aria-hidden="true"><span></span></span><div class="pxhero-bottom"><span>Separate from your banks</span><button type="button" onclick="editPluxeeBalance()">Edit balance ✎</button></div></div><div class="pxactions"><button type="button" onclick="openPluxee('Income')"><span class="px-action-sign" aria-hidden="true">＋</span><span>Pluxee Income</span></button><button type="button" onclick="openPluxee('Expense')"><span class="px-action-sign" aria-hidden="true">−</span><span>Pluxee Spend</span></button></div><div class="pxstats"><div><span>↙ Received</span><b>${fmt(received)}</b></div><div><span>↗ Spent</span><b class="pxout">${fmt(spent)}</b></div></div>${embedded?'':periodPanel}${embedded?'':'<h3>Top Spends <small>Selected period</small></h3>'+pxRankingSection(items)}<details class="px-history" ${historyOpen?'open':'' }><summary>${embedded?'Recent Transactions':'Recent activity'}</summary>${historyControls}<div class="px-activity-list">${rows}</div></details></section>`;
 }
 function pxPaise(value){
  if(value==null||String(value).trim()==='')throw Error('Enter an amount.');
@@ -637,7 +647,7 @@ function settings(){return '<h2>⚙ Settings & Backup</h2><div class="card"><b>�
 function openLogout(){showSheet('Logout','<p>Log out of DIG UP on this device?</p><p class="muted">Your banks, transactions, loans and plans stay saved in this browser. This closes the local app; it does not sign out of the separate Android or Gmail verification service.</p><div class="row"><button type="button" class="button ghost" onclick="closeSheet()">Cancel</button><button type="button" class="button" onclick="logoutLocalApp()">Logout</button></div>')}
 function logoutLocalApp(){try{localStorage.setItem(LOGOUT_KEY,'1')}catch(_){alert('Could not save logout. Please try again.');return;}loggedOut=true;selectedBank=null;tab='home';document.getElementById('sheet').innerHTML='';closeSheet();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#view button').focus()}
 function resumeLocalApp(){try{localStorage.removeItem(LOGOUT_KEY)}catch(_){alert('Could not reopen the app. Please try again.');return;}loggedOut=false;tab=openingTab();render()}
-function go(next){tab=next;selectedBank=null;closeSheet();render();window.scrollTo({top:0,behavior:'instant'})}
+function go(next){if(next==='banks'&&tab!==next)resetBankWalletFilters();tab=next;selectedBank=null;closeSheet();render();window.scrollTo({top:0,behavior:'instant'})}
 function render(){document.body.classList.toggle('d4-logged-out',loggedOut);if(loggedOut){document.getElementById('nav').innerHTML='';document.getElementById('view').innerHTML='<section class="card" style="margin-top:32px;text-align:center"><h2>You’re logged out</h2><p class="muted">Your records are saved in this browser.</p><button type="button" class="button" onclick="resumeLocalApp()">Open on this device</button><p class="muted">This local app has no password or OTP sign-in yet. Anyone using this browser can reopen it.</p></section>';return;}document.getElementById('nav').innerHTML=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['more','☷','More']].map(([id,ic,label])=>'<button type="button" class="navbtn '+((id===tab||(id==='more'&&['savings','loans','pluxee','settings'].includes(tab)))?'active':'')+'" '+(id==='more'?'data-d4-more="1"':'data-tab="'+id+'"')+' aria-label="'+label+'"><span class="ico">'+ic+'</span><span>'+label+'</span></button>').join('');let html=tab==='pluxee'?pluxeePage():tab==='savings'?savingsPage():tab==='home'?home():tab==='banks'?banksPage()+pluxeePage(true):tab==='transactions'?transactionHistory():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html}
 let d4SheetScrollY=0;
 function fitTransactionPopup(){
