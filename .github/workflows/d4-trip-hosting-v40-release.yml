@@ -76,9 +76,9 @@ jobs:
       - name: Install pinned Firebase CLI
         run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
 
-      - name: Deploy chat access rules and Hosting
+      - name: Deploy Hosting after console-verified chat rules
         working-directory: d4-trip-demo
-        run: npx firebase deploy --only firestore:rules,hosting --project d4-trip --config firebase.json --non-interactive
+        run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
 
       - name: Verify exact live HTML, app code, AI art and service worker
         run: |
@@ -116,10 +116,3 @@ jobs:
           echo "FAIL: production Hosting does not match the approved commit"
           exit 1
 
-      - name: Install trip push dependencies
-        working-directory: d4-trip-demo/trip-push
-        run: npm install --omit=dev --no-audit --no-fund
-
-      - name: Deploy notification registration and message delivery
-        working-directory: d4-trip-demo
-        run: npx firebase deploy --only functions:trip-push --project d4-trip --config firebase.json --non-interactive
