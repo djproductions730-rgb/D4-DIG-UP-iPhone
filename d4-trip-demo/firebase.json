@@ -15,7 +15,8 @@
       "**/*.md",
       "**/*.rules",
       "**/*debug.log",
-      "**/package*.json"
+      "**/package*.json",
+      "trip-push/**"
     ],
     "headers": [
       {
@@ -103,5 +104,11 @@
     "ui": {
       "enabled": false
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "trip-push",
+      "codebase": "trip-push"
+    }
+  ]
 }

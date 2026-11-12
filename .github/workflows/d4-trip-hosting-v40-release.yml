@@ -1,4 +1,4 @@
-name: D4 Trip Premium 3D Icons Release
+name: D4 Trip Chat and Notifications Release
 on:
   push:
     branches:
@@ -76,9 +76,9 @@ jobs:
       - name: Install pinned Firebase CLI
         run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
 
-      - name: Deploy Firebase Hosting only — no Firestore, Auth or Functions changes
+      - name: Deploy chat access rules and Hosting
         working-directory: d4-trip-demo
-        run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
+        run: npx firebase deploy --only firestore:rules,hosting --project d4-trip --config firebase.json --non-interactive
 
       - name: Verify exact live HTML, app code, AI art and service worker
         run: |
@@ -92,7 +92,7 @@ jobs:
               continue
             fi
             status=0
-            for file in icon-picker.js icon-picker.css manifest.webmanifest icons/turquoise-premium-v71-192.png icons/ocean-premium-v71-192.png icons/sunset-premium-v71-192.png icons/rose-premium-v71-192.png icons/midnight-premium-v71-192.png goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
+            for file in live-chat.js live-chat.css trip-notifications.js icon-picker.js icon-picker.css manifest.webmanifest icons/turquoise-premium-v71-192.png icons/ocean-premium-v71-192.png icons/sunset-premium-v71-192.png icons/rose-premium-v71-192.png icons/midnight-premium-v71-192.png goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
               curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-${file//\//_}" || { status=1; break; }
               if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-${file//\//_}"; then
                 echo "Mismatch in LIVE file: $file"
@@ -115,3 +115,11 @@ jobs:
           done
           echo "FAIL: production Hosting does not match the approved commit"
           exit 1
+
+      - name: Install trip push dependencies
+        working-directory: d4-trip-demo/trip-push
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Deploy notification registration and message delivery
+        working-directory: d4-trip-demo
+        run: npx firebase deploy --only functions:trip-push --project d4-trip --config firebase.json --non-interactive

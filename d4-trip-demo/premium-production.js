@@ -362,11 +362,7 @@
     return original.tripPage();
   };
   chatsPage = function () {
-    return '<section class="d4p-section"><div class="d4p-coming">' +
-      '<div class="d4p-chat-icon" aria-hidden="true">💬</div>' +
-      '<h2>Chats — Coming Soon</h2>' +
-      '<p>Trip messaging will arrive in a later release. Existing saved messages have not been deleted or modified.</p>' +
-      '<span class="pill">🔒 Not active yet</span></div></section>';
+    return window.D4LiveChat?.page() || '<section class="card"><h2>Trip Chat</h2><p>Connecting to chat…</p></section>';
   };
   profilePage = function () {
     // Guest invite links must open the name-only request form, never an account/login screen.
