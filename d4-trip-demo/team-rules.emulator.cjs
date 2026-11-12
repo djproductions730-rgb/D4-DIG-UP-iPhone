@@ -60,6 +60,27 @@ test('team roles, invitation isolation, revocation and revision checks',async()=
  // Admin may add a member but cannot subsequently remove that same person.
  await assertSucceeds(setDoc(doc(admin,path),{...payload(4,'admin'),trip:{id:'test-trip',name:'Test Trip',members:['D','New Person'],expenses:[]}}));
  await assertFails(setDoc(doc(admin,path),{...payload(5,'admin'),trip:{id:'test-trip',name:'Test Trip',members:['D'],expenses:[]}}));
+
+ // Chat access follows live grants and keeps admin announcements restricted.
+ const message=(uid,name)=>({senderUid:uid,senderName:name,text:'Trip test',createdAt:serverTimestamp()});
+ const group=path+'/chats/group/messages/hello';
+ const adminRoom=path+'/chats/admins/messages/private';
+ const announcement=path+'/chats/announcements/messages/notice';
+ await assertSucceeds(setDoc(doc(member,group),message('member','member@test.example')));
+ await assertSucceeds(getDoc(doc(admin,group)));
+ await assertFails(getDoc(doc(outsider,group)));
+ await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),group)));
+ await assertFails(setDoc(doc(member,announcement),message('member','member@test.example')));
+ await assertSucceeds(setDoc(doc(admin,announcement),message('admin','admin@test.example')));
+ await assertSucceeds(getDoc(doc(member,announcement)));
+ await assertSucceeds(setDoc(doc(admin,adminRoom),message('admin','admin@test.example')));
+ await assertFails(getDoc(doc(member,adminRoom)));
+ await assertFails(setDoc(doc(member,path+'/chats/group/messages/spoof'),message('admin','admin@test.example')));
+ await assertFails(setDoc(doc(member,group),message('member','member@test.example')));
+ await assertSucceeds(deleteDoc(doc(owner,path+'/access/member@test.example')));
+ await assertFails(getDoc(doc(member,group)));
+ await assertSucceeds(setDoc(doc(owner,path+'/access/member@test.example'),{role:'member'}));
+
  await assertSucceeds(deleteDoc(doc(owner,path+'/access/admin@test.example')));
  await assertFails(getDoc(doc(admin,path)));
  await assertFails(setDoc(doc(admin,path),payload(4,'admin')));
