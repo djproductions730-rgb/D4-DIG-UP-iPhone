@@ -1,0 +1,7 @@
+.d4-statement{margin:16px 0 20px;padding:18px;border:1px solid #986ac1;border-radius:20px;background:linear-gradient(130deg,#332348,#191529);color:#fcf6ff}
+.d4-statement h3{margin:0;font-size:21px}.d4-statement p{margin:6px 0 14px;color:#ded1eb;font-size:13px}
+.d4-statement .statement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.d4-statement label{font-size:13px;font-weight:650}.d4-statement input,.d4-statement button{box-sizing:border-box;width:100%;min-width:0;border-radius:10px;padding:11px 7px;font:inherit;color:white}
+.d4-statement input{display:block;margin:5px 0 13px;background:#191525;border:1px solid #796388;color-scheme:dark}
+.d4-statement button{font-weight:700;border:1px solid #9570b8;background:#30213e}.d4-statement button:last-child{background:#693ca4}
+.d4-statement output{display:block;font-size:14px;color:#ffdeb5;margin-top:8px}.d4-statement output:empty{display:none}
