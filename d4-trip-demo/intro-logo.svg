@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 620" role="img" aria-labelledby="title desc">
+<title id="title">D4 Trip cinematic logo</title><desc id="desc">Metallic D4 with airplane and orbital travel emblem</desc>
+<defs>
+ <radialGradient id="glass" cx=".3" cy=".18" r=".85"><stop stop-color="#7ef6e3" stop-opacity=".36"/><stop offset=".32" stop-color="#173e53" stop-opacity=".91"/><stop offset=".9" stop-color="#071421"/></radialGradient>
+ <linearGradient id="ring" x1="0" x2="1" y2="1"><stop stop-color="#fbdda1"/><stop offset=".24" stop-color="#67f6db"/><stop offset=".55" stop-color="#f7ffff"/><stop offset=".82" stop-color="#2b9eab"/><stop offset="1" stop-color="#f6b667"/></linearGradient>
+ <linearGradient id="chrome" x1=".04" y1=".05" x2=".88" y2=".93"><stop stop-color="#fffef0"/><stop offset=".23" stop-color="#a5fff3"/><stop offset=".43" stop-color="#40b3cb"/><stop offset=".52" stop-color="#fffde3"/><stop offset=".7" stop-color="#94dce1"/><stop offset="1" stop-color="#d3a36e"/></linearGradient>
+ <linearGradient id="trail" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5bd7cf"/><stop offset=".6" stop-color="#fff2ba"/><stop offset="1" stop-color="#ffcc8e"/></linearGradient>
+ <filter id="glow" x="-55%" y="-55%" width="210%" height="210%"><feGaussianBlur stdDeviation="8"/></filter>
+ <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="16" stdDeviation="13" flood-color="#000b15" flood-opacity=".9"/></filter>
+</defs>
+<circle cx="310" cy="310" r="259" fill="#63f8e6" fill-opacity=".14" filter="url(#glow)"/>
+<circle cx="310" cy="310" r="249" fill="url(#glass)" stroke="url(#ring)" stroke-width="7"/>
+<circle cx="310" cy="310" r="230" fill="none" stroke="#d2fff3" stroke-opacity=".16" stroke-width="1"/>
+<path d="M95 341c110-107 310-124 439-1M137 419c110-74 248-83 351-1M312 83c-108 126-108 333-4 448M315 83c102 133 99 321 3 447" fill="none" stroke="#9ef9df" stroke-opacity=".17" stroke-width="2"/>
+<path d="M97 391c86-148 265-199 420-102" fill="none" stroke="url(#trail)" stroke-linecap="round" stroke-width="8" opacity=".35"/>
+<g filter="url(#shadow)">
+<text x="310" y="347" font-family="Arial Black,Arial,sans-serif" font-size="206" font-weight="900" letter-spacing="-21" text-anchor="middle" fill="#022335" stroke="#062335" stroke-width="13" paint-order="stroke">D4</text>
+<text x="310" y="336" font-family="Arial Black,Arial,sans-serif" font-size="206" font-weight="900" letter-spacing="-21" text-anchor="middle" fill="url(#chrome)" stroke="#d5ffef" stroke-opacity=".55" stroke-width="2" paint-order="stroke">D4</text>
+</g>
+<path d="M353 169l128-78-53 119-23-35-47 15 27-25z" fill="#f9f9dd" stroke="#7ff9ee" stroke-width="5" stroke-linejoin="round" filter="url(#shadow)"/>
+<path d="M375 165l58-42-29 49-10-13z" fill="#4abac2"/>
+<path d="M189 399h242" stroke="url(#ring)" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+<text x="310" y="446" font-family="Arial,Helvetica,sans-serif" font-size="69" letter-spacing="17" font-weight="800" text-anchor="middle" fill="#f7f5e7">TRIP</text>
+<text x="310" y="478" font-family="Arial,Helvetica,sans-serif" font-size="13" letter-spacing="4.5" text-anchor="middle" fill="#99dace">EXPLORE · EXPERIENCE · REMEMBER</text>
+</svg>

@@ -1,31 +1,12 @@
-# D4 Trip — next development milestones
+# D4 Trip release status — 4 November 2026
 
-## Shipped in GitHub Pages demo
-- Trip chooser, separate trip data, collection totals, paid/partial/unpaid member cards
-- Day plans, expense tracking, notes, local chat demo, memories and printable reports
-- PWA manifest, icon, offline shell cache, iOS/Android install help
+Current deployed beta: https://d4-trip.web.app
 
-## M2 — secure shared backend (NOT CONNECTED)
-- Create dedicated Firebase project for D4 Trip
-- Enable Firebase Authentication (phone OTP with authorized domains and abuse protection)
-- Map every Firebase Auth UID to a user profile; no trusting user-entered names for permissions
-- Data model: trips/{tripId}; trips/{tripId}/members/{uid}; trips/{tripId}/payments/{paymentId}; trips/{tripId}/expenses/{expenseId}; trips/{tripId}/plans/{planId}; trips/{tripId}/messages/{messageId}
-- Main Admin is granted via protected server-side custom claim; never by join code alone
-- Join codes: random, expiring, stored hashed on server, redeemed through verified server function, scoped to a trip and role
-- Trip Admin granted only by Main Admin through protected function
-- Transactional payment writes, audit log, member role revocation, access tests
+- M01: offline app foundation and backup/export implemented.
+- M02: people and payment controls implemented; advances, balance, paid/pending totals and protected financial history covered by regression tests.
+- M03: previous browser QA passed; release preparation now runs 31 deterministic regression tests through check.cjs and browser CI. Physical phone acceptance pending.
+- M04: private Firebase sync and revision conflict handling implemented; live two-device acceptance pending.
+- M05: verified-email shared trip grants, owner-assigned Trip Admins, read-only members and revocation implemented in team-sync.js; rules and Hosting deployed as beta. The separate server-draft/shared-runtime preview remains disabled and undeployed.
+- M06: final release pending two real accounts/devices, offline/reconnect, install acceptance and whole-trip schema/media review. Chat remains Upcoming; media stays device-only; scheduled push is not available.
 
-## M3 — multi-device sync
-- Replace localStorage data layer with Firestore listeners and offline persistence
-- Preserve a one-time export/import migration path from local demo
-- Real-time group chat and admin-only chat
-- Storage upload rules for receipts and memories
-
-## M4 — notifications and release
-- Server-scheduled trip reminders and push notifications (permissions required)
-- Android package via Capacitor or Trusted Web Activity, signing and QA
-- iPhone PWA first; native iOS requires Apple signing/build process
-- Privacy policy, backup, data deletion, production testing
-
-## Security gate
-Do NOT enable a permissive Firestore rule for testing. The starter rules intentionally deny all reads and writes until authenticated role-aware rules and tests are implemented.
+Logo and intro remain unchanged. See TEAM_RELEASE.md for deployment evidence, acceptance steps and limitations. No background work runs between turns.
