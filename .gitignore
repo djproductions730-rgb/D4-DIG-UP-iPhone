@@ -4,3 +4,6 @@ node_modules/
 **/*debug.log
 d4-trip-demo/firebase.preview.json
 .openai/
+
+# Keyless Google OIDC credentials generated in GitHub Actions (never commit)
+gha-creds-*.json

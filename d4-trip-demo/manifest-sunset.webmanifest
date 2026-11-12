@@ -1,0 +1,26 @@
+{
+  "name": "D4 Trip \u2014 Travel Planner",
+  "short_name": "D4 Trip",
+  "description": "Plan trips, track group collections, expenses and memories",
+  "start_url": "./?source=installed",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#071422",
+  "theme_color": "#0b1626",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/sunset-premium-v71-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/sunset-premium-v71-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "id": "./"
+}

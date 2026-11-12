@@ -1,0 +1,118 @@
+name: D4 Trip Remove Chat Release
+on:
+  push:
+    branches:
+      - dev/d4-trip-join-requests-section-20261107
+    paths:
+      - '.github/workflows/d4-trip-hosting-v40-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: d4-trip-v53-hosting-release
+  cancel-in-progress: false
+
+jobs:
+  validate-and-deploy-hosting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout approved D4 Trip source
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Test data integrity, member access and trip completion
+        run: node d4-trip-demo/check.cjs
+
+      - name: Confirm Hosting target and locally hosted AI illustrations
+        run: |
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const cfg=JSON.parse(fs.readFileSync('d4-trip-demo/firebase.json','utf8'));
+          assert.equal(cfg.hosting.site,'d4-trip');
+          assert.equal(cfg.hosting.public,'.');
+          const html=fs.readFileSync('d4-trip-demo/index.html','utf8');
+          for (const required of ['function d4TicketsPage()', 'd4-ticket-home-action', 'data-view="tickets"', 'd4TransportModes']) assert.ok(html.includes(required),'Missing Tickets / Transport UI: '+required);
+          assert.ok(html.includes('./premium-production.js?build=45'));
+          assert.ok(html.includes('./premium-production.css?build=45'));
+          assert.ok(html.includes('./goa-payment-v50.css?build=50'));
+          for(const asset of ['modern-card-pdf.js?build=46','modern-card-pdf.css?build=46','report-readability.css?build=46'])assert.ok(html.includes('./'+asset),'Missing PDF asset '+asset);
+          for(const asset of [
+            'reference-premium.js?build=60','goa-milestones.js?build=29',
+            'trip-day-controls.js?build=40','journey-completion.js?build=45',
+            'journey-completion.css?build=43'
+          ]) assert.ok(html.includes('./'+asset),'Missing release asset '+asset);
+          for (const file of ['journey-completion.js','journey-completion.css',
+            'milestone-day1.svg','milestone-day2.svg','milestone-day3.svg',
+            'modern-card-pdf.js','modern-card-pdf.css','report-readability.css','goa-payment-v50.css','goa-train-v51.css']){
+            assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
+          }
+          console.log('PASS: v53 Hosting-only build and AI milestone illustrations');
+          NODE
+
+      - name: Verify approved keyless GitHub deployment identity
+        env:
+          PROVIDER: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          SERVICE_ACCOUNT: ${{ vars.GCP_SERVICE_ACCOUNT }}
+        run: |
+          test "$PROVIDER" = "projects/734858180381/locations/global/workloadIdentityPools/d4-trip-github/providers/d4-trip-github-actions" || { echo "Unapproved provider"; exit 1; }
+          test "$SERVICE_ACCOUNT" = "d4-trip-github-deployer@d4-trip.iam.gserviceaccount.com" || { echo "Unapproved service account"; exit 1; }
+
+      - name: Authenticate with Google Workload Identity Federation
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: d4-trip
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - name: Install pinned Firebase CLI
+        run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
+
+      - name: Deploy Hosting after console-verified chat rules
+        working-directory: d4-trip-demo
+        run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
+
+      - name: Verify exact live HTML, app code, AI art and service worker
+        run: |
+          set -euo pipefail
+          URL="https://d4-trip.web.app"
+          for attempt in {1..12}; do
+            echo "Verify LIVE v53 attempt: $attempt"
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/?release=${GITHUB_SHA}" -o /tmp/d4-live-index.html || true
+            if ! cmp -s d4-trip-demo/index.html /tmp/d4-live-index.html; then
+              sleep 5
+              continue
+            fi
+            status=0
+            for file in icon-picker.js icon-picker.css manifest.webmanifest icons/turquoise-premium-v71-192.png icons/ocean-premium-v71-192.png icons/sunset-premium-v71-192.png icons/rose-premium-v71-192.png icons/midnight-premium-v71-192.png goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
+              curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-${file//\//_}" || { status=1; break; }
+              if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-${file//\//_}"; then
+                echo "Mismatch in LIVE file: $file"
+                status=1
+                break
+              fi
+            done
+            if [ "$status" -eq 0 ]; then
+              grep -Fq 'journey-completion.js?build=45' /tmp/d4-live-index.html
+              grep -Fq 'modern-card-pdf.js?build=46' /tmp/d4-live-index.html
+              grep -Fq 'report-readability.css?build=46' /tmp/d4-live-index.html
+              grep -Fq 'goa-payment-v50.css?build=50' /tmp/d4-live-index.html
+              grep -Fq 'goa-train-v51.css?build=51' /tmp/d4-live-index.html
+              grep -Fq 'goa-train-v53.css?build=53' /tmp/d4-live-index.html
+              grep -Fq 'journey-completion.css?build=43' /tmp/d4-live-index.html
+              echo "PASS: v53 AI trip milestone/finish flow is LIVE, exact content verified."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "FAIL: production Hosting does not match the approved commit"
+          exit 1
+

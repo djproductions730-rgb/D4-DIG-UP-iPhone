@@ -282,13 +282,13 @@ function mainAdminInbox(){
   '<div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">'+pending.length+' Pending</span></div>'+
   '<p class="tiny">Live requests for your shared trips. Accept or reject directly here.</p>'+
   (cards||'<p class="tiny">No pending requests for your trips.</p>')+
-  (history?'<h4>Recent decisions</h4>'+history:'')+'</section>'+approvedMembersPanel();
+  (history?'<h4>Recent decisions</h4>'+history:'')+'</section>';
 }
 function mainAdminBanner(){
  if(!isBaseMainAdmin())return '';
  const pending=[...mainInbox.values()].flat().filter(r=>r.status==='pending').length;
  return pending?'<div class="d4-main-join-banner" role="status">🔔 '+pending+
-  ' pending join request'+(pending>1?'s':'')+' — review in Main Admin Home</div>':'';
+  ' pending join request'+(pending>1?'s':'')+' <button type="button" class="btn small mint" data-action="d4-requests-panel">Review Requests</button></div>':'';
 }
 function homeRequests(){
  if(!teamId||!editor())return '';
@@ -313,11 +313,9 @@ function adminPanel(){
  <button type="button" class="btn small ghost" data-join-decision="rejected" data-uid="${safe(r.uid)}" style="min-height:44px">✕ Reject</button></div></div>`).join('');
  const activity=owner()?'<h4 style="margin-top:15px">Main Admin · Approval history</h4>'+
    (recent.map(r=>`<p class="tiny" style="overflow-wrap:anywhere">${r.status==='approved'?'✅ Approved':'❌ Rejected'}: <b>${safe(r.name)}</b> · by ${safe(r.decidedByEmail||r.decidedByUid||'Admin')}</p>`).join('')||'<p class="tiny">No approval activity yet.</p>'):'';
- const roster=owner()?'<h4 style="margin-top:15px">Joined link members</h4>'+
-   (members.map(g=>`<div class="list-row" style="display:flex;gap:10px;justify-content:space-between;align-items:center"><div><b>${safe(g.name)}</b><small>${g.role==='admin'?'Trip Admin':'Approved Member'}</small></div><div class="row" style="flex-wrap:wrap;gap:8px"><button type="button" class="btn small mint" data-join-role="${g.role==='admin'?'member':'admin'}" data-trip-id="${safe(teamId)}" data-uid="${safe(g.uid)}" style="min-height:44px">${g.role==='admin'?'Remove Admin':'Make Admin'}</button><button type="button" class="btn small negative" data-join-remove="${safe(g.uid)}" style="min-height:44px">Remove Access</button></div></div>`).join('')||'<p class="tiny">No link-joined members.</p>'):'';
  return `<section class="card" style="margin:12px 0 16px"><div class="space-between"><h3>🔔 Join Requests</h3><span class="pill">${pending.length} Pending</span></div>
  <p class="tiny">Main Admin and Trip Admin may accept or reject. Main Admin can see every decision.</p>
- ${cards||'<p class="tiny">No pending requests.</p>'}${activity}${roster}</section>`;
+ ${cards||'<p class="tiny">No pending requests.</p>'}${activity}</section>`;
 }
 function notificationBanner(){
  if(!editor())return '';
@@ -329,7 +327,7 @@ function notificationBanner(){
   :'';
  return `<div class="card" style="margin:10px 0;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap">
  <b>🔔 ${pending?pending+' join request'+(pending>1?'s':'')+' waiting':latest}</b>
- <button type="button" class="btn small mint" data-action="open-tab" data-ctx="members" style="min-height:44px">${pending?'Review requests':'View approval history'}</button></div>`;
+ <button type="button" class="btn small mint" data-action="d4-requests-panel" style="min-height:44px">${pending?'Review requests':'View approval history'}</button></div>`;
 }
 async function requestJoin(name){
  name=String(name||'').trim().replace(/\s+/g,' ');
@@ -403,6 +401,13 @@ document.addEventListener('click',async event=>{
  }catch(e){toast('Join approval: '+formatError(e))}
  finally{busy=false;rerender();}
 });
-window.D4TripJoin={guestPanel,adminPanel,homeRequests,mainAdminInbox,mainAdminBanner,approvedMembersPanel,notificationBanner,accessChanged,pendingCount:()=>requests.filter(r=>r.status==='pending').length};
+function pendingCount(){
+ if(isBaseMainAdmin()){
+  watchMainInbox();
+  return [...mainInbox.values()].reduce((total,items)=>total+items.filter(r=>r.status==='pending').length,0);
+ }
+ return requests.filter(r=>r.status==='pending').length;
+}
+window.D4TripJoin={guestPanel,adminPanel,homeRequests,mainAdminInbox,mainAdminBanner,approvedMembersPanel,notificationBanner,accessChanged,pendingCount};
 window.addEventListener('d4-auth',()=>{watchUser();watchMainInbox();if(!authUser())void sendSavedJoinRequest()});
 if(cloud()?.ready){watchUser();if(!authUser())void sendSavedJoinRequest()}

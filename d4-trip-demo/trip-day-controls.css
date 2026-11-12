@@ -1,0 +1,52 @@
+/* D4 Trip v40 — premium calendar/day editor */
+body.d4-premium .ref-day-control{
+ margin:14px 0 15px!important;padding:16px!important;
+ border-radius:23px!important;border:1px solid #dbb7769c!important;
+ background:radial-gradient(circle at 96% 4%,#e9b96835,transparent 52%),linear-gradient(145deg,#20364a,#091a2d 82%)!important;
+ box-shadow:0 16px 36px #0008,inset 0 1px #ffffff28!important;color:#f6faff!important;
+}
+body.d4-premium .ref-day-control-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0 0 12px!important}
+body.d4-premium .ref-day-control-head h3{margin:5px 0!important;color:#fff2d0!important;font-size:21px!important;line-height:1.1!important}
+body.d4-premium .ref-day-control-head p{margin:0!important;color:#b9d5e3!important;font-size:12px!important;line-height:1.35!important}
+body.d4-premium .ref-day-count{
+ display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+ flex:none!important;min-width:65px!important;min-height:65px!important;border-radius:18px!important;
+ background:linear-gradient(140deg,#fcedb6,#cc9948)!important;box-shadow:0 7px 18px #c18b453d!important;color:#192637!important;
+}
+body.d4-premium .ref-day-count b{font-size:28px!important;line-height:1!important;color:#152437!important}
+body.d4-premium .ref-day-count small{font-size:11px!important;font-weight:850!important;color:#16283c!important}
+body.d4-premium .ref-day-select{display:flex!important;align-items:center!important;gap:9px!important;flex-wrap:wrap!important;padding:11px 12px!important;border-radius:14px!important;border:1px solid #9bb8c369!important;background:#0c2033!important}
+body.d4-premium .ref-day-select span{font-size:11px!important;color:#a5c8d9!important}
+body.d4-premium .ref-day-select strong{color:#f6d693!important;font-size:14px!important}
+body.d4-premium .ref-day-select b{color:#fff!important;margin-left:auto!important;font-size:13px!important}
+body.d4-premium .ref-day-buttons{display:grid!important;grid-template-columns:1fr 1fr 1.3fr!important;gap:9px!important;margin:12px 0 0!important}
+body.d4-premium .ref-day-buttons button,
+body.d4-premium .ref-day-date-edit button{
+ min-height:48px!important;padding:9px 8px!important;border-radius:14px!important;
+ font-size:13px!important;font-weight:900!important;white-space:nowrap!important;
+ display:inline-flex!important;justify-content:center!important;align-items:center!important;gap:5px!important;cursor:pointer!important;
+}
+body.d4-premium .ref-day-buttons .ref-day-minus{background:linear-gradient(145deg,#383044,#211c31)!important;border:1px solid #dc9ea28c!important;color:#ffd6d4!important}
+body.d4-premium .ref-day-buttons .ref-day-plus,
+body.d4-premium .ref-day-date-edit button{
+ background:linear-gradient(155deg,#fff1bf,#d9a64f)!important;border:1px solid #ffebb5!important;
+ box-shadow:0 7px 16px #c5924270!important;color:#182b3a!important;
+}
+body.d4-premium .ref-day-buttons .ref-day-edit{background:linear-gradient(145deg,#2b4d64,#10283e)!important;border:1px solid #dcc08f93!important;color:#ffeac0!important}
+body.d4-premium .ref-day-buttons button[disabled]{opacity:.45!important;cursor:not-allowed!important;filter:grayscale(.5)!important}
+body.d4-premium .ref-day-date-edit{margin-top:12px!important;padding:12px!important;border:1px solid #8eb5c467!important;border-radius:16px!important;background:#0718299c!important}
+body.d4-premium .ref-day-date-edit label{display:block!important;margin-bottom:8px!important;color:#f4e6c1!important;font-size:12px!important;font-weight:800!important}
+body.d4-premium .ref-day-date-edit>div{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:9px!important}
+body.d4-premium .ref-day-date-edit input{min-width:0!important;width:100%!important;min-height:48px!important;border:1px solid #9db5be91!important;border-radius:12px!important;padding:8px!important;color:#f5f8ff!important;background:#102740!important;font-size:14px!important;color-scheme:dark!important}
+body.d4-premium .ref-day-date-edit p{font-size:11px!important;color:#aec9d6!important;line-height:1.5!important;margin:9px 0 0!important}
+body.d4-premium .ref-day-view-only{font-size:11px!important;color:#c9ddea!important;margin:12px 0 0!important}
+body.d4-premium .ref-day-control button:focus-visible,
+body.d4-premium .ref-day-date-edit input:focus-visible{outline:3px solid #ffe5a2!important;outline-offset:2px!important}
+@media(max-width:390px){
+ body.d4-premium .ref-day-control{padding:12px!important}
+ body.d4-premium .ref-day-buttons{gap:6px!important;grid-template-columns:1fr 1fr 1.45fr!important}
+ body.d4-premium .ref-day-buttons button{font-size:12px!important;padding:8px 5px!important}
+ body.d4-premium .ref-day-buttons button span{font-size:11px!important}
+}
+
+body.d4-premium .ref-day-button-help{margin:8px 2px 0!important;font-size:11px!important;line-height:1.45!important;color:#bfdbdf!important}

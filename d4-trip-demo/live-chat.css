@@ -1,0 +1,42 @@
+/* Live chat adapts to the existing premium mobile themes and safe areas. */
+.d4lc-shell{display:flex;flex-direction:column;gap:0;min-height:min(72dvh,710px);border:1px solid #4a647a;border-radius:21px;overflow:hidden;background:#10243a;color:#f1f7ff;box-shadow:0 14px 40px #07132240}
+.d4lc-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;background:linear-gradient(115deg,#123b5a,#145f72)}
+.d4lc-head h2{font-size:20px;margin:4px 0 0;color:#fff}
+.d4lc-head small{font-weight:800;font-size:11px;letter-spacing:.8px;color:#d0f9fc}
+.d4lc-head>span{font-size:12px;white-space:nowrap;color:#ddf7fb}
+.d4lc-rooms{display:flex;gap:9px;padding:11px 13px;border-bottom:1px solid #38536c}
+.d4lc-rooms button{min-height:45px;border:1px solid #47677b;background:#1a344a;color:#d8e8f7;border-radius:14px;padding:8px 14px;font-weight:800;cursor:pointer}
+.d4lc-rooms button.active{border-color:#65e1c6;background:#185b63;color:#fff}
+.d4lc-stream{flex:1;min-height:260px;max-height:480px;overflow-y:auto;padding:16px 13px;background:linear-gradient(170deg,#09192e,#0c2338);display:flex;flex-direction:column;gap:13px;overscroll-behavior:contain}
+.d4lc-bubble{align-self:flex-start;max-width:min(88%,420px);padding:10px 13px;border:1px solid #39546c;background:#1c344c;border-radius:17px 17px 17px 5px;overflow-wrap:anywhere}
+.d4lc-bubble.mine{align-self:flex-end;background:#086d68;border-color:#20b6a5;border-radius:17px 17px 5px 17px}
+.d4lc-person{display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:12px;font-weight:850;color:#e9fffa}
+.d4lc-person time{font-size:10px;font-weight:500;color:#c4d8e4;white-space:nowrap}
+.d4lc-bubble p{font-size:14px;line-height:1.5;white-space:normal;margin:7px 0;color:#fff}
+.d4lc-break{display:block}
+.d4lc-actions{display:flex;gap:15px;margin-top:8px}
+.d4lc-actions button{border:0;background:none;color:#d8f0f0;font-size:11px;padding:7px 0;cursor:pointer;min-height:30px}
+.d4lc-actions button:focus-visible,.d4lc-send:focus-visible,.d4lc-rooms button:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.d4lc-quoted{padding:6px 9px;border-left:3px solid #81e8d6;background:#ffffff14;border-radius:6px;font-size:11px;color:#e9faf8}
+.d4lc-feedback,.d4lc-empty{margin:auto;text-align:center;color:#d6e4f0;font-size:14px;padding:30px 12px}
+.d4lc-empty{display:flex;flex-direction:column;gap:8px;font-size:26px}
+.d4lc-empty strong{font-size:17px}
+.d4lc-empty span{font-size:13px}
+.d4lc-form{padding:12px 13px 14px;background:#142f46;border-top:1px solid #38546b}
+.d4lc-label{display:block;color:#e0f2fc;font-size:12px;font-weight:800;margin-bottom:7px}
+.d4lc-compose{display:flex;align-items:stretch;gap:8px}
+.d4lc-compose textarea{flex:1;min-width:0;border:1px solid #5d798b;background:#fff;border-radius:13px;color:#123344;padding:12px;font:inherit;font-size:15px;resize:vertical;max-height:150px}
+.d4lc-send{min-width:86px;padding:8px 13px;background:#1aa996;color:#fff;border:0;border-radius:13px;font-weight:900;font-size:14px;cursor:pointer}
+.d4lc-send:disabled{opacity:.6;cursor:wait}
+.d4lc-form>small{display:block;color:#d7e7f3;font-size:11px;line-height:1.4;margin-top:8px}
+.d4lc-reply{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:5px 10px;color:#e0ffff}
+.d4lc-reply[hidden]{display:none}
+.d4lc-reply button{color:#fff;background:transparent;border:0;font-size:17px;min-height:30px}
+.d4lc-info{padding:24px}
+@media(max-width:760px){.d4lc-shell{min-height:calc(100dvh - 205px);border-radius:16px}.d4lc-stream{min-height:230px;max-height:calc(100dvh - 425px)}.d4lc-head{padding:12px}.d4lc-head h2{font-size:17px}.d4lc-bubble{max-width:92%}.d4lc-compose textarea{font-size:16px}}
+.d4-light .d4lc-shell{background:#fff;color:#102b3e;border-color:#bad2db}
+.d4-light .d4lc-stream{background:#e9f4f7}
+.d4-light .d4lc-bubble:not(.mine){background:#fff;border-color:#b6d1df}
+.d4-light .d4lc-bubble:not(.mine) p,.d4-light .d4lc-bubble:not(.mine) .d4lc-person{color:#173b4d}
+.d4-light .d4lc-bubble:not(.mine) time,.d4-light .d4lc-bubble:not(.mine) .d4lc-actions button{color:#446273}
+.d4-light .d4lc-bubble:not(.mine) .d4lc-quoted{color:#315769;background:#e1f2f0}

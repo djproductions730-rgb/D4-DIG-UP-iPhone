@@ -15,7 +15,8 @@
       "**/*.md",
       "**/*.rules",
       "**/*debug.log",
-      "**/package*.json"
+      "**/package*.json",
+      "trip-push/**"
     ],
     "headers": [
       {
@@ -48,6 +49,51 @@
             "value": "no-cache"
           }
         ]
+      },
+      {
+        "source": "/",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/reference-premium.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/reference-premium.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/goa-milestones.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "/premium-production.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, must-revalidate"
+          }
+        ]
       }
     ]
   },
@@ -58,5 +104,11 @@
     "ui": {
       "enabled": false
     }
-  }
+  },
+  "functions": [
+    {
+      "source": "trip-push",
+      "codebase": "trip-push"
+    }
+  ]
 }

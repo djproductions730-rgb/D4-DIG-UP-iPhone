@@ -8,16 +8,35 @@ const root = __dirname;
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'premium-production.css'), 'utf8');
 const src = fs.readFileSync(path.join(root, 'premium-production.js'), 'utf8');
+const refSrc = fs.readFileSync(path.join(root, 'reference-premium.js'), 'utf8');
+const refCss = fs.readFileSync(path.join(root, 'reference-premium.css'), 'utf8');
 new vm.Script(src, {filename:'premium-production.js'});
+new vm.Script(refSrc, {filename:'reference-premium.js'});
 
 assert.match(html, /premium-production\.css/);
 assert.match(html, /premium-production\.js/);
 const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
-for(const asset of ['premium-production.js','premium-production.css','team-sync.js','team-join.js','firebase-sync.js']){
+for(const asset of ['team-join.js','firebase-sync.js']){
   assert.ok(html.includes('./'+asset+'?build=27'), 'Versioned asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build=27'), 'Versioned asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=27/, 'Force service-worker update');
+for(const [asset,version] of [
+  ['premium-production.css',45],
+  ['goa-milestones.js',29],
+  ['obsidian-luxe.css',34],
+  ['reference-premium.css',41],
+  ['reference-premium.js',60],
+  ['install-app.js',38],
+  ['install-app.css',38],
+  ['payment-roster.css',40],
+  ['trip-day-controls.js',40],
+  ['trip-day-controls.css',40],
+  ['home-circular-luxe.css',60]
+]){
+  assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
+}
+assert.match(html, /sw\.js\?build=73/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
@@ -50,6 +69,9 @@ const context = {
   tripPage: () => 'legacy-page',tripPlan:()=> 'original-plan',tripExpenses:()=> 'original-expenses',tripMembers:()=> 'original-members',
   profilePage: () => '<section id="real-account-panel">Existing Firebase account UI</section>',
   chatsPage: () => 'legacy-live-chat',
+  expensesPage: () => '<section>original-expenses-page</section>',
+  adminPage: () => '<section>original-admin-page</section>',
+  calculations: () => ({total:730,categories:{Travel:730}}),
   URL, location:{origin:'https://d4-trip.web.app',pathname:'/',href:'https://d4-trip.web.app/'},
   localStorage: {getItem:()=>null,setItem:()=>{}},
   document: {
@@ -57,8 +79,8 @@ const context = {
     documentElement: {style:{}},
     addEventListener:(name,callback)=>{(events[name]??=[]).push(callback)}
   },
-  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section>Admin request review</section>'}},
-  current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
+  window: {D4TripCloud:cloud,D4Team:{hasAccess:()=>true,canEdit:()=>editor},D4TripJoin:{mainAdminInbox:()=>'<section class="d4-main-admin-inbox"><button data-join-decision="approved" data-trip-id="REAL_DOC_REFERENCE">Accept</button><button data-join-decision="rejected" data-trip-id="REAL_DOC_REFERENCE">Reject</button></section>',mainAdminBanner:()=>'<div class="d4-main-join-banner">Pending</div>',homeRequests:()=>'<section class="d4-home-join-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',adminPanel:()=>'<section class="d4-shared-requests"><button data-join-decision="approved">Accept</button><button data-join-decision="rejected">Reject</button></section>',approvedMembersPanel:()=>'<section class="d4-approved-members-panel">Approved Members</section>',pendingCount:()=>2}},
+  profile:'Owner', current:()=>hasTrip?t:null, isMain:()=>owner, isTripAdmin:()=>editor,
   esc:v=>String(v), render:()=>{},teamId:'real-team-id',
   get view(){return view},set view(v){view=v},
   get tripTab(){return tab},set tripTab(v){tab=v},
@@ -68,6 +90,7 @@ const context = {
 };
 vm.createContext(context);
 vm.runInContext(src,context,{filename:'premium-production.js'});
+vm.runInContext(refSrc,context,{filename:'reference-premium.js'});
 assert.match(context.entryPage(),/id="d4-main-join-link"/,'Main Admin My Trips displays full link field');
 assert.match(context.entryPage(),/data-team="share-join-link"/,'Main Admin My Trips offers Copy Link');
 assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-id/,'Main Admin sees exact trip invitation URL');
@@ -81,25 +104,37 @@ assert.ok(openAdmin,'Control Centre click handler is registered');
 openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
 const baseAdminPanel=context.tripPage();
 assert.match(baseAdminPanel,/Main Admin Panel/,'Verified Main Admin is labeled correctly');
-assert.match(baseAdminPanel,/d4-main-admin-inbox/,'Main Admin Control Centre shows live inbox');
-assert.match(baseAdminPanel,/data-join-decision="approved"/,'Direct accept action is available');
-assert.match(baseAdminPanel,/data-join-decision="rejected"/,'Direct reject action is available');
+assert.match(baseAdminPanel,/d4-approved-members-panel/,'Approved members remain in Control Centre');
+assert.match(baseAdminPanel,/data-action="d4-requests-panel"/,'Control Centre links to dedicated Requests screen');
+assert.doesNotMatch(baseAdminPanel,/d4-main-admin-inbox|data-join-decision/,'Approvals no longer clutter Control Centre');
 assert.match(baseAdminPanel,/d4-main-join-link/,'Full trip link is displayed in Control Centre');
 assert.doesNotMatch(baseAdminPanel,/Request management is loading|Open your shared trip first/,'Old misleading placeholders removed');
+const openRequests=events.click.find(fn=>fn.toString().includes("name==='d4-requests-panel'"));
+assert.ok(openRequests,'Dedicated Requests click handler exists');
+openRequests({target:{closest:()=>({dataset:{action:'d4-requests-panel'}})},preventDefault(){}});
+const requestsPage=context.tripPage();
+assert.match(requestsPage,/d4-requests-page/,'Requests has its own page');
+assert.match(requestsPage,/d4-main-admin-inbox/,'Main Admin inbox appears only on Requests page');
+assert.match(requestsPage,/data-join-decision="approved"/,'Main Admin can accept in Requests');
+assert.match(requestsPage,/data-join-decision="rejected"/,'Main Admin can reject in Requests');
+assert.doesNotMatch(requestsPage,/d4-approved-members-panel/,'Approved roster is a separate section');
+assert.match(context.bottomNav(),/aria-label="More sections"/,'Five-button navigation includes More sections');
+openAdmin({target:{closest:()=>({dataset:{action:'d4-admin-panel'}})},preventDefault(){}});
+assert.match(context.tripPage(),/d4-approved-members-panel/,'Back to Admin shows approved members');
 owner=false;
 const localAdminPanel=context.tripPage();
 assert.match(localAdminPanel,/Trip Admin Panel/,'Local Trip Admin role is distinguishable');
-assert.match(localAdminPanel,/Firebase Sign In/,'Local admins get an actionable authorization message');
+assert.match(localAdminPanel,/data-action="d4-requests-panel"/,'Local Trip Admin has a Requests shortcut');
+openRequests({target:{closest:()=>({dataset:{action:'d4-requests-panel'}})},preventDefault(){}});
+assert.match(context.tripPage(),/Firebase Sign In/,'Unauthenticated local Trip Admin receives sign-in instructions in Requests');
 assert.doesNotMatch(localAdminPanel,/Request management is loading/);
 owner=true;
 openAdmin({target:{closest:()=>({dataset:{action:'nav'}})},preventDefault(){} });
 context.teamId='real-team-id';
 
 context.teamId='';
-assert.match(context.home(),/d4-main-admin-inbox/,'Base Main Admin Home shows incoming requests without ?team=');
-assert.match(context.entryPage(),/d4-main-admin-inbox/,'My Trips shows Main Admin requests');
-assert.match(context.home(),/data-join-decision="approved"/,'Base Home allows direct approve');
-assert.match(context.home(),/data-join-decision="rejected"/,'Base Home allows direct reject');
+assert.doesNotMatch(context.home(),/d4-main-admin-inbox|data-join-decision/,'Home no longer mixes in request decisions');
+assert.doesNotMatch(context.entryPage(),/d4-main-admin-inbox|data-join-decision/,'Trip library no longer mixes in request decisions');
 context.teamId='real-team-id';
 assert.match(context.topBar(),/data-action="d4-back"/);
 assert.match(context.topBar(),/Back to Payments/,'overview back leads to payments');
@@ -113,13 +148,19 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,8,'Admin sees seven sections plus Admin shortcut in right rail');
-assert.match(nav,/class="d4-liquid-rail"/,'Navigation is a right-side rail, not a bottom bar');
-for(const label of ['Home','Day Plan','Members','Payments','Expenses','Chat','Settings'])assert.ok(nav.includes(label));
-assert.doesNotMatch(nav,/d4p-bottom|bottom-nav/);
-assert.equal(nav.includes('Memories'),false);
-assert.match(css,/d4-liquid-rail\{position:fixed/);
-assert.match(css,/right:8px/);
+assert.equal((nav.match(/<button /g)||[]).length,4,'Reference layout displays four mobile navigation buttons');
+assert.match(nav,/class="bottom-nav ref-bottom-nav"/,'Navigation uses the approved bottom bar');
+for(const label of ['Home','Day Plan','More'])assert.ok(nav.includes(label),label+' missing');
+assert.match(nav,/data-ref-action="toggle-plus"/,'Gold central plus button must open actions');
+assert.doesNotMatch(nav,/class="d4-liquid-rail"/,'Outdated right rail must not reappear');
+const moreHandler=events.click.find(fn=>fn.toString().includes('dataset.refAction'));
+assert.ok(moreHandler,'Reference navigation toggle click handler registered');
+moreHandler({target:{closest:selector=>selector==='[data-ref-action]'?{dataset:{refAction:'toggle-more'}}:null},preventDefault(){},stopImmediatePropagation(){}});
+const moreNav=context.bottomNav();
+for(const label of ['Members','Payments','Expenses','Reports','Memories','Alerts','Settings','Main Admin'])assert.ok(moreNav.includes(label),label+' missing from More menu');
+assert.match(refCss,/bottom-nav\.ref-bottom-nav/,'Approved bottom navigation has styles');
+assert.match(refCss,/ref-nav-plus/,'Premium plus-button styles present');
+assert.match(refCss,/safe-area-inset-bottom/,'iPhone safe area protected');
 const entry = context.entryPage();
 assert.match(entry, /Explore Trips/);
 assert.doesNotMatch(entry, /install-help|replay-intro/);
@@ -147,18 +188,16 @@ assert.match(css,/touch-action:pan-y/);
 assert.match(board, /Continue/);
 assert.match(board, /Skip/);
 assert.match(board, /enter-selected-trip/);
-assert.match(context.chatsPage(), /Coming Soon/);
-assert.doesNotMatch(context.chatsPage(),/legacy-live-chat/);
+assert.ok(!nav.includes('data-view="chat"'), 'Chat must be absent from navigation');
 const dashboard=context.tripOverview(t);
 assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock names');
-assert.match(dashboard,/d4-home-join-requests/,'Shared trip admin home displays pending approvals');
-assert.match(dashboard,/data-join-decision="approved"/,'Home has Accept action');
-assert.match(dashboard,/data-join-decision="rejected"/,'Home has Reject action');
-assert.match(dashboard,/Paid \/ Pending/);
+assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashboard keeps requests in their dedicated section');
+assert.match(dashboard,/Trip Payments/);
 assert.match(dashboard,/d4p-nav-grid/);
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
-assert.equal((dashboard.match(/class="d4p-tile"/g)||[]).length >= 9,true,'All nine navigation cards exist');
-for(const section of ['Overview','Day Plan','Expenses','Paid / Pending','Members','Alerts','Memories','Reports','Settings'])assert.ok(dashboard.includes(section),section+' missing');
+assert.equal((dashboard.match(/class="d4p-tile"/g)||[]).length >= 6,true,'Six visible navigation cards plus preserved legacy controls exist');
+assert.match(dashboard, /data-view="tickets"/,'Tickets remains a working navigation target');
+for(const section of ['Overview','Day Plan','Tickets','Alerts','Reports','Settings'])assert.ok(dashboard.includes(section),section+' missing');
 assert.doesNotMatch(dashboard,/Split & Settle|Split Costs/);
 assert.match(css,/d4p-nav-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(dashboard,/Members/);
@@ -181,6 +220,7 @@ assert.match(context.tripOverview(t),/Admin Quick Actions/);
 assert.doesNotMatch(context.tripOverview(t),/Promote Admin/);
 owner=false;editor=false;
 assert.doesNotMatch(context.tripOverview(t),/Admin Quick Actions|Promote Admin/);
+assert.doesNotMatch(context.bottomNav(),/Requests|data-action="d4-requests-panel"/,'Members cannot open admin requests');
 assert.match(context.profilePage(),/view-only mode/);
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
 hasTrip=false;
@@ -188,4 +228,39 @@ assert.match(context.profilePage(),/data-action="d4-open-invite"/,'new user can 
 assert.doesNotMatch(context.profilePage(),/data-modal="join-trip"|Join with Code/);
 assert.match(context.profilePage(),/data-action="entry-back"/,'new user can return to Trips');
 assert.doesNotMatch(context.profilePage(),/Delete Existing trip name/);
-console.log('PASS: Premium D4 Trip script parses, right rail, scoreboard, role-scoped actions, themes and original account panel.');
+console.log('PASS: Premium D4 Trip scripts parse, reference bottom navigation, real-data scoreboard, role permissions and account panel.');
+
+for(const asset of ['premium-production.js','team-sync.js']){
+  const version=asset==='premium-production.js'?45:30;
+  assert.ok(html.includes('./'+asset+'?build='+version), 'Shared sync version missing from index: '+asset);
+  assert.ok(sw.includes('./'+asset+'?build='+version), 'Shared sync version missing from offline cache: '+asset);
+}
+
+hasTrip=true;owner=true;editor=true;
+context.teamId='';
+context.view='trip';context.tripTab='plan';
+const privatePlan=context.tripPage();
+assert.match(privatePlan,/Private trip copy/,'Admin local Day Plan warns it is not shared');
+assert.match(privatePlan,/data-team="open-shared"/,'Verified owner can open Firebase team trip');
+assert.match(privatePlan,/private edits are not automatically transferred/i,'Never silently sync local data');
+context.teamId='real-team-id';owner=false;editor=false;
+const memberPlan=context.tripPage();
+assert.doesNotMatch(memberPlan,/Member view only|Everyone approved for this exact trip link|day-plan stops/,'Shared refresh guide is icon-only');
+assert.match(memberPlan,/data-team="refresh-shared"/,'Shared trip has a manual refresh');
+assert.doesNotMatch(memberPlan,/data-team="open-shared"/,'Member cannot publish or open another trip via owner action');
+context.tripTab='members';
+const memberRoster=context.tripPage();
+assert.match(memberRoster,/original-members/,'Read-only member can view roster');
+assert.match(memberRoster,/Approved members can view every name/);
+assert.match(css,/d4-team-sync-guide/,'Mode status is styled for mobile');
+
+hasTrip=true;owner=true;editor=true;
+assert.match(context.tripMembers(t),/Member A/,'New member cards render existing roster names');
+assert.match(context.expensesPage(),/₹730/,'Expense category totals use underlying data calculations');
+assert.match(refCss,/\.ref-ring/,'Payment progress ring visual styles exist');
+assert.match(refCss,/\.ref-person/,'Member cards are styled');
+assert.match(refCss,/\.ref-expense-row/,'Expense cards are styled');
+assert.match(refCss,/\.ref-trip-hero/,'Travel hero graphic styles exist');
+assert.match(refCss,/\.ref-admin-hero/,'Admin hero styles exist');
+assert.doesNotMatch(refSrc,/firebase\.firestore\(|setDoc\(|updateDoc\(|deleteDoc\(/,'Reference layer must not write cloud data');
+console.log('PASS: Reference UI v36, real trip data and original permissions retained.');

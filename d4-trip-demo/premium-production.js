@@ -46,6 +46,19 @@
       '<p class="tiny">'+(teamId?'Link is for the selected shared trip.':'First copy also publishes a shared copy after Main Admin Firebase sign-in.')+'</p>'+
       '</section>';
   }
+
+  function sharedSyncGuide(t) {
+    if (!t) return '';
+    if (teamId) {
+      return '<section class="d4-team-sync-guide shared d4-sync-minimal" aria-label="Upgrade and sync trip">'+
+        '<button type="button" class="d4-refresh-mini d4-upgrade-btn" data-team="refresh-shared" aria-label="Upgrade: sync latest trip data" title="Upgrade: sync latest trip data"><span aria-hidden="true">⬆</span><strong>Upgrade</strong></button></section>';
+    }
+    if (!isMain()) return '<section class="d4-team-sync-guide private"><strong>📱 Device-only trip</strong><p>This local copy does not automatically show changes to other devices. Open an approved Firebase shared trip link to view the group trip.</p></section>';
+    return '<section class="d4-team-sync-guide private" aria-label="Device-only trip notice">'+
+      '<strong>⚠️ Private trip copy — other members cannot see edits here</strong>'+
+      '<p>Changes to Members and Day Plan on this screen stay in your private copy. Open the Firebase shared copy before editing the group itinerary. Existing private edits are not automatically transferred.</p>'+
+      '<button type="button" data-team="open-shared">☁️ Open Shared Trip for Everyone</button></section>';
+  }
   function tileRow(t) {
     if (!t || !isTripAdmin(t)) return '';
     const buttons = [
@@ -73,7 +86,7 @@
     const header = original.topBar();
     const t = current();
     const isTripDetail = view === 'trip' && tripTab !== 'overview';
-    const destination = isTripDetail ? 'Trip Dashboard' :
+    const destination = requestsOpen || adminOpen || isTripDetail ? 'Trip Dashboard' :
       view === 'trip' ? 'Payments' :
       view === 'collections' || view === 'home' || view === 'trips' ? 'My Trips' :
       t ? 'Trip Dashboard' : 'My Trips';
@@ -86,6 +99,9 @@
   };
   const GUEST_NAME_KEY='d4_trip_guest_name_v1';
   const JOIN_STAGE_KEY='d4_trip_guest_join_stage_v1';
+  // A Firebase auth callback can re-render while a guest pastes a link.
+  // Preserve the unsent value in memory so iOS WebKit never loses it.
+  let pendingTripLink='';
   function savedGuestName(){
     try{return String(localStorage.getItem(GUEST_NAME_KEY)||'').slice(0,50)}catch(_){return ''}
   }
@@ -93,6 +109,10 @@
     try{return sessionStorage.getItem(JOIN_STAGE_KEY)==='link' && savedGuestName().trim().length>=2?'link':'name'}catch(_){return 'name'}
   }
   document.addEventListener('input',function(event){
+    if(event.target?.id==='d4-trip-link-input'){
+      pendingTripLink=String(event.target.value||'').slice(0,2048);
+      return;
+    }
     if(event.target?.id!=='d4-guest-name-input')return;
     try{localStorage.setItem(GUEST_NAME_KEY,String(event.target.value||'').slice(0,50))}catch(_){}
   });
@@ -107,7 +127,7 @@
     const second='<p class="d4-join-saved-name">✅ Name saved: <strong>'+safe(name)+'</strong></p>'+
       '<form id="d4-open-trip-link" style="display:grid;gap:12px">'+
       '<label for="d4-trip-link-input">Paste Trip Link</label>'+
-      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" placeholder="Paste your Main Admin link here" required>'+
+      '<input id="d4-trip-link-input" name="tripLink" class="input" type="url" inputmode="url" autocomplete="url" value="'+safe(pendingTripLink)+'" placeholder="Paste your Main Admin link here" required>'+
       '<button type="submit" class="btn mint block d4-guest-join-button">Continue with the Link</button></form>'+
       '<button type="button" class="btn small ghost" data-action="d4-edit-join-name">✎ Edit Name</button>';
     return '<section class="card d4-name-link-card" id="d4-invite-link-card" aria-label="Join Trip by name then link">'+
@@ -143,6 +163,7 @@
         throw Error('This link must be for the same D4 Trip app.');
       // Do not expose member names in URLs. This same-tab handoff creates a request after navigation.
       sessionStorage.setItem('d4_trip_join_name_v1_'+trip,name);
+      pendingTripLink='';
       location.href=url.origin+url.pathname+'?team='+encodeURIComponent(trip);
     }catch(err){window.D4TripLocal?.toast?.(err.message||'Invalid Trip Share Link')}
   });
@@ -180,7 +201,7 @@
         '<p class="d4-join-entry-note">Approved members can open their trip from the invitation link.</p>'+
         '</main>';
     }
-    return (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
+    return (isMain()?mainSharePanel(current()):'')+original.entryPage().replace('<h1>My Trips</h1>','<h1>Explore Trips</h1>')
       .replace(/<button class="d4-install-help" data-action="install-help">.*?<\/button>/s,'')
       .replace(/<button class="d4-install-help" data-action="replay-intro">.*?<\/button>/s,'');
   };
@@ -188,7 +209,7 @@
   // buttons; the Trips page retains normal trip browsing without another CTA.
   home = function () {
     const html=original.home();
-    if(isMain())return (window.D4TripJoin?.mainAdminInbox?.()||'')+mainSharePanel(current())+html;
+    if(isMain())return mainSharePanel(current())+html;
     if(teamId)return html;
     return html.replace('</div></div>', '</div></div>'+inviteLinkCard());
   };
@@ -225,36 +246,16 @@
       .replace('<button class="cc-open-members"',
         '<button type="button" class="cc-skip" data-action="enter-selected-trip">Skip →</button><button class="cc-open-members"');
   };
-  let adminOpen = false;
+  let adminOpen = false, requestsOpen = false;
   // The old bottom navigation is now a compact, fixed RIGHT-side rail.
   // Keep the existing delegated data-action routing for all buttons.
-  bottomNav = function () {
-    const t = current();
-    if (!t || view === 'entry') return '';
-    const admin = !!(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(t));
-    const pending = admin ? (window.D4TripJoin?.pendingCount?.() || 0) : 0;
-    const items = [
-      { icon:'🏠',label:'Home',action:'open-tab',attr:'data-ctx="overview"',active:view==='trip'&&tripTab==='overview' },
-      { icon:'📅',label:'Day Plan',action:'open-tab',attr:'data-ctx="plan"',active:view==='trip'&&tripTab==='plan' },
-      { icon:'👥',label:'Members',action:'open-tab',attr:'data-ctx="members"',active:view==='trip'&&tripTab==='members' },
-      { icon:'💳',label:'Payments',action:'nav',attr:'data-view="collections"',active:view==='collections' },
-      { icon:'🧾',label:'Expenses',action:'open-tab',attr:'data-ctx="expenses"',active:view==='trip'&&tripTab==='expenses' },
-      { icon:'💬',label:'Chat',action:'nav',attr:'data-view="chat"',active:view==='chat' }
-    ];
-    if (admin) items.push({icon:'👑',label:'Admin',action:'d4-admin-panel',attr:'',active:false,count:pending});
-    items.push({icon:'⚙️',label:'Settings',action:'nav',attr:'data-view="profile"',active:view==='profile'});
-    return '<nav class="d4-liquid-rail" aria-label="Trip sections (right sidebar)">' +
-      items.map(i=>'<button type="button" data-action="'+i.action+'" '+i.attr+
-        ' class="d4-liquid-rail-item'+(i.active?' active':'')+'" aria-label="'+i.label+
-        (i.count?' ('+i.count+' pending)':'')+'" title="'+i.label+'">'+
-        '<span aria-hidden="true" class="d4-liquid-rail-icon">'+i.icon+'</span>'+
-        '<span class="d4-liquid-rail-label">'+i.label+'</span>'+
-        (i.count?'<span class="d4-liquid-badge">'+i.count+'</span>':'')+'</button>').join('')+'</nav>';
-  };
+  // Keep the compact Black & Gold navigation rendered by index.html.
+  // The former liquid-rail override conflicted with the production stylesheet.
+  bottomNav = function () { return original.bottomNav(); };
   // The local roster can lag behind a cloud approval. Show the authenticated
   // shared-trip member list alongside local records, without merging/deleting data.
   tripMembers = function (t) {
-    return original.tripMembers(t) + (window.D4TripJoin?.approvedMembersPanel?.(t?.id)||'');
+    return '<p class="d4-team-members-access">'+(teamId?'☁️ Live shared roster · Approved members can view every name.':'📱 Private roster · Changes here are not shared.')+'</p>' + original.tripMembers(t) + (window.D4TripJoin?.approvedMembersPanel?.(t?.id)||'');
   };
   function adminSurface(){
     const t=current();
@@ -263,36 +264,49 @@
     const verifiedMain=isMain();
     if(!t||!(shared?sharedEditor:isTripAdmin(t)))return '';
     const role=verifiedMain||(shared&&window.D4Team?.canRemove?.()===true)?'Main Admin':'Trip Admin';
-    const requests=shared
-      ?(window.D4TripJoin?.adminPanel?.()||
-        '<section class="card"><h3>🔔 Join Requests</h3><p>Loading shared trip approvals…</p></section>')
-      :verifiedMain
-       ?(window.D4TripJoin?.mainAdminInbox?.()||
-         '<section class="card"><h3>🔔 Join Requests</h3><p>Connecting to Firebase join requests…</p></section>')
-       :'<section class="card d4-admin-role-help"><h3>🔔 Join Requests</h3>'+
-        '<p>This device is using a local Trip Admin profile. To see pending requests, sign in with the authorized Firebase admin account and open the shared trip.</p>'+
-        '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
     return '<section class="d4p-section d4-liquid-admin"><div class="d4p-hero"><small>👑 D4 TRIP · CONTROL CENTRE</small>'+
       '<h2>'+role+' Panel <small class="d4-build-version">v27</small></h2>'+
-      '<p>Review join requests, manage members and share the trip.</p></div>'+
-      requests+
+      '<p>Manage approved members, admin access and trip sharing.</p></div>'+
+      (window.D4TripJoin?.approvedMembersPanel?.()||'')+
       mainSharePanel(t)+
       (shared||verifiedMain?'':'<section class="card"><h3>🔗 Share Trip Link</h3><p>Sign in as Main Admin to publish and copy this trip’s invitation link.</p></section>')+
       '<div class="d4p-grid">'+
       button('👥','Manage Members','open-tab','data-ctx="members"')+
+      button('🔔','Join Requests','d4-requests-panel')+
       (shared&&window.D4Team?.canRemove?.()?teamButton('🛡️','Assign Admin','admin'):'')+
       '</div></section>';
+  }
+  // A dedicated Requests screen: reuse the existing Firebase listeners and
+  // permission-checked Accept/Reject handlers; never clone or migrate trip data.
+  function requestsSurface(){
+    const t=current();
+    const shared=!!teamId;
+    const allowed=t && (shared ? window.D4Team?.canEdit?.()===true : isTripAdmin(t));
+    if(!allowed)return '<section class="card"><h3>Access restricted</h3><p>Only Main Admin and Trip Admin may review join requests.</p></section>';
+    const inbox=shared
+      ?(window.D4TripJoin?.adminPanel?.()||'<section class="card"><p>Connecting to shared trip requests…</p></section>')
+      :isMain()
+        ?(window.D4TripJoin?.mainAdminInbox?.()||'<section class="card"><p>Connecting to Firebase join requests…</p></section>')
+        :'<section class="card"><p>Sign in with the authorized Firebase admin account to review requests.</p>'+
+          '<button type="button" class="btn mint" data-action="nav" data-view="profile">⚙️ Firebase Sign In</button></section>';
+    return '<section class="d4p-section d4-requests-page" aria-label="Join Requests">'+
+      '<div class="d4p-hero"><small>🔔 D4 TRIP · ACCESS REQUESTS</small>'+
+      '<h2>Join Requests</h2><p>Review pending members and recent decisions in one place.</p></div>'+inbox+'</section>';
   }
   document.addEventListener('click',function(e){
     const action=e.target.closest('[data-action]');
     if(!action)return;
-    if(action.dataset.action !== 'd4-admin-panel') {
-      if(['nav','open-tab','trip-tab','select-trip','entry-back','d4-back'].includes(action.dataset.action))adminOpen=false;
+    const name=action.dataset.action;
+    if(name!=='d4-admin-panel'&&name!=='d4-requests-panel'){
+      if(['nav','open-tab','trip-tab','select-trip','entry-back','d4-back'].includes(name)){
+        adminOpen=false;requestsOpen=false;
+      }
       return;
     }
     e.preventDefault();
     if(!current() || !(teamId ? window.D4Team?.canEdit?.() : isTripAdmin(current())))return;
-    adminOpen=true;
+    adminOpen=name==='d4-admin-panel';
+    requestsOpen=name==='d4-requests-panel';
     tripTab='overview';view='trip';render();
   },true);
   tripOverview = function (t) {
@@ -302,7 +316,6 @@
       '<div class="d4p-hero"><small>✦ D4 TRIP · YOUR JOURNEY</small><h2>' +
       safe(t.destination) + '</h2><p>' + safe(t.name) + ' · ' +
       shortDate(t.start) + ' – ' + shortDate(t.end) + '</p></div>' +
-      (teamId && window.D4Team?.canEdit?.() ? (window.D4TripJoin?.homeRequests?.()||'') : (isMain()?(window.D4TripJoin?.mainAdminInbox?.()||'') : '')) +
       mainSharePanel(t) +
       '<div class="d4p-stats"><div class="d4p-stat"><small>Members</small><strong>' +
       t.members.length + '</strong></div><div class="d4p-stat"><small>Trip Days</small><strong>' +
@@ -328,27 +341,25 @@
       '</nav>' + tileRow(t) + '</section>';
   };
   tripPage = function () {
+    if(requestsOpen) return requestsSurface();
     if(adminOpen) return adminSurface();
     const t = current();
     if (!t) return original.tripPage();
-    if (tripTab === 'overview') return tripOverview(t);
-    if (tripTab === 'plan') return '<section class="d4p-section">' + tripPlan(t) + '</section>';
-    if (tripTab === 'expenses') return '<section class="d4p-section">' + tripExpenses(t) + '</section>';
-    if (tripTab === 'members') return '<section class="d4p-section">' + tripMembers(t) + '</section>';
-    if (tripTab === 'reminders') return '<section class="d4p-section">' + tripReminders(t) + '</section>';
-    if (tripTab === 'memories') return '<section class="d4p-section">' + tripMemories(t) + '</section>';
-    if (tripTab === 'report') return '<section class="d4p-section">' + tripReport(t) + '</section>';
-    if (tripTab === 'collections') return collectionsPage();
+    const sync=sharedSyncGuide(t);
+    if (tripTab === 'overview') {
+      const hero=tripOverview(t);
+      return teamId?hero.replace('<span class="ref-palm" aria-hidden="true">🌴</span>','<span class="ref-palm" aria-hidden="true">🌴</span>'+sync):hero+sync;
+    }
+    if (tripTab === 'plan') return sync+'<section class="d4p-section">' + tripPlan(t) + '</section>';
+    if (tripTab === 'expenses') return sync+'<section class="d4p-section">' + tripExpenses(t) + '</section>';
+    if (tripTab === 'members') return sync+'<section class="d4p-section">' + tripMembers(t) + '</section>';
+    if (tripTab === 'reminders') return sync+'<section class="d4p-section">' + tripReminders(t) + '</section>';
+    if (tripTab === 'memories') return sync+'<section class="d4p-section">' + tripMemories(t) + '</section>';
+    if (tripTab === 'report') return sync+'<section class="d4p-section">' + tripReport(t) + '</section>';
+    if (tripTab === 'collections') return sync+collectionsPage();
     // An old saved Split tab selection is never re-exposed. Financial history stays stored.
     if (tripTab === 'settle') { tripTab = 'overview'; return tripOverview(t); }
     return original.tripPage();
-  };
-  chatsPage = function () {
-    return '<section class="d4p-section"><div class="d4p-coming">' +
-      '<div class="d4p-chat-icon" aria-hidden="true">💬</div>' +
-      '<h2>Chats — Coming Soon</h2>' +
-      '<p>Trip messaging will arrive in a later release. Existing saved messages have not been deleted or modified.</p>' +
-      '<span class="pill">🔒 Not active yet</span></div></section>';
   };
   profilePage = function () {
     // Guest invite links must open the name-only request form, never an account/login screen.

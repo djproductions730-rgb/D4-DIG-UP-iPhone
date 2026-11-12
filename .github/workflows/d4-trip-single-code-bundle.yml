@@ -1,0 +1,62 @@
+name: D4 Trip full source one-file bundle
+on:
+  push:
+    branches:
+      - dev/d4-trip-join-requests-section-20261107
+    paths:
+      - '.github/workflows/d4-trip-single-code-bundle.yml'
+      - 'd4-trip-demo/scripts/build-single-code.cjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Bundle complete D4 Trip app in one HTML and all-code transcript
+        run: node d4-trip-demo/scripts/build-single-code.cjs
+      - name: Verify original app integrity
+        run: node d4-trip-demo/check.cjs
+      - name: Verify bundled outputs and unchanged production
+        run: |
+          node - <<'NODE'
+          const fs=require('node:fs'),assert=require('node:assert/strict');
+          const base='d4-trip-demo/single-file-build/';
+          const html=fs.readFileSync(base+'D4-Trip-ONE-FILE.html','utf8');
+          const code=fs.readFileSync(base+'D4-Trip-ALL-CODE.txt','utf8');
+          const info=JSON.parse(fs.readFileSync(base+'BUILD-INFO.json'));
+          assert.ok(html.length>350000);
+          assert.ok(code.length>450000);
+          assert.equal(info.cssFiles.length,8);
+          assert.equal(info.jsFiles.length,13);
+          for(const marker of ['data-d4-original="install-app.js"','data-d4-original="firebase-sync.js"',
+            'data-d4-original="trip-day-controls.js"','data-d4-original="payment-roster.css"']){
+            assert.ok(html.includes(marker),'Missing '+marker);
+          }
+          assert.ok(html.includes('data:image/png;base64,'));
+          assert.ok(code.includes('BEGIN FILE: firestore.rules'));
+          assert.ok(code.includes('BEGIN FILE: server-draft/service.cjs'));
+          console.log('PASS: All runtime features and source files included in single-code outputs');
+          NODE
+      - name: Zip original project for reference
+        run: |
+          cd d4-trip-demo
+          zip -q -r single-file-build/D4-Trip-ORIGINAL-SOURCE.zip .             -x 'single-file-build/*' 'preview/*' 'node_modules/*'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: D4-Trip-Complete-One-File-Code
+          path: |
+            d4-trip-demo/single-file-build/D4-Trip-ONE-FILE.html
+            d4-trip-demo/single-file-build/D4-Trip-ALL-CODE.txt
+            d4-trip-demo/single-file-build/D4-Trip-ORIGINAL-SOURCE.zip
+            d4-trip-demo/single-file-build/BUILD-INFO.json
+          if-no-files-found: error
+          retention-days: 7

@@ -10,8 +10,13 @@ const teamSyntax = spawnSync(process.execPath, ['--input-type=module', '--check'
 if(teamSyntax.status !== 0) throw new Error(teamSyntax.stderr);
 const rules = fs.readFileSync(path.join(dir, 'firestore.rules'), 'utf8');
 const inline = [...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g)];
-if (inline.length !== 1) throw new Error('Expected one D4 Trip app inline script');
-new vm.Script(inline[0][1], { filename: 'index.html.inline.js' });
+if (inline.length < 1) throw new Error('Missing D4 Trip app inline script');
+for (const [index, script] of inline.entries()) {
+  new vm.Script(script[1], { filename: 'index.html.inline.'+(index+1)+'.js' });
+}
+if (!inline.some(match => match[1].includes('window.D4TripLocal='))) {
+  throw new Error('Missing main D4 Trip local data bridge');
+}
 const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], {
   input: moduleSrc, encoding: 'utf8'
 });
@@ -32,10 +37,24 @@ const inviteSyntax = spawnSync(process.execPath,['--input-type=module','--check'
 if(inviteSyntax.status!==0)throw Error(inviteSyntax.stderr);
 const inviteTests=spawnSync(process.execPath,['--test',path.join(dir,'team-invites/service.test.cjs')],{stdio:'inherit'});
 if(inviteTests.status!==0)process.exit(inviteTests.status||1);
+const goaTests=spawnSync(process.execPath,[path.join(dir,'goa-payment-v47.test.cjs')],{stdio:'inherit'});
+if(goaTests.status!==0)process.exit(goaTests.status||1);
+const modernPdfTests=spawnSync(process.execPath,['--test',path.join(dir,'modern-card-pdf.test.cjs')],{stdio:'inherit'});
+if(modernPdfTests.status!==0)process.exit(modernPdfTests.status||1);
+const journeyTests = spawnSync(process.execPath, ['--test',path.join(dir,'journey-completion.test.cjs')],{stdio:'inherit'});
+if (journeyTests.status !== 0) process.exit(journeyTests.status || 1);
+const inlineMilestoneTests = spawnSync(process.execPath, ['--test', path.join(dir,'goa-milestones-inline.test.cjs')], {stdio:'inherit'});
+if (inlineMilestoneTests.status !== 0) process.exit(inlineMilestoneTests.status || 1);
+const goaMilestoneTests = spawnSync(process.execPath, ['--test', path.join(dir,'goa-milestones.test.cjs')], {stdio:'inherit'});
+if (goaMilestoneTests.status !== 0) process.exit(goaMilestoneTests.status || 1);
 const premiumTest = spawnSync(process.execPath, [path.join(dir,'premium-production.test.cjs')], {
   stdio: 'inherit'
 });
 if (premiumTest.status !== 0) process.exit(premiumTest.status || 1);
+const uiTests = spawnSync(process.execPath, ['--test',
+  ...['payment-edits.test.cjs','trip-sections.test.cjs','install-app.test.cjs','payment-roster.test.cjs','trip-day-controls.test.cjs','home-circular-luxe.test.cjs']
+    .map(file=>path.join(dir,file))], { stdio:'inherit' });
+if (uiTests.status !== 0) process.exit(uiTests.status || 1);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
 const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','delete-trip.test.cjs','expense-plan.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
   stdio: 'inherit'

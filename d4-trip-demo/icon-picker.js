@@ -1,0 +1,21 @@
+/* Icon preferences are local to this device and never write trip data. */
+(()=>{'use strict';
+const options=[['turquoise','Turquoise'],['ocean','Ocean Blue'],['sunset','Sunset Orange'],['rose','Rose Pink'],['midnight','Midnight Gold']];
+const key='d4trip_icon_colour_v1';let selected='turquoise';try{const saved=localStorage.getItem(key);if(options.some(([id])=>id===saved))selected=saved;}catch{}
+const base=new URL('./',document.currentScript.src);const asset=path=>new URL(path,base).href;
+function apply(){
+ document.querySelectorAll('img.logo-badge,.mini-brand img,img[alt="D4 Trip"],img[alt="D4 Trip icon"]').forEach(img=>{const url=asset('icons/'+selected+'-premium-v71-192.png');if(img.src!==url)img.src=url;});
+ document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(link=>{const url=asset('icons/'+selected+'-premium-v71'+(link.rel==='apple-touch-icon'?'-180.png':'-512.png'));if(link.href!==url){link.href=url;link.type='image/png';}});
+ const manifest=document.querySelector('link[rel="manifest"]');if(manifest){const url=asset('manifest-'+selected+'.webmanifest?build=71');if(manifest.href!==url)manifest.href=url;}
+ document.querySelectorAll('[data-icon-choice]').forEach(btn=>{const active=btn.dataset.iconChoice===selected;btn.setAttribute('aria-pressed',String(active));btn.classList.toggle('is-selected',active);});
+ const preview=document.getElementById('d4-icon-preview');if(preview){const url=asset('icons/'+selected+'-premium-v71-512.png');if(preview.src!==url)preview.src=url;}
+ const download=document.getElementById('d4-icon-download');if(download){download.href=asset('icons/'+selected+'-premium-v71-512.png');download.download='D4-Trip-'+selected+'.png';}
+}
+function mount(){
+ if(document.body.dataset.section==='profile'&&!document.getElementById('d4-icon-picker')){
+ const main=document.querySelector('main.main');if(main){const section=document.createElement('section');section.className='card d4-icon-picker';section.id='d4-icon-picker';section.innerHTML=`<div class="d4-icon-heading"><div><small>MAKE IT YOURS</small><h2>Choose your app icon</h2><p>Five colours. Your D4 Trip.</p></div><img id="d4-icon-preview" alt="Selected app icon" width="76" height="76"></div><div class="d4-icon-options" role="group" aria-label="App icon colour">${options.map(([id,name])=>`<button type="button" data-icon-choice="${id}" aria-pressed="false"><img src="${asset('icons/'+id+'-premium-v71-192.png')}" alt="" width="62" height="62"><span>${name}</span><b aria-hidden="true">✓</b></button>`).join('')}</div><p class="d4-icon-status" role="status" aria-live="polite">Your choice is saved on this device.</p><details><summary>Change the icon on your phone</summary><p>This setting changes the icon inside D4 Trip immediately. An already installed Home Screen icon is controlled by your phone and may not change automatically.</p><p><strong>iPhone:</strong> Save your chosen PNG below. In Shortcuts, create an Open URLs shortcut for this app, then Add to Home Screen and choose the saved image. Keep your existing app installed.</p><p><strong>Android:</strong> The browser controls installed icon updates. You can use a launcher that supports custom icons with the saved PNG.</p><a id="d4-icon-download" class="btn small" download>Save selected icon PNG</a></details>`;const header=main.querySelector('.topbar');if(header)header.after(section);else main.prepend(section);}}
+ apply();}
+ document.addEventListener('click',event=>{const button=event.target.closest('[data-icon-choice]');if(!button)return;selected=button.dataset.iconChoice;let saved=true;try{localStorage.setItem(key,selected);}catch{saved=false;}apply();const status=document.querySelector('.d4-icon-status');if(status)status.textContent=options.find(([id])=>id===selected)[1]+(saved?' icon applied · Saved on this device':' icon applied · Storage unavailable; choice lasts for this session');});
+ let queued=false;new MutationObserver(()=>{if(!queued){queued=true;requestAnimationFrame(()=>{queued=false;mount();});}}).observe(document.body,{childList:true,subtree:true});
+ mount();window.D4TripIcons={open:()=>{const nav=document.querySelector('[data-action="nav"][data-view="profile"]');if(nav)nav.click();},selected:()=>selected};
+})();

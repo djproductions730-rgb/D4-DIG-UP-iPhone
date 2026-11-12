@@ -3,11 +3,32 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#087d83" />
+  <meta name="theme-color" content="#071422" />
+  <meta name="d4-release" content="v40-premium-live-repaired-20261108" />
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512-v28.png" />
-  <link rel="icon" type="image/svg+xml" href="./icon.svg" />
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon-v28.png" />
+  <script>
+    // Restore the last explicitly opened shared trip when an installed PWA
+    // starts from its standard manifest URL. Existing auth and roles still apply.
+    (function(){
+      try{
+        var params=new URLSearchParams(location.search);
+        var code=params.get('team'),key='d4_trip_installed_team_v1';
+        var valid=function(v){return /^[A-Za-z0-9_-]{1,100}$/.test(String(v||''))};
+        if(valid(code)){
+          localStorage.setItem(key,code);
+        }else if(params.get('source')==='installed'){
+          var remembered=localStorage.getItem(key);
+          if(valid(remembered)){
+            params.set('team',remembered);
+            location.replace(location.pathname+'?'+params.toString()+location.hash);
+          }
+        }
+      }catch(_){}
+    })();
+  </script>
+  <link rel="icon" type="image/png" sizes="512x512" href="./icons/turquoise-premium-v71-512.png" />
+  <link rel="icon" type="image/png" href="./icons/turquoise-premium-v71-512.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/turquoise-premium-v71-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="D4 Trip" />
@@ -225,8 +246,105 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 </style>
 <link rel="stylesheet" href="./night.css" media="screen">
 <link rel="stylesheet" href="./intro.css" media="screen">
-<link rel="stylesheet" href="./premium-production.css?build=27" media="screen">
+<link rel="stylesheet" href="./premium-production.css?build=45" media="screen">
+<link rel="stylesheet" href="./obsidian-luxe.css?build=34" media="screen">
+<link rel="stylesheet" href="./reference-premium.css?build=41" media="screen">
+<link rel="stylesheet" href="./install-app.css?build=38" media="screen">
+<link rel="stylesheet" href="./payment-roster.css?build=40" media="screen">
+<link rel="stylesheet" href="./trip-day-controls.css?build=40" media="screen">
+<link rel="stylesheet" href="./home-circular-luxe.css?build=60" media="screen">
+<link rel="stylesheet" href="./journey-completion.css?build=43" media="screen">
 <script defer src="./intro.js"></script>
+<link rel="stylesheet" href="./modern-card-pdf.css?build=46" media="print">
+<link rel="stylesheet" href="./report-readability.css?build=46">
+<link rel="stylesheet" href="./goa-payment-v50.css?build=50"><link rel="stylesheet" href="./goa-train-v51.css?build=51"><link rel="stylesheet" href="./goa-train-v53.css?build=53">
+<style>.d4-ticket-home-action{margin:14px 0}.d4-ticket-home-action .btn{width:100%;font-weight:800}.d4-ticket-page{padding:12px 4px 26px;color:#f4f9ff}.d4-ticket-page h2{margin:14px 0 4px}.d4-ticket-page>p{color:#bed4e7}.d4-ticket-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:18px 0}.d4-ticket-mode{min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;background:#15334e;border:1px solid #4c7297;border-radius:15px;color:#fff}.d4-ticket-mode span{font-size:32px}.d4-ticket-mode b{font-size:12px}.d4-ticket-mode.selected{border:2px solid #ffd36f;box-shadow:0 0 14px #eab44980}.d4-ticket-stage{position:relative;min-height:300px;background:radial-gradient(circle at 50% 65%,#276b97,#0b2139 70%);border:1px solid #476b8d;border-radius:22px;text-align:center;padding:20px 8px;overflow:hidden}.d4-ticket-paid{display:inline-flex;flex-direction:column;align-items:center;background:#093f31;border:5px solid #64f2a1;border-radius:50%;height:128px;width:128px;justify-content:center;box-shadow:0 0 24px #37f39780}.d4-ticket-paid strong{font-size:55px;color:#fff}.d4-ticket-paid small{color:#baffd5}.d4-ticket-unpaid{position:absolute;right:10px;top:25px;background:#532837;border:2px solid #ff9b72;border-radius:15px;padding:8px;color:#fff}.d4-ticket-unpaid strong{display:block;font-size:27px}.d4-ticket-vehicle{font-size:100px;line-height:1.15;filter:drop-shadow(0 12px 12px #0009);margin-top:8px}.d4-ticket-stage h3{color:#fff;margin:0}.d4-ticket-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}.d4-ticket-stats>div{padding:12px 9px;background:#173e5e;border:1px solid #4478a1;border-radius:14px;font-size:12px}.d4-ticket-stats strong{display:block;font-size:21px;margin-top:4px;color:#fff}.d4-ticket-page>.btn.sun{width:100%}.d4-ticket-admin-note{font-size:12px;text-align:center}</style><style id="d4-transport-premium-v59">
+.d4-ticket-page{max-width:680px;margin:0 auto;padding-bottom:35px}
+.d4-transport-heading{display:flex;align-items:center;justify-content:space-between;letter-spacing:.14em;font-weight:800;font-size:11px!important;color:#f8d58c!important;margin-top:16px!important}
+.d4-transport-heading span{font-size:10px;letter-spacing:.04em;color:#b6d4eb;background:#15354f;border:1px solid #3d6381;border-radius:20px;padding:5px 9px}
+.d4-ticket-modes{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.d4-ticket-mode{position:relative;min-height:104px;border:1.5px solid #66849d!important;border-radius:18px!important;background:linear-gradient(145deg,#27628d 0%,#10314f 58%,#091a31 100%)!important;box-shadow:inset 0 1px 0 #b3d6ee50,0 7px 16px #0007;transition:transform .16s ease,box-shadow .16s ease}
+.d4-ticket-mode:nth-child(2){background:linear-gradient(145deg,#37788b,#113c4e 60%,#071c31)!important}
+.d4-ticket-mode:nth-child(3){background:linear-gradient(145deg,#586e92,#1c3656 60%,#071c31)!important}
+.d4-ticket-mode:nth-child(4){background:linear-gradient(145deg,#70527e,#332c59 60%,#11192e)!important}
+.d4-ticket-mode:nth-child(5){background:linear-gradient(145deg,#287c9d,#12405b 60%,#071c31)!important}
+.d4-ticket-mode:nth-child(6){background:linear-gradient(145deg,#8c6c32,#473517 60%,#171e2f)!important}
+.d4-ticket-mode span{font-size:40px!important;filter:drop-shadow(0 7px 5px #0008);line-height:1.25}
+.d4-ticket-mode b{font-size:12px!important;color:#fff;text-shadow:0 1px 4px #000}
+.d4-ticket-mode.selected{border:2px solid #ffdb85!important;box-shadow:0 0 0 1px #ffdc8b70,0 0 18px #f7bf5970,inset 0 1px 0 #fff6!important}
+.d4-ticket-mode:active{transform:scale(.96)}
+.d4-ticket-stage{border:1.5px solid #b49b66!important;box-shadow:inset 0 0 28px #347ab333,0 12px 25px #0005}
+.d4-ticket-vehicle{font-size:112px!important;animation:d4VehicleArrive .5s ease both}
+@keyframes d4VehicleArrive{from{transform:translateX(-22px) scale(.88);opacity:.4}to{transform:translateX(0) scale(1);opacity:1}}
+@media(max-width:360px){.d4-ticket-mode{min-height:90px}.d4-ticket-mode span{font-size:34px!important}.d4-ticket-vehicle{font-size:92px!important}}
+@media(prefers-reduced-motion:reduce){.d4-ticket-vehicle{animation:none}}
+</style><style id="d4-ticket-library-v61">
+.d4-ticket-stage-premium{min-height:290px;background:radial-gradient(ellipse at 50% 90%,#26749a,#0b2544 63%,#07192d)!important;border-color:#f1c878!important;box-shadow:inset 0 0 35px #2476ab55,0 12px 28px #0008!important}
+.d4-ticket-hero-label{font-size:clamp(22px,6vw,32px);font-weight:950;color:#ffdf90;text-shadow:0 3px 14px #0009;letter-spacing:-.04em}
+.d4-ticket-hero-counts{display:flex;justify-content:center;gap:34px;margin:12px auto 0;align-items:baseline}
+.d4-ticket-hero-counts>div{display:flex;align-items:baseline;gap:7px}
+.d4-ticket-hero-counts small{font-weight:900;font-size:11px;color:#8df7bf}
+.d4-ticket-hero-counts>div:nth-child(2) small{color:#ffaaa7}
+.d4-ticket-hero-counts strong{font-size:clamp(34px,11vw,58px);font-weight:950;color:#ffdf90;line-height:1;text-shadow:0 4px 12px #000a}
+.d4-ticket-stage-premium .d4-ticket-vehicle{font-size:clamp(92px,25vw,135px)!important;margin-top:4px!important}
+.d4-ticket-hero-caption{font-weight:800;color:#d6ebfc}
+.d4-your-tickets-btn{width:100%;min-height:50px;margin:8px 0}
+.d4-ticket-library{padding:15px 11px;border:1px solid #d5b36d;border-radius:20px;background:linear-gradient(140deg,#0d3451,#071b31)}
+.d4-ticket-entry{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:12px 4px;border-bottom:1px solid #ffffff33}
+.d4-ticket-entry b{color:#fff0c3}.d4-ticket-entry p{font-size:12px;color:#d3e4f3;margin:5px 0}
+.d4-ticket-entry-actions{display:flex;gap:5px;flex-wrap:wrap}
+.d4-ticket-entry-actions .btn{min-height:44px}
+.d4-ticket-ok{color:#83f4b5}.d4-ticket-due{color:#ffb8a5}
+</style><style id="d4-ticket-visual-v62">
+.d4-ticket-v62{background:linear-gradient(155deg,#051324,#06365a 58%,#061628);color:#f4f9ff;padding:12px 10px 28px;border-radius:24px}
+.d4-ticket-premium-head{text-align:center;margin:4px 0 15px}.d4-ticket-premium-head b{font-size:34px;font-weight:950;color:#fbd27c;text-shadow:0 2px 1px #8b5419,0 4px 14px #dba94b99}.d4-ticket-premium-head i{color:#e5f4ff}.d4-ticket-premium-head span{display:block;letter-spacing:.22em;font-size:10px;color:#9dcce7}
+.d4-ticket-v62 .d4-ticket-modes{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;margin:12px 0 16px}
+.d4-ticket-v62 .d4-ticket-mode{min-width:0!important;min-height:112px!important;padding:8px 3px!important;border:1.5px solid #6ba8d2!important;border-radius:20px!important;background:radial-gradient(circle at 45% 15%,#347ba0,#0a2744 76%)!important;box-shadow:inset 0 2px 5px #ffffff40,0 7px 13px #0007!important}
+.d4-ticket-v62 .d4-ticket-mode:nth-child(3n){background:linear-gradient(145deg,#4b5a85,#13243d)!important}
+.d4-ticket-v62 .d4-ticket-mode:nth-child(4){background:linear-gradient(145deg,#6b477f,#202343)!important}
+.d4-ticket-v62 .d4-ticket-mode:nth-child(6){background:linear-gradient(145deg,#816038,#202943)!important}
+.d4-ticket-v62 .d4-ticket-mode.selected{border:2px solid #ffe08c!important;box-shadow:0 0 13px #f9bb47,inset 0 0 14px #e8b75a55!important}
+.d4-ticket-v62 .d4-ticket-mode span{font-size:clamp(38px,11vw,57px)!important;display:block;filter:drop-shadow(0 7px 5px #0009)}.d4-ticket-v62 .d4-ticket-mode b{font-size:14px!important;color:white;text-shadow:0 2px 5px #000}
+.d4-ticket-v62 .d4-ticket-stage-premium{min-height:245px!important;background:radial-gradient(ellipse at 70% 55%,#245e91,#071c35 76%)!important;overflow:hidden;position:relative;border:2px solid #e9c677!important}
+.d4-ticket-v62 .d4-ticket-hero-label{font-size:clamp(24px,6vw,32px)!important;text-align:left;padding-left:9px;background:linear-gradient(90deg,#ffe59e,#eaa52d);color:#14223d!important;border-radius:11px;display:inline-block;transform:rotate(-2deg);padding:7px 14px;text-shadow:none!important}
+.d4-ticket-v62 .d4-ticket-hero-counts{position:relative;z-index:2;justify-content:flex-start;gap:12px!important}
+.d4-ticket-v62 .d4-ticket-hero-counts>div{background:linear-gradient(145deg,#063d2b,#06221c);border:1px solid #2ceca0;border-radius:15px;padding:8px 12px;display:flex;flex-direction:column;align-items:center;box-shadow:0 0 12px #3cfcb94d}
+.d4-ticket-v62 .d4-ticket-hero-counts>div:nth-child(2){background:linear-gradient(145deg,#4d1831,#250d22);border-color:#ff7e83;box-shadow:0 0 10px #ff53604d}
+.d4-ticket-v62 .d4-ticket-hero-counts strong{font-size:39px!important}
+.d4-ticket-v62 .d4-ticket-vehicle{font-size:clamp(95px,23vw,140px)!important;position:absolute;right:1%;bottom:12%;margin:0!important;filter:drop-shadow(0 12px 8px #000a);transform:rotate(-6deg)}
+.d4-ticket-v62 .d4-ticket-hero-caption{position:relative;z-index:2;text-align:left;padding:15px 7px 0}
+.d4-ticket-v62 .d4-ticket-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;margin:13px 0}
+.d4-ticket-v62 .d4-ticket-stats>div{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:100px;padding:8px 2px!important;background:linear-gradient(160deg,#184b78,#071f40)!important;border:1px solid #dbbb7b!important;border-radius:15px!important;text-align:center;font-size:0!important}
+.d4-ticket-v62 .d4-ticket-stats span{font-size:23px}.d4-ticket-v62 .d4-ticket-stats small{font-size:10px;color:#c8d9e8}.d4-ticket-v62 .d4-ticket-stats strong{font-size:clamp(12px,3.5vw,18px)!important;color:#ffe39a!important;overflow-wrap:anywhere}
+.d4-ticket-admin-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0}
+.d4-ticket-admin-actions .btn{min-width:0;min-height:53px;font-size:11px!important;padding:6px 3px!important;border-radius:15px!important}
+.d4-ticket-directions{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#0b2543;border:1px solid #6689ad;border-radius:30px;padding:5px;margin:12px 0}
+.d4-ticket-directions button{min-height:53px;background:transparent;color:#cfe9fb;border:0;border-radius:25px;font-size:17px;font-weight:900;cursor:pointer}
+.d4-ticket-directions button small{display:block;font-size:11px;font-weight:500}
+.d4-ticket-directions button.active{background:linear-gradient(135deg,#fce48a,#d68b15);color:#24170a;box-shadow:0 0 15px #ffd56f99}
+.d4-ticket-v62 .d4-ticket-library{padding:12px 9px!important;background:linear-gradient(160deg,#0a284a,#04162b)!important;border:1px solid #e1bb66!important}
+.d4-ticket-library-heading{display:flex;align-items:center;justify-content:space-between}.d4-ticket-library-heading h3{margin:0!important;color:#ffdf92}
+.d4-ticket-filters{display:flex;gap:5px;justify-content:flex-end;margin:10px 0}.d4-ticket-filters button{border:1px solid #4f8fa7;background:#103e4b;color:#d7f6f0;border-radius:22px;padding:7px 10px;font-size:11px}.d4-ticket-filters button.active{background:linear-gradient(#ffe99d,#dfa322);color:#1e1c15;font-weight:900}
+.d4-ticket-v62 .d4-ticket-entry{display:flex;flex-wrap:nowrap;gap:8px;background:linear-gradient(100deg,#194a75,#071b37);border:1px solid #5594c9;border-radius:16px;margin:8px 0;padding:9px 7px!important}
+.d4-ticket-entry-icon{font-size:31px;flex-shrink:0}.d4-ticket-entry-detail{min-width:0;flex:1}.d4-ticket-entry-detail b{font-size:12px}.d4-ticket-entry-detail p{font-size:10px}.d4-ticket-entry-actions{flex-shrink:0;gap:2px!important}.d4-ticket-entry-actions .btn{padding:4px!important;min-width:30px!important;min-height:43px!important}
+.d4-ticket-empty{text-align:center;padding:17px;color:#bbd8eb}
+@media(max-width:365px){.d4-ticket-v62 .d4-ticket-hero-label{font-size:21px!important}.d4-ticket-v62 .d4-ticket-vehicle{font-size:90px!important}.d4-ticket-v62 .d4-ticket-stats small{font-size:9px}.d4-ticket-v62 .d4-ticket-entry-actions{flex-direction:column}}
+</style><style id="d4-ticket-multi-v63">.d4-ticket-add-another{display:block;width:100%;min-height:48px;margin:10px 0;border-radius:15px!important;font-weight:900!important}.d4-ticket-v62 .d4-ticket-entry-actions .btn{font-size:11px!important}.d4-ticket-v62 .d4-ticket-entry-actions{max-width:100%;flex-wrap:wrap}.d4-ticket-v62 .d4-ticket-entry-detail{min-width:90px}</style><style id="d4-ticket-status-v64">
+.d4-ticket-v62 .d4-ticket-status-controls{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.d4-ticket-v62 .d4-ticket-status-controls button{border:1px solid #7b9ab4;border-radius:9px;padding:8px 7px;min-height:42px;font-size:11px;font-weight:850;background:#16324d;color:#d7e8f5;cursor:pointer}
+.d4-ticket-v62 .d4-status-paid[aria-pressed='true']{background:#12643e!important;border-color:#6bf1a9!important;color:#fff!important}
+.d4-ticket-v62 .d4-status-unpaid[aria-pressed='true']{background:#773a27!important;border-color:#ffbc8a!important;color:#fff!important}
+.d4-ticket-v62 .d4-ticket-entry-actions{display:flex;flex-wrap:wrap;gap:5px}
+</style><style id="d4-ticket-count-v65">.d4-ticket-payment-edit{width:100%;min-height:48px;margin:10px 0;border-radius:14px!important}.d4-ticket-v62 .d4-ticket-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}.d4-ticket-v62 .d4-ticket-hero-counts{justify-content:center!important}</style><style id="d4-upgrade-sync-v68">
+.d4-team-sync-guide.d4-sync-minimal{display:flex!important;justify-content:flex-end!important;align-items:center!important;padding:5px 12px!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.d4-team-sync-guide .d4-upgrade-btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;width:auto!important;height:44px!important;min-width:118px!important;padding:8px 15px!important;border-radius:16px!important;background:linear-gradient(135deg,#19c9d4,#0a758f)!important;border:1px solid #b0f8ff!important;box-shadow:0 5px 18px #06b8d566,inset 0 1px 1px #ffffff8c!important;color:white!important;font-size:13px!important;font-weight:900!important;line-height:1!important;cursor:pointer!important}
+.d4-team-sync-guide .d4-upgrade-btn span{font-size:21px!important;line-height:1!important}.d4-team-sync-guide .d4-upgrade-btn strong{font-size:13px!important;letter-spacing:.02em!important}
+.d4-team-sync-guide .d4-upgrade-btn:active{transform:scale(.96)}
+</style><style id="d4-upgrade-tree-v69">
+body.d4-premium .ref-trip-hero .d4-team-sync-guide.d4-sync-minimal{position:absolute!important;top:94px!important;right:10px!important;left:auto!important;width:auto!important;margin:0!important;padding:0!important;z-index:5!important;display:flex!important;justify-content:flex-end!important}
+body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-width:108px!important;padding:8px 12px!important;font-size:12px!important;border-radius:15px!important}
+@media(max-width:390px){body.d4-premium .ref-trip-hero .d4-team-sync-guide.d4-sync-minimal{top:91px!important;right:8px!important}}
+</style><link rel="stylesheet" href="./icon-picker.css?build=71">
 </head>
 <body>
   <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip cinematic welcome" hidden>
@@ -264,7 +382,7 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
   <script>
 'use strict';
 /* D4 Trip v2.2 — local/offline functional prototype. This is NOT a multi-user backend. */
-const LOGO_URL='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KPGRlZnM+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJiIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzAwMkYzOCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzA4NkM3NCIvPjwvbGluZWFyR3JhZGllbnQ+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJ0ZWFsIiB4MT0iMCIgeTE9IjEiIHgyPSIxIiB5Mj0iMCI+PHN0b3Agc3RvcC1jb2xvcj0iIzA5QUNCNCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0IxRjhGMiIvPjwvbGluZWFyR3JhZGllbnQ+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJvcmFuZ2UiIHgxPSIwIiB5MT0iMSIgeDI9IjEiIHkyPSIwIj48c3RvcCBzdG9wLWNvbG9yPSIjRkQ2QzFBIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjRkZEMDVEIi8+PC9saW5lYXJHcmFkaWVudD4KPC9kZWZzPgo8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExNyIgZmlsbD0idXJsKCNiKSIvPgo8Y2lyY2xlIGN4PSIzNzQiIGN5PSIxMzciIHI9IjgwIiBmaWxsPSIjRkNBMjJEIiBvcGFjaXR5PSIuMTIiLz4KPHBhdGggZD0iTTk1IDMwMlYxMjNoOTBxNTggMCA5MSAzOHQzMyA5OHEwIDYzLTM1IDk2dC05MiAzM0g5NVYzMDJabTcyIDE4aDE4cTUxIDAgNTEtNjF0LTUxLTYxaC0xOHYxMjJaIiBmaWxsPSJ1cmwoI3RlYWwpIi8+CjxwYXRoIGQ9Ik0xNjggMjk5bDQ5LTczIDMxIDM1IDM5LTUyIDY4IDkwSDE2OFoiIGZpbGw9IiNGNUZFRkQiLz4KPHBhdGggZD0iTTIxMyAyNzFsMTgtMTUgMTcgNSAzOS01MiAxOCAyMy0xOC03LTI3IDQwLTIwLTktMjcgMTVaIiBmaWxsPSIjMEM1RDY4Ii8+CjxwYXRoIGQ9Ik0zNDQgMTIzaDczdjE2NWg0NHY1NGgtNDR2NDZoLTY2di00NkgyNTd2LTU0bDg3LTE2NVptNyAxNjV2LTc5bC00MyA3OWg0M1oiIGZpbGw9InVybCgjb3JhbmdlKSIvPgo8cGF0aCBkPSJNNTQgMzI5QzEzMCAzOTMgMjU0IDM2OCAzNTkgMjcwIiBzdHJva2U9InVybCgjb3JhbmdlKSIgc3Ryb2tlLXdpZHRoPSIyMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBmaWxsPSJub25lIi8+CjxwYXRoIGQ9Ik0zNDggMTE3bDU2IDEzIDI2LTMwYzktMTIgMjctMTkgMzYtOXMzIDIzLTEwIDM0bC0yNSAyMiA1IDU4LTE2IDctMTctNDctMjkgMjMtMSAyOS0xMyA1LTEzLTQxLTQyLTcgMTQtMTMgMjkgNloiIGZpbGw9IiNGRkZGRkYiLz4KPHRleHQgeD0iMjU2IiB5PSI0NTMiIGZvbnQtc2l6ZT0iNzYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXN0eWxlPSJpdGFsaWMiIGZpbGw9IiNGRkZGRkYiPlRyaXA8L3RleHQ+Cjwvc3ZnPgo=';
+const LOGO_URL='./icons/turquoise-premium-v71-192.png';
 const STORE='d4_trip_offline_v2';
 const USER_STORE='d4_trip_offline_profile_v2';
 const UI_STORE='d4_trip_offline_theme_v2';
@@ -279,7 +397,7 @@ const catIcon={'Food & Dining':'🍽️','Petrol':'⛽','Stay':'🏨','Travel':'
 const cats=Object.keys(catIcon);
 const planCategories=['Travel','Food','Sightseeing','Stay','Activity','Reminder','Shopping','Photos','Other'];
 const planPalette={
-  Travel:{emoji:'✈️',label:'Travel',tone:'travel'},
+  Travel:{emoji:'🚆',label:'Travel',tone:'travel'},
   Food:{emoji:'🍽️',label:'Food & Drinks',tone:'food'},
   Sightseeing:{emoji:'🏖️',label:'Explore',tone:'explore'},
   Stay:{emoji:'🏨',label:'Hotel / Stay',tone:'stay'},
@@ -367,25 +485,68 @@ function deleteLocalTrip(tripId){
 function datesInTrip(t){if(!t)return[];let out=[],d=new Date(t.start+'T12:00:00'),end=new Date(t.end+'T12:00:00');for(let n=0;d<=end&&n<90;n++,d.setDate(d.getDate()+1))out.push([d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-'));return out}
 function sharedPaise(e){const names=e.participants.filter(Boolean);const amount=Math.round(Number(e.amount)*100);if(!names.length)return{};if(e.mode==='custom'&&e.shares)return Object.fromEntries(names.map(n=>[n,Math.round(Number(e.shares[n]||0)*100)]));const base=Math.floor(amount/names.length), extra=amount-base*names.length;return Object.fromEntries(names.map((n,i)=>[n,base+(i<extra?1:0)]));}
 
+// Correct an individual member's total received without losing the original payment ledger.
+function collectionMemberTotalSave(t,member,value){
+ if(!t||!isTripAdmin(t))throw Error('Only Main Admin or Trip Admin can edit member amounts');
+ if(!t.members.includes(member))throw Error('Choose an active trip member');
+ const amount=Number(value),cents=Math.round(amount*100);
+ if(String(value).trim()===''||!Number.isFinite(amount)||cents<0||cents>10000000000)throw Error('Enter a valid amount from ₹0');
+ const target=Math.round(Math.max(0,Number(t.collection?.targetPerPerson||0))*100);
+ if(target>0&&cents>target)throw Error('Amount exceeds the member target '+money(target/100));
+ const previous=collectionTotals(t).rows.find(row=>row.member===member);
+ const oldCents=Math.round(Number(previous?.paid||0)*100),difference=cents-oldCents;
+ if(difference===0)return collectionTotals(t);
+ saveTripChange(t,()=>{
+  if(!t.collection)t.collection={targetPerPerson:0,payments:[]};
+  if(!Array.isArray(t.collection.payments))t.collection.payments=[];
+  t.collection.payments.push({
+   id:uid(),member,amount:difference/100,method:'Manual',date:today(),by:profile,
+   adjustment:true,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),goaResetV50:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),previousPaid:oldCents/100,newPaid:cents/100,
+   note:'Corrected total paid from '+money(oldCents/100)+' to '+money(cents/100)
+  });
+ });
+ return collectionTotals(t);
+}
 // Collection tracking is separate from expense payments and debt settlement.
 // Entering an amount is a recorded contribution, not a verified bank transaction.
+// Goa tour confirmed breakdown. This is a display reconciliation only: no payment ledger writes.
+function goaPaymentPlan(t){
+ const goa=/goa/i.test(String(t.destination||'')+' '+String(t.name||''));
+ if(!goa)return null;
+ return {train:1150,trainMembers:12,package:8500,advance:1000,total:8500,expectedMembers:16,fullNames:[],inclusions:['Railway station / airport pickup and drop by car','2 nights / 3 days in a 3-star property (5 rooms)','5 scooters and rental car for 3 days','2 dinners, 2 breakfasts, 1 lunch','One day water activities','One night dinner cruise party','24/7 personal tour assistance']};
+}
+function goaTrainGraphic(t){const p=goaPaymentPlan(t);if(!p)return '';const count=p.trainMembers,per=p.train,total=count*per;
+return '<section class="d4-train-ticket-graphic" aria-label="Train ticket payment tracker"><div class="d4-train-sky"><div class="d4-train-sunset"></div><div class="d4-train-palm">🌴</div><div class="d4-train-locomotive">🚆</div><span class="d4-train-destination">GOA TRIP</span></div><div class="d4-train-panel"><header><span class="d4-train-symbol">🚆</span><div><h3>Train Tickets</h3><p>Group Travel · Ticket Payment Tracker</p></div></header><div class="d4-train-data"><div class="d4-train-donut"><div><strong>'+count+'/'+count+'</strong><span>Members Paid</span><b>100% ✓</b></div></div><div class="d4-train-stats"><div class="d4-train-stat purple"><span>🎟️ Per Person Ticket</span><strong>'+money(per)+'</strong></div><div class="d4-train-stat blue"><span>👥 Total Members</span><strong>'+count+'</strong></div><div class="d4-train-stat gold"><span>🪙 Total Ticket Amount</span><strong>'+money(total)+'</strong></div></div></div><div class="d4-train-footer"><div class="d4-train-paid"><span>✓ Amount Paid</span><strong>'+money(total)+'</strong></div><div class="d4-train-pending"><span>⌛ Pending Amount</span><strong>'+money(0)+'</strong></div></div><div class="d4-train-ticket-edge">▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰ ▰</div></div></section>';
+}
+function goaPaymentBreakdown(t,c){const p=goaPaymentPlan(t);if(!p)return '';
+ const n=p.expectedMembers,trainCount=p.trainMembers;
+ return '<section class="card d4-goa-breakdown"><h3>🏝️ GOA PACKAGE · 16 MEMBERS</h3><div class="d4-goa-breakdown-grid"><span>Package per person (advance included)</span><b>'+money(p.package)+'</b><span>Package total · '+n+' × '+money(p.package)+'</span><b>'+money(c.target)+'</b><span>Advance paid · '+n+' / '+n+' members</span><b>'+money(n*p.advance)+'</b><span>Additional package payments</span><b>'+money(Math.max(0,c.paid-n*p.advance))+'</b><span>Package total collected</span><b>'+money(c.paid)+'</b><span>Package balance pending</span><b>'+money(c.pending)+'</b><span>🚆 Train tickets paid · '+trainCount+' × '+money(p.train)+'</span><b>'+money(c.trainPaid)+'</b><span>🚆 Train pending</span><b>'+money(c.trainPending)+'</b></div><p><strong>Per member: ₹8,500 package = ₹1,000 advance paid + ₹7,500 pending. Train ticket ₹1,150 already paid separately.</strong></p>'+ (c.unlistedMembers?'<p class="notice">'+c.unlistedMembers+' member profile(s) not yet listed. Overall totals still use 16 members.</p>':'')+'<details><summary>Package inclusions</summary><ul>'+p.inclusions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></details><small>Package advance is already included in ₹8,500. Train tickets are never added to the package collection.</small></section>';
+}
 function collectionTotals(t){
- const each=Math.max(0,Math.round(Number(t.collection?.targetPerPerson||0)*100));
+ const plan=typeof goaPaymentPlan==='function'?goaPaymentPlan(t):null;
+ const each=plan?plan.package*100:Math.max(0,Math.round(Number(t.collection?.targetPerPerson||0)*100));
  const items=(t.collection?.payments||[]);
  const rows=t.members.map(member=>{
-   const paidCents=items.filter(p=>p.member===member).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0);
+   const ledgerCents=items.filter(p=>p.member===member).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0);
+   const isFull=false; // Reset baseline: no full package payments until Main Admin re-enters them.
+   const baseCents=plan?plan.advance*100:0;
+   // Pre-confirmation receipts remain in history but are not added again to the confirmed advance/full baseline.
+   const newCents=plan?items.filter(p=>p.member===member&&(p.goaIncremental||p.adjustment)&&p.goaResetV50).reduce((v,p)=>v+Math.round(Number(p.amount||0)*100),0):0;
+   const paidCents=plan?Math.max(0,baseCents+newCents):ledgerCents;
    const dueCents=Math.max(0,each-paidCents),overCents=Math.max(0,paidCents-each);
    const status=!each?'Not set':paidCents>=each?'Paid':paidCents>0?'Partial':'Pending';
-   return {member,target:each/100,paid:paidCents/100,pending:dueCents/100,extra:overCents/100,status};
+   return {member,target:each/100,paid:paidCents/100,pending:dueCents/100,extra:overCents/100,status,trainPaid:plan?plan.train:0,packageAdvancePaid:plan?plan.advance:0,ledgerPaid:ledgerCents/100};
  });
- const totalTarget=each*t.members.length/100;
- const paid=rows.reduce((a,r)=>a+r.paid,0),pending=rows.reduce((a,r)=>a+r.pending,0);
+ const expected=plan?Math.max(plan.expectedMembers,t.members.length):t.members.length;
+ const missing=expected-t.members.length;
+ const totalTarget=each*expected/100;
+ const paid=rows.reduce((a,r)=>a+r.paid,0)+(plan?missing*plan.advance:0),pending=rows.reduce((a,r)=>a+r.pending,0)+(plan?missing*(plan.package-plan.advance):0);
  // Keep historical contributions by removed travellers in the receipts ledger, not the active scoreboard.
  const archivedPaid=items.filter(p=>!t.members.includes(p.member)).reduce((sum,p)=>sum+Math.round(Number(p.amount||0)*100),0)/100;
  return {each:each/100,target:totalTarget,paid,pending,archivedPaid,totalRecorded:paid+archivedPaid,extra:rows.reduce((a,r)=>a+r.extra,0),
    progress:totalTarget?Math.min(100,Math.round(paid/totalTarget*100)):0,
-   full:rows.filter(r=>r.status==='Paid').length,partial:rows.filter(r=>r.status==='Partial').length,
-   unpaid:rows.filter(r=>r.status==='Pending').length,rows};
+   full:rows.filter(r=>r.status==='Paid').length,partial:rows.filter(r=>r.status==='Partial').length+(plan?missing:0),
+   unpaid:rows.filter(r=>r.status==='Pending').length,rows,expectedMembers:expected,unlistedMembers:missing,trainTotal:plan?plan.trainMembers*plan.train:0,trainPaid:plan?plan.trainMembers*plan.train:0,trainPending:0};
 }
 function collectionPill(status){return `<span class="collection-pill ${status.toLowerCase().replace(' ','-')}">${status==='Paid'?'✓ ':status==='Partial'?'◐ ':status==='Pending'?'● ':''}${esc(status)}</span>`}
 function collectionMetrics(c){return `<div class="collection-metrics"><div class="collection-metric"><small>Total target</small><strong>${money(c.target)}</strong></div><div class="collection-metric"><small>Amount paid</small><strong class="col-green">${money(c.paid)}</strong></div><div class="collection-metric"><small>Pending</small><strong class="col-orange">${money(c.pending)}</strong></div></div>`}
@@ -406,8 +567,11 @@ const c=collectionTotals(t),admin=isTripAdmin(t),percent=c.progress;
 const rows=c.rows.filter(r=>collectionFilter==='all'||(collectionFilter==='paid'?r.status==='Paid':collectionFilter==='partial'?r.status==='Partial':r.status==='Pending'));
 return `<section class="compact-collection">
 <div class="cc-top"><button class="cc-back" data-action="entry-back">← My Trips</button><span class="cc-trip">${t.emoji} ${esc(t.name)}</span><span class="cc-role">${isMain()?'👑 Main Admin':admin?'🛡️ Admin':'👁️ View only'}</span></div>
-<div class="cc-banner"><div><small>YOUR TRIP COLLECTION</small><h2>💳 Paid & Pending</h2><p>${t.members.length} travellers · ${money(c.each)} per member</p></div><div class="cc-sun">🌴</div></div>
-<div class="cc-plain-summary"><div><small>🎯 Target</small><b>${money(c.target)}</b></div><div><small>✓ Paid</small><b>${money(c.paid)}</b></div><div><small>⏳ Remaining</small><b>${money(c.pending)}</b></div></div><div class="d4-payment-counts"><b>🟢 Paid ${c.full}</b><b>🟠 Advance / Partial ${c.partial}</b><b>🔴 Unpaid ${c.unpaid}</b></div><div class="cc-actions"><button class="cc-primary" data-action="enter-selected-trip">✈️ Enter Trip →</button>${admin?'<button class="cc-add" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':''}</div>
+<div class="cc-banner"><div><small>YOUR TRIP COLLECTION</small><h2>💳 Paid & Pending</h2><p>${c.expectedMembers} travellers · ${money(c.each)} package per member</p></div><div class="cc-sun">🌴</div></div>
+${goaPaymentBreakdown(t,c)}
+<div class="d4-goa-dashboard-mini">${goaPaymentPlan(t)?'<strong>Advance paid: '+money(16000)+' · 16/16</strong><strong>Train paid: '+money(18400)+' · 16/16</strong><strong>Package pending: '+money(c.pending)+'</strong>':''}</div><div class="cc-plain-summary"><div><small>🎯 Target</small><b>${money(c.target)}</b></div><div><small>✓ Paid</small><b>${money(c.paid)}</b></div><div><small>⏳ Remaining</small><b>${money(c.pending)}</b></div></div><div class="d4-payment-counts"><b>🟢 Paid ${c.full}</b><b>🟠 Advance / Partial ${c.partial}</b><b>🔴 Unpaid ${c.unpaid}</b></div><div class="cc-actions"><button class="cc-primary" data-action="enter-selected-trip">✈️ Enter Trip →</button>${admin?'<button class="cc-add" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':''}${isMain()&&goaPaymentPlan(t)?'<button class="cc-reset" data-action="goa-reset-payments">↺ Reset old payments</button>':''}</div>
+${admin?'<section class="d4-recent-admin"><h3>🧾 Recent Payments · Admin Only</h3><p>Visible to Main Admin and Trip Admin only.</p>'+((t.collection?.payments||[]).filter(p=>p.goaResetV50||!goaPaymentPlan(t)).slice(-6).reverse().map(p=>'<div class="d4-recent-payment-row"><span>'+esc(p.member||'Member')+'<small>'+esc(p.date||'')+'</small></span><b>'+money(Number(p.amount||0))+'</b></div>').join('')||'<div class="d4-recent-empty">No new payments recorded yet.</div>')+'</section>':''}
+<div class="d4-gold-members"><div class="d4-gold-members-heading"><h3>👥 Member Payments</h3><span>${c.rows.length} travellers</span></div><div class="d4-gold-member-list">${c.rows.map(r=>`<article class="d4-gold-member"><span class="d4-gold-avatar">${esc(r.member.slice(0,1).toUpperCase())}</span><div class="d4-gold-person"><strong>${esc(r.member)}</strong><small>Paid ${money(r.paid)} / ${money(r.target)}</small>${goaPaymentPlan(t)?'<small>🚆 Train ₹1,150 paid (separate) · Package advance ₹1,000 paid</small>':''}</div><div class="d4-gold-member-status"><b class="${r.status.toLowerCase()}">${r.status==='Pending'?'Unpaid':esc(r.status)}</b><small>Due ${money(r.pending)}</small></div>${admin?`<span class="ref-inline-amount-actions"><button class="d4-gold-pay" data-action="collection-member-total" data-member="${esc(r.member)}" aria-label="Edit total paid for ${esc(r.member)}">✎</button><button class="d4-gold-pay" data-action="collection-member-pay" data-member="${esc(r.member)}" aria-label="Add payment for ${esc(r.member)}">＋</button></span>`:''}</article>`).join('')}</div></div>
 <button class="cc-open-members" data-action="collection-members">👥 View All ${t.members.length} Members <span>Paid ${c.full} · Partial ${c.partial} · Unpaid ${c.unpaid}</span> <b>↗</b></button>
 ${c.archivedPaid?`<p class="notice">Historical payments from removed members: ${money(c.archivedPaid)} (kept in payment records; excluded from active-member progress).</p>`:''}<div class="cc-footnote">Payments are manually recorded. They are not bank-verified. Members can view; Main Admin and assigned Trip Admin can edit.</div>
 </section>`;
@@ -421,7 +585,7 @@ function showCollectionMembers(){
  const pageSize=8,totalPages=Math.max(1,Math.ceil(rows.length/pageSize));collectionPage=Math.max(0,Math.min(collectionPage,totalPages-1));
  const visible=rows.slice(collectionPage*pageSize,(collectionPage+1)*pageSize);
  const pills=[['all','All',c.rows.length],['paid','Paid',c.full],['partial','Partial',c.partial],['pending','Unpaid',c.unpaid]].map(([k,l,n])=>'<button class="cc-filter '+(collectionFilter===k?'selected':'')+'" data-action="collection-popup-filter" data-filter="'+k+'">'+l+' '+n+'</button>').join('');
- const members=visible.map(r=>'<div class="cc-member-tile"><div class="cc-tile-top"><b>'+esc(r.member)+'</b>'+(admin?'<button type="button" class="cc-tiny-edit" data-action="collection-member-pay" data-member="'+esc(r.member)+'" aria-label="Add payment for '+esc(r.member)+'">＋ Pay</button>':'')+'</div><div class="cc-tile-money"><span class="cc-tile-amount"><small>Paid / Advance</small><b>'+money(r.paid)+'</b></span><span class="cc-tile-amount"><small>Remaining</small><b>'+money(r.pending)+'</b></span></div><div class="cc-tile-status '+r.status.toLowerCase()+'">'+(r.status==='Paid'?'Paid':r.status==='Partial'?'Partial':'Unpaid')+'</div></div>').join('');
+ const members=visible.map(r=>'<div class="cc-member-tile"><div class="cc-tile-top"><b>'+esc(r.member)+'</b>'+(admin?'<span class="ref-amount-actions"><button type="button" class="cc-tiny-edit" data-action="collection-member-total" data-member="'+esc(r.member)+'" aria-label="Edit total paid for '+esc(r.member)+'">✎ Edit Paid</button><button type="button" class="cc-tiny-edit" data-action="collection-member-pay" data-member="'+esc(r.member)+'" aria-label="Add payment for '+esc(r.member)+'">＋ Pay</button></span>':'')+'</div><div class="cc-tile-money"><span class="cc-tile-amount"><small>Paid / Advance</small><b>'+money(r.paid)+'</b></span><span class="cc-tile-amount"><small>Remaining</small><b>'+money(r.pending)+'</b></span></div><div class="cc-tile-status '+r.status.toLowerCase()+'">'+(r.status==='Paid'?'Paid':r.status==='Partial'?'Partial':'Unpaid')+'</div></div>').join('');
  $('#modalRoot').innerHTML='<div class="modal-backdrop cc-popup-backdrop"><div class="cc-popup cc-simple-popup" role="dialog" aria-modal="true" aria-label="Member payment summary"><div class="cc-popup-top"><button type="button" class="cc-popup-back" data-action="close-modal" aria-label="Back to payments">← Back</button><div class="cc-popup-heading"><small>🌴 '+esc(t.name)+'</small><h2>Member Payments</h2></div><button type="button" class="cc-popup-close" data-action="close-modal" aria-label="Close member payments">✕</button></div><div class="cc-popup-total"><span>🟢 Paid '+c.full+'</span><span>🟠 Partial '+c.partial+'</span><span>🔴 Unpaid '+c.unpaid+'</span></div><div class="cc-filters">'+pills+'</div><div class="cc-table-body">'+(members||'<p class="cc-empty">No members in this category.</p>')+'</div><div class="cc-pagination"><button data-action="collection-page-prev" '+(collectionPage===0?'disabled':'')+'>← Previous</button><span>Page '+(collectionPage+1)+' / '+totalPages+'</span><button data-action="collection-page-next" '+(collectionPage>=totalPages-1?'disabled':'')+'>Next →</button></div><div class="cc-popup-bottom"><button type="button" class="cc-popup-return" data-action="close-modal">← Back to Payments</button>'+(admin?'<button class="cc-primary" data-action="collection-quick-add" data-id="'+esc(t.id)+'">＋ Add Payment</button>':'<span class="cc-popup-viewonly">🔒 View Only</span>')+'</div></div></div>';
 }
 function collectionSave(t,member,value,method='Manual',note=''){
@@ -431,11 +595,38 @@ function collectionSave(t,member,value,method='Manual',note=''){
  if(!Number.isFinite(amount)||cents<=0||cents>10000000000)throw Error('Enter a valid amount above ₹0');const previous=collectionTotals(t).rows.find(r=>r.member===member);if(previous?.target>0&&cents>Math.round(previous.pending*100))throw Error('Amount exceeds remaining '+money(previous.pending)+'. Edit the trip target or previous payment first.');
  if(!t.collection)t.collection={targetPerPerson:0,payments:[]};
  if(!Array.isArray(t.collection.payments))t.collection.payments=[];
- t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile});
+ t.collection.payments.push({id:uid(),member,amount:cents/100,method,note,date:today(),by:profile,goaIncremental:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t)),goaResetV50:(typeof goaPaymentPlan==='function'&&!!goaPaymentPlan(t))});
  if(!persist()){t.collection.payments.pop();throw Error('Storage full; payment not saved')}
  return collectionTotals(t);
 }
 
+function collectionEditSave(t,receiptId,updates){
+ if(!isTripAdmin(t))throw Error('Trip Admin access needed to edit payments');
+ const receipts=t.collection?.payments;
+ const receipt=Array.isArray(receipts)?receipts.find(p=>p.id===receiptId):null;
+ if(!receipt)throw Error('Payment no longer exists. Refresh and try again.');
+ const member=String(updates.member||'');
+ if(!t.members.includes(member))throw Error('Choose an active trip member');
+ const amount=Number(updates.amount),cents=Math.round(amount*100);
+ if(!Number.isFinite(amount)||cents<=0||cents>10000000000)throw Error('Enter a valid amount above ₹0');
+ const date=String(updates.date||'');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||Number.isNaN(new Date(date+'T12:00:00').getTime()))throw Error('Choose a valid payment date');
+ const method=String(updates.method||'Manual');
+ if(!['Manual','UPI','Cash','Bank transfer','Card'].includes(method))throw Error('Choose a valid payment method');
+ const note=String(updates.note||'').trim();
+ if(note.length>140)throw Error('Payment note is too long');
+ const target=Math.round(Math.max(0,Number(t.collection?.targetPerPerson||0))*100);
+ const others=receipts.filter(p=>p.id!==receiptId&&p.member===member).reduce((sum,p)=>sum+Math.round(Number(p.amount||0)*100),0);
+ if(target>0&&others+cents>target)throw Error('Amount exceeds remaining '+money(Math.max(0,target-others)/100)+' for '+member);
+ const previous={member:receipt.member,amount:receipt.amount,method:receipt.method||'Manual',date:receipt.date,note:receipt.note||''};
+ saveTripChange(t,()=>{
+  const history=Array.isArray(receipt.editHistory)?receipt.editHistory:[];
+  receipt.editHistory=history.concat({previous,editedAt:new Date().toISOString(),by:profile});
+  receipt.member=member;receipt.amount=cents/100;receipt.method=method;receipt.date=date;receipt.note=note;
+  receipt.editedAt=new Date().toISOString();receipt.editedBy=profile;
+ });
+ return collectionTotals(t);
+}
 function calculations(t){const memberBalances=Object.fromEntries(t.members.map(n=>[n,{paid:0,share:0,net:0}]));const categories={};let total=0;const daily={};for(const e of t.expenses){let cents=Math.round(Number(e.amount)*100);total+=cents;categories[e.category]=(categories[e.category]||0)+cents;daily[e.date]=(daily[e.date]||0)+cents;if(!memberBalances[e.paidBy])memberBalances[e.paidBy]={paid:0,share:0,net:0};memberBalances[e.paidBy].paid+=cents;for(const [n,share] of Object.entries(sharedPaise(e))){if(!memberBalances[n])memberBalances[n]={paid:0,share:0,net:0};memberBalances[n].share+=share}}
 for(const row of Object.values(memberBalances))row.net=row.paid-row.share;
 for(const x of (t.settlementsPaid||[])){const cents=Math.round(Number(x.amount)*100);if(memberBalances[x.from])memberBalances[x.from].net+=cents;if(memberBalances[x.to])memberBalances[x.to].net-=cents;}
@@ -451,19 +642,57 @@ function nightIcon(key){return '<svg class="night-icon" viewBox="0 0 24 24" aria
 function graphicIcon(icon){return nightIcon(({'🧳':'trips','💰':'expenses','🤝':'collections','📸':'memories','📑':'reports','⏰':'alerts','➕':'expenses','💳':'collections','👥':'profile','🗓️':'trips'})[icon])}
 function navButton(id,label,icon){return `<button class="nav-btn ${view===id?'active':''}" data-action="nav" data-view="${id}"><span class="nav-emoji">${nightIcon(id)}</span>${label}</button>`}
 function sidebar(){return `<aside class="side">${brand()}<div class="side-label">Explore</div>${navButton('home','Dashboard','🏠')}${navButton('collections','Trip Payments','💳')}${navButton('trips','My Trips','🗺️')}${navButton('expenses','Expenses','💸')}${navButton('reports','PDF Reports','📑')}${navButton('alerts','Local Reminders','⏰')}${navButton('memories','Trip Memories','📸')}${isMain()?`<div class="side-label" style="margin-top:12px">Owner only</div>${navButton('admin','Main Admin Console','👑')}`:''}<div class="side-label" style="margin-top:12px">Account</div>${navButton('profile','Settings & Profile','⚙️')}<div class="side-bottom"><span class="badge-demo">${window.D4TripCloud?.linked?'CLOUD SYNC':'DEVICE MODE'}</span><b style="font-size:13px">Your trips, your rules ✨</b><small class="tiny">${window.D4TripCloud?.linked?'Private account sync active.':'Connect your Firebase account in Settings.'}</small></div></aside>`}
-function bottomNav(){const items=[['home','🏠','Home'],['collections','💳','Paid'],['trips','🗺️','Trips'],['expenses','💸','Spends'],['memories','📸','Memories']];return `<nav class="bottom-nav" aria-label="Bottom navigation">${items.map(([id,emoji,name])=>`<button data-action="nav" data-view="${id}" class="bottom-btn ${view===id?'active':''}"><span class="nav-emoji">${nightIcon(id)}</span>${name}</button>`).join('')}</nav>`}
-function topBar(){const pages={home:'Your Travel Hub',collections:'Paid & Pending',trips:'My Trips',trip:'Trip Details',chat:'Trip Chats',expenses:'Expense Manager',reports:'Reports & PDF',alerts:'Local Reminders',memories:'Trip Memories',profile:'Profile & Settings',admin:'Main Admin Console'};return `<header class="topbar"><div><div class="mini-brand"><img src="${LOGO_URL}" width="31" height="31" alt="D4 Trip"><b>D4 <em>Trip</em></b><span>BETA v3</span></div><div class="greet">Hey ${esc(profile)} 👋 · ${esc(roleName())} <span class="badge-demo">${window.D4TripCloud?.linked?'SYNCED':'DEVICE'}</span></div><h1>${pages[view]||'D4 Trip'}</h1></div><div class="top-actions"><button class="icon-btn" aria-label="Reminders" data-action="nav" data-view="alerts">🔔</button><button class="avatar" data-action="nav" data-view="profile" aria-label="Profile">${esc(profile.slice(0,1))}</button></div></header>`}
+function bottomNav(){const items=[['home','🏠','Home',''],['trip','🗓️','Day Plan','plan'],['trip','👥','Members','members'],['collections','💳','Payments',''],['expenses','🧾','Expenses',''],['reports','📊','Reports',''],['alerts','🔔','Alerts',''],...(isMain()?[['admin','👑','Admin','']]:[]),['profile','⚙️','Settings','']];return `<nav class="bottom-nav d4-gold-rail" aria-label="D4 Trip compact navigation">${items.map(([id,emoji,name,tab])=>`<button data-action="nav" data-view="${id}" data-tab="${tab}" aria-label="${name}" class="bottom-btn ${view===id&&(!tab||tripTab===tab)?'active':''}"><span class="nav-emoji">${emoji}</span><span class="d4-rail-label">${name}</span></button>`).join('')}</nav>`}
+
+function topBar(){const pages={tickets:'Transport',home:'Your Travel Hub',collections:'Paid & Pending',trips:'My Trips',trip:'Trip Details',chat:'Trip Chats',expenses:'Expense Manager',reports:'Reports & PDF',alerts:'Local Reminders',memories:'Trip Memories',profile:'Profile & Settings',admin:'Main Admin Console'};return `<header class="topbar"><div><div class="mini-brand"><img src="${LOGO_URL}" width="31" height="31" alt="D4 Trip"><b>D4 <em>Trip</em></b><span>BETA v3</span></div><div class="greet">Hey ${esc(profile)} 👋 · ${esc(roleName())} <span class="badge-demo">${window.D4TripCloud?.linked?'SYNCED':'DEVICE'}</span></div><h1>${pages[view]||'D4 Trip'}</h1></div><div class="top-actions"><button class="icon-btn" aria-label="Reminders" data-action="nav" data-view="alerts">🔔</button><button class="avatar" data-action="nav" data-view="profile" aria-label="Profile">${esc(profile.slice(0,1))}</button></div></header>`}
 function metric(icon,number,title){return `<div class="metric"><div class="symbol">${graphicIcon(icon)}</div><div class="number">${number}</div><div class="name">${esc(title)}</div></div>`}
 function sec(title,action='',button=''){return `<div class="section-heading"><h2>${title}</h2>${action?`<button class="text-link" data-action="${action}">${button||'View all →'}</button>`:''}</div>`}
 function tile(icon,name,action,ctx=''){return `<button class="quick" data-action="${action}" ${ctx?`data-ctx="${esc(ctx)}"`:''}><span class="bubble">${graphicIcon(icon)}</span>${esc(name)}</button>`}
 function tripCard(t){const d=datesInTrip(t);return `<button class="card trip-card" data-action="select-trip" data-id="${esc(t.id)}"><div class="trip-cover ${esc(t.kind)}"><span>${t.emoji||'🧳'}</span><span class="pill mint">${new Date(t.end+'T23:59:00')<new Date()?'Completed':'Upcoming'}</span></div><div class="trip-body"><h3>${esc(t.name)}</h3><p>${esc(t.destination)} · ${d.length} days</p><div class="trip-footer"><span>📅 ${shortDate(t.start)} – ${shortDate(t.end)}</span><span>👥 ${t.members.length}</span></div></div></button>`}
 function feature(icon,title,desc,action){return `<button class="feature-card" style="width:100%;color:inherit;text-align:left;cursor:pointer" data-action="${action}"><span class="feature-icon">${graphicIcon(icon)}</span><span style="flex:1"><strong>${esc(title)}</strong><small>${esc(desc)}</small></span><span>›</span></button>`}
+const d4TransportModes=[['train','🚆','Train'],['bus','🚌','Bus'],['car','🚗','Car'],['bike','🏍️','Bike'],['ship','🚢','Ship'],['flight','✈️','Flight']];
+let d4SelectedTransport='train';
+let d4TicketListOpen=false;
+let d4TicketDirection='up',d4TicketPaymentFilter='all';
+function d4TicketsPage(){
+ const t=current()||visibleTrips()[0],admin=!!t&&isTripAdmin(t);
+ const item=d4TransportModes.find(x=>x[0]===d4SelectedTransport)||d4TransportModes[0];
+ const all=(Array.isArray(t?.tickets)?t.tickets:[]).filter(x=>x.mode===d4SelectedTransport);
+ const directional=all.filter(x=>(x.direction==='down'?'down':'up')===d4TicketDirection);
+ const filtered=directional.filter(x=>d4TicketPaymentFilter==='all'||x.status===d4TicketPaymentFilter);
+ const paymentKey=d4SelectedTransport+'_'+d4TicketDirection;
+ const payment=(t?.ticketPaymentCounts||{})[paymentKey]||{};
+ const totalMembers=Math.max(0,Number(payment.totalMembers)||0),paid=Math.min(totalMembers,Math.max(0,Number(payment.paidMembers)||0)),unpaid=totalMembers-paid;
+ const ticketPrice=Math.max(0,Number(payment.ticketPrice)||0),sum=totalMembers*ticketPrice,paidSum=paid*ticketPrice;
+ const icon={train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[d4SelectedTransport]||item[1];
+ const directionLabel=d4TicketDirection==='up'?'Up Ticket · Going':'Down Ticket · Return';
+ return `<section class="d4-ticket-page d4-ticket-v62">
+ <button class="btn ghost small" data-action="nav" data-view="home">← Home</button>
+ <div class="d4-ticket-premium-head"><b>✦ D4 <i>Trip</i></b><span>YOUR TRAVEL TICKETS</span></div>
+ <div class="d4-ticket-modes">${d4TransportModes.map(x=>`<button class="d4-ticket-mode ${x[0]===d4SelectedTransport?'selected':''}" data-action="d4-ticket-mode" data-mode="${x[0]}" aria-pressed="${x[0]===d4SelectedTransport}"><span>${{train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[x[0]]}</span><b>${x[2]}</b></button>`).join('')}</div>
+ <div class="d4-ticket-stage d4-ticket-stage-premium">
+ <div class="d4-ticket-hero-label">🎟️ ${item[2]} Tickets</div>
+ <div class="d4-ticket-hero-counts"><div class="d4-paid-number"><small>✓ PAID</small><strong>${paid}</strong></div><div class="d4-unpaid-number"><small>⌛ UNPAID</small><strong>${unpaid}</strong></div></div>
+ <div class="d4-ticket-vehicle" aria-label="${item[2]}">${icon}</div>
+ <div class="d4-ticket-hero-caption">${esc(directionLabel)} · ${directional.length} saved tickets</div></div>
+ <div class="d4-ticket-stats">
+ <div><span>👥</span><small>Total Members</small><strong>${totalMembers}</strong></div>
+ <div><span>🎟️</span><small>Ticket Price</small><strong>${money(ticketPrice)}</strong></div>
+ <div><span>💰</span><small>Total Amount</small><strong>${money(sum)}</strong></div>
+ <div><span>✅</span><small>Received</small><strong>${money(paidSum)}</strong></div><div><span>⌛</span><small>Pending</small><strong>${money(sum-paidSum)}</strong></div></div>
+ ${admin?'<button class="btn sun d4-ticket-payment-edit" data-action="d4-ticket-payment-edit">✎ Edit Member Payment Count</button>':''}
+ ${admin?`<div class="d4-ticket-admin-actions"><button class="btn sun" data-action="d4-ticket-add">＋ Add Ticket</button><button class="btn mint" data-action="d4-ticket-add">☁ Upload Ticket</button><button class="btn ghost" data-action="d4-ticket-manage">✎ Edit Tickets</button></div>`:''}
+ <div class="d4-ticket-directions" role="group" aria-label="Ticket journey direction"><button class="${d4TicketDirection==='up'?'active':''}" data-action="d4-ticket-direction" data-direction="up" aria-pressed="${d4TicketDirection==='up'}">↑ Up Ticket <small>Going</small></button><button class="${d4TicketDirection==='down'?'active':''}" data-action="d4-ticket-direction" data-direction="down" aria-pressed="${d4TicketDirection==='down'}">↓ Down Ticket <small>Return</small></button></div>
+ ${d4TicketListOpen?'<section class="d4-ticket-library"><div class="d4-ticket-library-heading"><h3>🎟️ '+esc(directionLabel)+' ('+directional.length+')</h3><button class="btn ghost small" data-action="d4-ticket-files">← Back</button></div>'+(admin?'<button class="btn sun d4-ticket-add-another" data-action="d4-ticket-add">＋ Add Another Ticket</button>':'')+'<div class="d4-ticket-filters">'+[['all','All'],['paid','Paid'],['unpaid','Unpaid']].map(x=>'<button data-action="d4-ticket-filter" data-filter="'+x[0]+'" class="'+(d4TicketPaymentFilter===x[0]?'active':'')+'">'+x[1]+' ('+(x[0]==='all'?directional.length:directional.filter(y=>y.status===x[0]).length)+')</button>').join('')+'</div>'+(filtered.length?filtered.map(x=>'<article class="d4-ticket-entry"><span class="d4-ticket-entry-icon">'+icon+'</span><div class="d4-ticket-entry-detail"><b>'+esc(x.title)+'</b><p>📅 '+esc(x.date||'No date')+' · '+money(Number(x.price||0))+'</p><span class="'+(x.status==='paid'?'d4-ticket-ok':'d4-ticket-due')+'">'+(x.status==='paid'?'✓ Paid':'⌛ Unpaid')+'</span></div><div class="d4-ticket-entry-actions"><button class="btn small ghost" data-action="d4-ticket-view" data-id="'+esc(x.id)+'" aria-label="View ticket">👁 View</button>'+(admin?'<button class="btn small ghost" data-action="d4-ticket-edit" data-id="'+esc(x.id)+'" aria-label="Edit ticket">✎</button><button class="btn small ghost" data-action="d4-ticket-delete" data-id="'+esc(x.id)+'" aria-label="Delete ticket">🗑</button>':'')+'</div></article>').join(''):'<p class="d4-ticket-empty">No tickets uploaded in this selection.</p>')+'</section>':''}
+ ${!t?'<p class="muted">Open a trip to view its tickets.</p>':''}</section>`;
+}
+
 function home(){const vt=visibleTrips(),t=current(),totalExpenses=totalAll(),pending=vt.reduce((s,x)=>s+collectionTotals(x).pending,0);
 return `<div class="hero"><span class="pill" style="background:#fffffe30">✈️ D4 TRIP · OFFLINE EDITION</span><h2>Adventure <span>together.</span><br>Expenses sorted.</h2><p>Plan every day, log expenses, track payments, save memories and create a beautiful trip PDF — all on this device.</p><div class="row"><button class="btn mint" data-action="${isMain()?'modal':'d4-open-invite'}" data-modal="${isMain()?'new-trip':''}">${isMain()?'＋ Create Trip':'🔗 Join by Name'}</button><button class="btn ghost" data-action="nav" data-view="trips">Explore Trips →</button></div></div>
-${sec('Your travel at a glance')}<div class="metric-grid">${metric('🧳',vt.length,'Your trips')}${metric('💰',money(totalExpenses),'Recorded spend')}${metric('💳',money(pending),'Pending payments')}</div>
+<div class="d4-ticket-home-action"><button class="btn sun" data-action="nav" data-view="tickets">🎟️ Tickets →</button></div><div class="metric-grid">${metric('🧳',vt.length,'Your trips')}${metric('💰',money(totalExpenses),'Recorded spend')}${metric('💳',money(pending),'Pending payments')}</div>
 ${sec('Trip collections')}<div class="collection-teaser"><strong>💳 Paid / Pending</strong><p>Track trip fees and group contributions separately from spending.</p><button class="btn small sun" data-action="nav" data-view="collections">View Payments →</button></div>${sec('Quick actions') }<div class="quick-grid">${tile('➕','Add Expense','quick-expense')}${tile('📸','Memories','nav-memories')}${tile('📑','Get PDF','quick-report')}${tile('⏰','Reminder','nav-alerts')}</div>
 ${sec('Upcoming adventures','trips','View all →')}<div class="trip-list">${vt.filter(x=>!isCompleted(x)).length?vt.filter(x=>!isCompleted(x)).slice(0,4).map(tripCard).join(''):'<div class="empty">No upcoming trips. Visit Memories for completed adventures.</div>'}</div>
-${t?`${sec('Today in your trip')}<div class="card"><div class="space-between"><div><h3>${esc(t.name)}</h3><p>Go to plan, expenses, members or chats.</p></div><span style="font-size:42px">${t.emoji}</span></div><div class="quick-grid">${tile('🗓️','Day Plan','open-tab','plan')}${tile('👥','Members','open-tab','members')}${tile('💳','Paid / Pending','nav','collections')}${tile('📸','Memories','nav-memories')}</div></div>`:''}
+${t?`${sec('Today in your trip')}<div class="card"><div class="space-between"><div><h3>${esc(t.name)}</h3><p>Go to plan, expenses or members.</p></div><span style="font-size:42px">${t.emoji}</span></div><div class="quick-grid">${tile('📸','Memories','nav-memories')}${tile('👥','Members','open-tab','members')}${tile('💳','Paid / Pending','nav','collections')}${tile('📸','Memories','nav-memories')}</div></div>`:''}
 <div class="notice" style="margin-top:17px">🔐 <b>Sync status:</b> ${esc(window.D4TripCloud?.status||'Device-only until Firebase account is connected')}. Open your invited shared trip link in Settings & Profile. Join a shared trip using your name and its private invitation link. Main Admin or Trip Admin must approve.</div>`}
 function tripsPage(){return `<div class="space-between"><p class="muted" style="font-size:13px">Trips visible in your current local demo profile.</p><button class="btn small mint" data-action="${isMain()?'modal':'d4-open-invite'}" data-modal="${isMain()?'new-trip':''}">${isMain()?'＋ New Trip':'🔗 Join by Name'}</button></div><div class="trip-list">${visibleTrips().map(tripCard).join('')||'<div class="empty">🔑 You have no trips. Open the private trip invitation link from your admin and request approval using your name.</div>'}</div>${isMain()?`<div class="notice" style="margin-top:16px">👑 Only Main Admin can generate new trip codes and assign Trip Admins.</div>`:''}`}
 function tripTabs(t){const tabs=[['overview','🏡 Overview'],['plan','📅 Day Plan'],['expenses','💸 Expenses'],['collections','💳 Paid / Pending'],['members','👥 Members'],['reminders','⏰ Alerts'],['notes','📝 Notes'],['files','📎 Files'],['report','📑 PDF'],['memories','📸 Memories']];return `<div class="tabs" role="tablist">${tabs.map(([id,label])=>`<button role="tab" aria-selected="${tripTab===id}" class="tab ${tripTab===id?'active':''}" data-action="trip-tab" data-tab="${id}">${label}</button>`).join('')}</div>`}
@@ -540,7 +769,7 @@ function chatsPage(t){return '<section class="card"><span class="pill">Upcoming<
 function tripReminders(t){return `${sec('Reminders & group alerts',isTripAdmin(t)?'quick-reminder':'',isTripAdmin(t)?'＋ New Alert':'')}<div class="item-list">${t.reminders.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(r=>`<div class="list-row"><div class="leading"><span class="category-icon">⏰</span><div><strong>${esc(r.title)}</strong><small>${fmtDate(r.date)} · ${esc(r.time)} · By ${esc(r.by)}</small></div></div><span class="pill mint">Sent to feed</span></div>`).join('')||'<div class="empty">⏰ No alerts yet.</div>'}</div><div class="notice" style="margin-top:14px">This demo posts reminders to the trip feed on this device. Actual scheduled alerts and push notifications to every member require a server + push service.</div>`}
 function tripNotes(t){return `${sec('Trip notes & checklists',isTripAdmin(t)?'quick-note':'',isTripAdmin(t)?'＋ Add Note':'')}<div class="item-list">${t.notes.map(n=>`<div class="card"><div class="space-between"><b>📝 ${fmtDate(n.date)}</b><span class="tiny">${esc(n.by)}</span></div><p style="white-space:pre-wrap;color:#eef3ff;font-size:13px">${esc(n.text)}</p></div>`).join('')||'<div class="empty">Add a plan note, shopping list, booking details or packing checklist.</div>'}</div>`}
 function tripFiles(t){const receipts=t.expenses.filter(e=>e.receipt).map(e=>({...e.receipt,extra: 'Bill · '+e.note}));const all=[...t.files.map(f=>({...f,extra:'Uploaded file'})),...receipts];return `${sec('Bills, photos & files',isTripAdmin(t)?'quick-file':'',isTripAdmin(t)?'＋ Upload File':'')}<div class="item-list">${all.map((f,i)=>`<div class="list-row"><div class="leading"><span class="category-icon">${f.type?.startsWith('image/')?'🖼️':'📄'}</span><div><strong>${esc(f.name)}</strong><small>${esc(f.extra)}</small></div></div><button class="btn small ghost" data-action="download-file" data-type="${i<t.files.length?'file':'expense'}" data-idx="${i<t.files.length?i:i-t.files.length}">Save</button></div>`).join('')||'<div class="empty">📎 No files yet. Upload receipts and trip documents.</div>'}</div><div class="notice" style="margin-top:12px">Image/PDF attachments up to 350 KB in this offline demo. Keep backups; phone storage can be cleared.</div>`}
-function tripReport(t){const c=calculations(t),col=collectionTotals(t),top=Object.entries(c.categories).sort((a,b)=>b[1]-a[1]);return `${sec('Your trip report')}<div class="report-sheet"><div class="space-between"><div><span style="font-size:13px;font-weight:900;color:#6654bc">🧭 D4 TRIP</span><h3 style="font-size:20px">${esc(t.name)} Report</h3><div class="report-small">${fmtDate(t.start)} – ${fmtDate(t.end)}</div></div><span style="font-size:45px">${t.emoji}</span></div><div class="report-numbers"><div><span class="report-small">Total spent</span><b>${money(c.total)}</b></div><div><span class="report-small">Members</span><b>${t.members.length}</b></div><div><span class="report-small">Bills</span><b>${t.expenses.length}</b></div></div><h3>Group Collections (Paid / Pending)</h3><table><thead><tr><th>Member</th><th>Target</th><th>Received</th><th>Pending</th><th>Status</th></tr></thead><tbody>${col.rows.map(r=>`<tr><td>${esc(r.member)}</td><td>${money(r.target)}</td><td>${money(r.paid)}</td><td>${money(r.pending)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table><h3>Expense categories</h3><table><thead><tr><th>Category</th><th>Amount</th></tr></thead><tbody>${top.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join('')||'<tr><td colspan="2">No expenses</td></tr>'}</tbody></table><h3>Day-wise expenses</h3><table class="subtable"><thead><tr><th>Day</th><th>Amount</th></tr></thead><tbody>${Object.entries(c.daily).sort().map(([k,v])=>`<tr><td>${fmtDate(k)}</td><td>${money(v)}</td></tr>`).join('')||'<tr><td colspan="2">No expenses</td></tr>'}</tbody></table></div><div class="row" style="margin-top:15px"><button class="btn mint" data-action="pdf">🖨️ Save as PDF</button><button class="btn ghost" data-action="share-report">📤 Share summary</button></div><div class="notice" style="margin-top:13px">PDF includes bills, receipts (image format), daily expense notes, payment status, itinerary and notes. Choose <b>Save as PDF</b> in the browser print window.</div>`}
+function tripReport(t){const c=calculations(t),col=collectionTotals(t),top=Object.entries(c.categories).sort((a,b)=>b[1]-a[1]);return `${sec('Your trip report')}<div class="report-sheet">${goaPaymentBreakdown(t,col)}<div class="space-between"><div><span style="font-size:13px;font-weight:900;color:#6654bc">🧭 D4 TRIP</span><h3 style="font-size:20px">${esc(t.name)} Report</h3><div class="report-small">${fmtDate(t.start)} – ${fmtDate(t.end)}</div></div><span style="font-size:45px">${t.emoji}</span></div><div class="report-numbers"><div><span class="report-small">Total spent</span><b>${money(c.total)}</b></div><div><span class="report-small">Members</span><b>${col.expectedMembers||t.members.length}</b></div><div><span class="report-small">Bills</span><b>${t.expenses.length}</b></div></div><h3>Group Collections (Paid / Pending)</h3><table><thead><tr><th>Member</th><th>Target</th><th>Received</th><th>Pending</th><th>Status</th></tr></thead><tbody>${col.rows.map(r=>`<tr><td>${esc(r.member)}</td><td>${money(r.target)}</td><td>${money(r.paid)}</td><td>${money(r.pending)}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table><h3>Expense categories</h3><table><thead><tr><th>Category</th><th>Amount</th></tr></thead><tbody>${top.map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join('')||'<tr><td colspan="2">No expenses</td></tr>'}</tbody></table><h3>Day-wise expenses</h3><table class="subtable"><thead><tr><th>Day</th><th>Amount</th></tr></thead><tbody>${Object.entries(c.daily).sort().map(([k,v])=>`<tr><td>${fmtDate(k)}</td><td>${money(v)}</td></tr>`).join('')||'<tr><td colspan="2">No expenses</td></tr>'}</tbody></table></div><div class="row" style="margin-top:15px"><button class="btn mint" data-action="pdf">🖨️ Save as PDF</button><button class="btn ghost" data-action="share-report">📤 Share summary</button></div><div class="notice" style="margin-top:13px">PDF includes bills, receipts (image format), daily expense notes, payment status, itinerary and notes. Choose <b>Save as PDF</b> in the browser print window.</div>`}
 function expensesPage(){const t=current();return t?`<section class="d4p-section">${tripExpenses(t)}</section>`:'<div class="empty">Choose a trip to view expense notes.</div>'}
 function reportsPage(){return `${sec('Export by trip')}<p class="muted" style="font-size:13px">Select a trip to preview your PDF and print/download it.</p><div class="item-list">${visibleTrips().map(t=>`<div class="list-row"><div class="leading"><span class="category-icon">${t.emoji}</span><div><strong>${esc(t.name)}</strong><small>${fmtDate(t.start)} · ${t.expenses.length} bills · ${money(calculations(t).total)}</small></div></div><button class="btn small" data-action="report-trip" data-id="${t.id}">PDF ↗</button></div>`).join('')}</div><div class="notice" style="margin-top:16px">📄 On iPhone choose Print → Share → Save to Files (or Save as PDF where available). On desktop select Save as PDF.</div>`}
 function profilePage(){const cloudPanel=(window.D4Team?.library?.()||'')+(window.D4TripCloud?.panel?.()||'<div class="card">☁️ Firebase account settings are loading…</div>');if(teamId)return !window.D4Team?.hasAccess?.() ? '<div class="d4-guest-join">'+(window.D4TripJoin?.guestPanel?.()||'<section class="card"><h3>🔗 Join this Trip</h3><p>Loading secure join form…</p></section>')+'</div>' : cloudPanel+'<div class="notice">Shared trip access is tied to your approved Firebase account. Your private backups remain separate.</div>';const names=[...new Set([profile,...db.trips.flatMap(t=>t.members)])];return `${cloudPanel}${window.D4TripShared?.panel?.()||''}<div class="card"><div class="space-between"><div><h3>👤 Local profile: ${esc(profile)}</h3><p>${esc(roleName())}</p></div><div class="avatar" style="width:54px;height:54px;font-size:25px">${esc(profile[0])}</div></div><div class="field"><label for="profileSelect">Switch demo user (testing roles)</label><select class="select" id="profileSelect">${names.map(n=>`<option ${n===profile?'selected':''}>${esc(n)}</option>`).join('')}</select></div><button class="btn small mint" data-action="modal" data-modal="register-local" style="margin:0 0 12px">＋ Create local name</button><div class="notice">⚠️ Local profile selection affects only the offline dataset. Firebase sign-in above identifies the cloud account. Shared-trip permissions are controlled by your verified account, not this local name.</div></div>${sec('Appearance')}<div class="card"><div class="field"><label for="themeSelect">App theme</label><select class="select" id="themeSelect"><option value="tropical" ${theme==='tropical'?'selected':''}>🌴 Tropical Teal + Orange</option><option value="ocean" ${theme==='ocean'?'selected':''}>🌊 Ocean Blue</option><option value="forest" ${theme==='forest'?'selected':''}>🌿 Forest Green</option></select></div><button class="btn small ghost" data-action="replay-intro" type="button">▶ Replay Cinematic Intro</button></div>${sec('Device-only data & backups')}<div class="card"><p>All entries are stored in this browser on this device. Export a backup to move or restore them.</p><div class="row"><button class="btn" data-action="backup">⬇ Export JSON backup</button><button class="btn ghost" data-action="import">⬆ Import backup</button></div><div class="row" style="margin-top:13px"><button class="btn small negative" data-action="reset">Clear local trips</button></div></div>${isMain()?`${sec('Owner controls')}<button class="btn block" data-action="nav" data-view="admin">👑 Open Main Admin Console</button>`:''}`}
@@ -563,7 +792,7 @@ function alertsPage(){const t=current();if(!t)return '<div class="empty">Create 
 async function requestLocalPermission(){if(!('Notification' in window)||location.protocol!=='https:')return toast('Use HTTPS and a compatible browser/Home Screen app');try{const status=await Notification.requestPermission();toast('Notification: '+status);render()}catch(e){toast('Permission unavailable')}}
 function showLocalAlert(title,body){toast('⏰ '+title);if('Notification' in window&&Notification.permission==='granted'){try{new Notification(title,{body,icon:'./icon-192.png',tag:'d4trip-alert'})}catch(e){}}}
 function checkLocalAlerts(){let seen=[];try{seen=JSON.parse(localStorage.getItem(alertFiredStore)||'[]')}catch(e){}const now=Date.now();let change=false;for(const t of visibleTrips())for(const r of t.reminders){const due=new Date(r.date+'T'+r.time).getTime();const id=t.id+':'+r.id;if(Number.isFinite(due)&&due<=now&&now-due<10*60000&&!seen.includes(id)){seen.push(id);change=true;showLocalAlert('D4 Trip: '+r.title,t.name+' • '+fmtDate(r.date)+' '+r.time)}}if(change){seen=seen.slice(-200);localStorage.setItem(alertFiredStore,JSON.stringify(seen))}}
-function render(){profile=isMain()?'D':(localStorage.getItem(USER_STORE)||'Guest');document.body.dataset.section=view;document.body.classList.toggle('forest',theme==='forest');document.body.classList.toggle('ocean',theme==='ocean');if(!current()&&visibleTrips().length){activeTrip=visibleTrips()[0].id}if(view==='trip'&&!canSee(current()))view='trips';if(view==='admin'&&!isMain())view='home';if(teamId&&!db.trips.length)view='profile';if(teamId&&db.trips.length&&!['trip','profile','collections','expenses','reports','alerts','memories','chat'].includes(view))view='trip';if(view==='entry'){document.querySelector('#app').innerHTML=entryPage()+'<div class="only-print" id="printMount"></div>';return}let content={collections:collectionsPage,home, trips:tripsPage,trip:tripPage,chat:()=>chatsPage(current()),expenses:expensesPage,reports:reportsPage,alerts:alertsPage,memories:memoriesPage,profile:profilePage,admin:adminPage}[view]();$('#app').innerHTML=`<div class="app-shell">${sidebar()}<main class="main">${topBar()}${content}</main>${rightSide()}</div>${bottomNav()}<div class="only-print" id="printMount"></div>`;if(view==='memories'||(view==='trip'&&tripTab==='memories'))loadMemoryThumbs();if(view==='chat'||(view==='trip'&&tripTab==='chats')){const stream=$('#chatStream');if(stream)stream.scrollTop=stream.scrollHeight;}}
+function render(){if(view==='chat')view=current()?'trip':'home';if(tripTab==='chats')tripTab='overview';document.body.classList.add('d4-premium');profile=isMain()?'D':(localStorage.getItem(USER_STORE)||'Guest');document.body.dataset.section=view;document.body.classList.toggle('forest',theme==='forest');document.body.classList.toggle('ocean',theme==='ocean');if(!current()&&visibleTrips().length){activeTrip=visibleTrips()[0].id}if(view==='trip'&&!canSee(current()))view='trips';if(view==='admin'&&!isMain())view='home';if(teamId&&!db.trips.length)view='profile';if(teamId&&db.trips.length&&!['trip','profile','collections','expenses','reports','alerts','memories','chat','tickets'].includes(view))view='trip';if(view==='entry'){document.querySelector('#app').innerHTML=entryPage()+'<div class="only-print" id="printMount"></div>';return}let content={tickets:d4TicketsPage,collections:collectionsPage,home, trips:tripsPage,trip:tripPage,chat:()=>chatsPage(current()),expenses:expensesPage,reports:reportsPage,alerts:alertsPage,memories:memoriesPage,profile:profilePage,admin:adminPage}[view]();$('#app').innerHTML=`<div class="app-shell">${sidebar()}<main class="main">${topBar()}${content}</main>${rightSide()}</div>${bottomNav()}<div class="only-print" id="printMount"></div>`;if(view==='memories'||(view==='trip'&&tripTab==='memories'))loadMemoryThumbs();if(view==='chat'||(view==='trip'&&tripTab==='chats')){const stream=$('#chatStream');if(stream)stream.scrollTop=stream.scrollHeight;}}
 function go(v,tab){if(v==='trip'&&tab)tripTab=tab;if(v==='chat'&&!chatRoom)chatRoom=isTripAdmin(current())?'admins':'group';view=v;window.scrollTo({top:0,behavior:'instant'});render()}
 function selectTrip(id){const t=trip(id);if(!canSee(t))return toast('You cannot open this trip.');activeTrip=id;daySelected=datesInTrip(t)[0];tripTab='overview';memoryDay='all';go('collections')}
 function selectOptions(names,selected){return names.map(n=>`<option value="${esc(n)}" ${n===selected?'selected':''}>${esc(n)}</option>`).join('')}
@@ -573,6 +802,35 @@ function selectField(name,label,options){return `<div class="field"><label for="
 function ensurePermission(condition){if(!condition){toast('🔒 Permission denied for this role.');return false}return true}
 function openModal(name,context={}){if(name==='join-trip'){view='entry';render();document.querySelector('#d4-trip-link-input')?.focus();return;}const t=current();activeModal=name;modalContext=context;let title='',body='',button='Save';switch(name){
 case 'collection-target':{const tt=trip(context.tripId)||t;if(!ensurePermission(isMain()&&canSee(tt)))return;title='🎯 Set Trip Amount';button='Save Trip Target';body=`<div class="notice">Target is per person for <b>${esc(tt.name)}</b>. Set ₹0 to disable tracking. Existing received amounts are preserved.</div><div style="height:14px"></div>${field('perPerson','Trip target per person (₹)',tt.collection?.targetPerPerson||0,'number','required min="0" max="100000000" step="0.01"')}`;break;}
+case 'collection-member-total':{
+ const tt=trip(context.tripId)||t;
+ if(!ensurePermission(isTripAdmin(tt)))return;
+ const member=String(context.member||'');
+ const row=collectionTotals(tt).rows.find(item=>item.member===member);
+ if(!row)return toast('Member not found');
+ title='✏️ Edit Member Paid Amount';button='Save Member Amount';
+ body='<div class="notice"><b>'+esc(member)+'</b><p>Set this member’s total paid amount. Any difference is saved as a correction; the original payment history stays available.</p></div>'+
+  '<div class="ref-edit-preview"><span>Current paid <strong>'+money(row.paid)+'</strong></span><span>Remaining <strong>'+money(row.pending)+'</strong></span></div>'+
+  field('amount','Total Paid (₹)',row.paid,'number','required min="0" max="100000000" step="0.01"')+
+  '<p class="tiny">Member target: '+money(row.target)+'. Main Admin / Trip Admin only.</p>';
+ break;
+}
+case 'collection-payment-edit':{
+ const tt=trip(context.tripId)||t;
+ if(!ensurePermission(isTripAdmin(tt)))return;
+ const item=tt.collection?.payments?.find(p=>p.id===context.receiptId);
+ if(!item)return toast('Payment no longer exists. Refresh and try again.');
+ title='✏️ Edit Recorded Payment';button='Save Payment Changes';
+ const members=selectOptions(tt.members,item.member);
+ const methods=['Manual','UPI','Cash','Bank transfer','Card'].map(m=>'<option '+((item.method||'Manual')===m?'selected':'')+'>'+m+'</option>').join('');
+ body='<p class="muted">Correct a previously recorded payment. Totals and pending balances will recalculate. The original entry is kept in its edit history.</p>'+
+  selectField('member','Member',members)+
+  field('amount','Received amount (₹)',item.amount,'number','required min="0.01" max="100000000" step="0.01"')+
+  field('date','Payment date',item.date||today(),'date','required')+
+  selectField('method','Payment method',methods)+
+  field('note','Payment stage / note',item.note||'','text','maxlength="140" placeholder="Advance / Full / Reference"');
+ break;
+}
 case 'collection-payment':{const tt=trip(context.tripId)||t;if(!ensurePermission(isTripAdmin(tt)))return;title='💳 Record Trip Payment';button='Confirm & Save Payment';body=`<p class="muted">${esc(tt.name)} — just enter the amount received. This is separate from trip expenses.</p>${selectField('member','Received from member',selectOptions(tt.members,context.member||tt.members[0]))}${selectField('paymentStage','Payment stage','<option value="advance">Advance payment</option><option value="balance">Remaining / balance payment</option><option value="full">Full payment</option>')}${field('amount','Amount received (₹)','','number','required min="0.01" max="100000000" step="0.01" placeholder="3000"')}${selectField('method','Payment type','<option>Manual</option><option>UPI</option><option>Cash</option><option>Bank transfer</option><option>Card</option>')}${field('note','Optional note','','text','maxlength="140" placeholder="First instalment / final payment"')}`;break;}
 case 'register-local':title='👤 Create Local Profile';button='Save Name';body=`<div class="notice">Name only, saved in this browser. No account or OTP verification yet.</div><div style="height:12px"></div>${field('newUser','Display name','','text','required minlength="2" maxlength="40"')}`;break;
 case 'new-trip':if(!ensurePermission(isMain()))return;title='🧳 Create a New Trip';button='Create Trip';body=`<div class="notice" style="margin-bottom:15px">👑 Only the Main Admin can create a new trip and generate its code.</div>${field('name','Trip name','','text','required maxlength="75"')}${field('destination','Destination','','text','required maxlength="60"')}<div class="field-row">${field('start','Start date',today(),'date','required')}${field('end','End date',today(),'date','required')}</div>${selectField('kind','Trip cover / theme','<option value="goa">🏖️ Beach</option><option value="ooty">🏔️ Hills</option><option value="pondy">🌅 Coastal</option><option value="other">🧳 Adventure</option>')}${field('members','Initial members (comma-separated)','','text','maxlength="400"')}${field('perPerson','Trip amount per person (₹)','0','number','required min="0" max="100000000" step="0.01"')}`;break;
@@ -610,13 +868,37 @@ case 'expense':case 'expense-edit':{
   (e?.receipt?'<p class="notice">Current receipt is kept unless replaced.</p>':'');
  break;
 }
-case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. Activities will reorder by their saved time.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time','08:00','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
-case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===context.planId);if(!p)return;const cat=planCategory(p);title='✏️ Edit Day Plan';button='Save Changes';body=`<div class="notice">Editing <b>${esc(p.title)}</b> · Change day, time, category, activity or place.</div>${selectField('date','Move to trip day',dateOptions(t,p.date))}<div class="field-row">${field('time','Activity time',p.time,'time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}" ${cat===c?'selected':''}>${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name',p.title,'text','required maxlength="100"')}${field('place','Location / details',p.place||'','text','maxlength="120"')}<div class="modal-extra"><button type="button" class="btn negative small" data-action="plan-delete" data-id="${esc(p.id)}">🗑 Delete activity</button></div>`;break;}
-case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;title='📅 Edit Trip Dates';button='Save Trip Dates';body=`<div class="notice">Change the trip start/end date (up to 90 days). Existing activities and expenses must stay within the range. You can move activities individually first.</div><div class="field-row">${field('start','Start date',t.start,'date','required')}${field('end','End date',t.end,'date','required')}</div>`;break;}
+case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. The next time is suggested from this day's latest stop. Adjust it before saving; the inline ＋ Add below button keeps the journey order.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time',window.D4GoaMilestones?.suggestDayTime?.(t,daySelected)||'','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
+case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===context.planId);if(!p)return;const cat=planCategory(p);title='✏️ Edit Day Plan';button='Save Changes';body=`<div class="notice">Editing <b>${esc(p.title)}</b> · Change day, time, category, activity or place.</div>${selectField('date','Move to trip day',dateOptions(t,p.date))}<div class="field-row">${field('time','Activity time',p.time||'','time',p.goaPresetKey?'':'required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}" ${cat===c?'selected':''}>${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name',p.title,'text','required maxlength="100"')}${field('place','Location / details',p.place||'','text','maxlength="120"')}<div class="modal-extra"><button type="button" class="btn negative small" data-action="plan-delete" data-id="${esc(p.id)}">🗑 Delete activity</button></div>`;break;}
+case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;title='📅 Edit Trip Dates';button='Save Trip Dates';body=`<div class="notice">Change trip start/end dates (up to 90 days). Days with saved activities cannot be excluded; move those activities first. Existing payment and expense dates stay unchanged.</div><div class="field-row">${field('start','Start date',t.start,'date','required')}${field('end','End date',t.end,'date','required')}</div>`;break;}
 
 case 'reminder':if(!ensurePermission(canSee(t)))return;title='⏰ Local Reminder';button='Save Local Reminder';body=`<div class="notice">Reminds you on this device while D4 Trip is open. Background/closed-app alarms are not guaranteed; no group push is sent.</div><div style="height:12px"></div>${field('title','Reminder message','Wake up! ☀️','text','required maxlength="160"')}${field('date','Reminder date',today(),'date','required')}${field('time','Alarm time',new Date(Date.now()+120000).toTimeString().slice(0,5),'time','required')}`;break;
 case 'note':if(!ensurePermission(isTripAdmin(t)))return;title='📝 Save Trip Notes';button='Save Note';body=`${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field"><label for="noteText">Notes / packing list / places to visit</label><textarea class="textarea" id="noteText" name="text" required maxlength="4000" placeholder="Write anything about the trip..."></textarea></div>`;break;
 case 'memory':if(!ensurePermission(canSee(t)))return;title='📸 Add Trip Memory';button='Upload to Memories';body=`<div class="notice">Your photos & videos stay on this device in browser storage. No cloud backup.</div><div style="height:12px"></div><div class="field"><label>Photos or videos (multiple)</label><input class="input" name="media" type="file" accept="image/*,video/*" multiple required></div>${field('caption','Memory caption','Goa highlights!','text','maxlength="160"')}${field('date','Trip day',t.start,'date','required')}`;break;
+case 'd4-ticket-payment-count':{
+ if(!ensurePermission(!!t&&isTripAdmin(t)))return;
+ const key=d4SelectedTransport+'_'+d4TicketDirection,values=(t.ticketPaymentCounts||{})[key]||{};
+ title='✎ Edit Ticket Member Count';button='Save Payment Count';
+ body='<p class="muted">This is only a member payment summary. Ticket PDF uploads stay separate.</p>'+
+ field('totalMembers','Total Members',values.totalMembers??0,'number','required min="0" max="100000" step="1"')+
+ field('paidMembers','Paid Members',values.paidMembers??0,'number','required min="0" max="100000" step="1"')+
+ field('ticketPrice','Price per Member (₹)',values.ticketPrice??0,'number','required min="0" max="10000000" step="0.01"')+
+ '<p class="muted">Unpaid Members, Total, Received and Pending calculate automatically.</p>';
+ break;
+}
+case 'd4-ticket-editor':{
+ if(!ensurePermission(isTripAdmin(t)))return;
+ const existing=(t.tickets||[]).find(x=>x.id===context.ticketId);
+ title=existing?'✏️ Edit Ticket':'🎟️ Add Ticket';button=existing?'Save Ticket Changes':'Upload & Save Ticket';
+ body=selectField('direction','Journey','<option value="up" '+((existing?.direction||d4TicketDirection)==='up'?'selected':'')+'>↑ Up Ticket (Going)</option><option value="down" '+((existing?.direction||d4TicketDirection)==='down'?'selected':'')+'>↓ Down Ticket (Return)</option>')+
+ field('title','Ticket title / route',existing?.title||'','text','required maxlength="100" placeholder="Chennai to Goa"')+
+ field('date','Travel date',existing?.date||today(),'date','required')+
+ field('price','Ticket price (₹)',existing?.price||0,'number','min="0" max="10000000" step="0.01" required')+
+ selectField('status','Payment status','<option value="paid" '+(existing?.status==='paid'?'selected':'')+'>Paid</option><option value="unpaid" '+(existing?.status==='unpaid'?'selected':'')+'>Unpaid</option>')+
+ '<div class="field"><label for="f_ticketFile">Ticket PDF or image (optional for edits)</label><input id="f_ticketFile" name="ticketFile" class="input" type="file" accept="image/*,.pdf,application/pdf"></div>'+
+ '<p class="muted">Small PDF or image files only. Shared trip tickets are saved with trip data; files must remain below 300 KB after processing.</p>';
+ break;
+}
 case 'file':if(!ensurePermission(isTripAdmin(t)))return;title='📎 Upload Trip File';button='Save File';body=`<div class="notice" style="margin-bottom:14px">Local storage demo supports image/PDF up to 350 KB per file.</div><div class="field"><label>Choose photo or PDF</label><input class="input" type="file" name="file" accept="image/*,.pdf,application/pdf" required></div>`;break;
 default:return}
 $('#modalRoot').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
@@ -626,7 +908,44 @@ function closeModal(){activeModal='';modalContext={};$('#modalRoot').innerHTML='
 function generateCode(tname){const prefix='D4'+String(tname).replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,4);let code;do{const rand=globalThis.crypto?.getRandomValues?Array.from(crypto.getRandomValues(new Uint8Array(3))).map(b=>(b%36).toString(36)).join('').toUpperCase():Math.random().toString(36).slice(2,6).toUpperCase();code=prefix+rand;}while(db.trips.some(t=>t.code===code));return code;}
 function readAttachment(file){return new Promise((resolve,reject)=>{if(!file||!file.size)return resolve(null);if(!file.type.startsWith('image/')&&file.type!=='application/pdf')return reject(new Error('Only photos or PDF bills accepted.'));if(file.type==='application/pdf'){if(file.size>350000)return reject(new Error('PDF bills must be under 350 KB in this offline demo.'));const fr=new FileReader();fr.onerror=()=>reject(new Error('Unable to read PDF'));fr.onload=()=>resolve({name:file.name,type:file.type,data:fr.result});fr.readAsDataURL(file);return;}if(file.size>12000000)return reject(new Error('Photo must be under 12 MB.'));const url=URL.createObjectURL(file);const img=new Image();img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Cannot open this photo. Try JPEG/PNG.'))};img.onload=()=>{try{const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/jpeg',.68);URL.revokeObjectURL(url);if(data.length>650000)throw Error('Compressed image still too large; crop the receipt and try again.');resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data})}catch(e){URL.revokeObjectURL(url);reject(e)}};img.src=url})}
 async function saveForm(ev){ev.preventDefault();const fd=new FormData(ev.target),name=activeModal,t=(modalContext.tripId?trip(modalContext.tripId):current());try{switch(name){
+case 'd4-ticket-payment-count':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const totalMembers=Number(fd.get('totalMembers')),paidMembers=Number(fd.get('paidMembers')),ticketPrice=Number(fd.get('ticketPrice'));
+ if(!Number.isInteger(totalMembers)||totalMembers<0||totalMembers>100000||!Number.isInteger(paidMembers)||paidMembers<0||paidMembers>totalMembers||!Number.isFinite(ticketPrice)||ticketPrice<0||ticketPrice>10000000)throw Error('Enter valid counts: Paid cannot exceed Total');
+ const key=d4SelectedTransport+'_'+d4TicketDirection;
+ saveTripChange(t,()=>{t.ticketPaymentCounts=t.ticketPaymentCounts||{};t.ticketPaymentCounts[key]={totalMembers,paidMembers,ticketPrice};});
+ closeModal();render();toast('Member payment count saved');return;
+}
+case 'd4-ticket-editor':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),price=Number(fd.get('price')),status=String(fd.get('status'));
+ const direction=String(fd.get('direction')||'up');if(!['up','down'].includes(direction))throw Error('Choose Going or Return');
+ if(!title||title.length>100||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!Number.isFinite(price)||price<0||price>10000000||!['paid','unpaid'].includes(status))throw Error('Enter valid ticket details');
+ const existing=(t.tickets||[]).find(x=>x.id===modalContext.ticketId);
+ const file=fd.get('ticketFile');let attachment=existing?.attachment||null;
+ if(file&&file.size){attachment=await readAttachment(file);if(attachment?.data?.length>400000)throw Error('Ticket file too large for shared trip data (max about 300 KB). Try a smaller PDF or image.');}
+ saveTripChange(t,()=>{t.tickets=Array.isArray(t.tickets)?t.tickets:[];const updated={id:existing?.id||uid(),mode:existing?.mode||d4SelectedTransport,direction,title,date,price,status,attachment,by:profile};if(existing)Object.assign(existing,updated);else t.tickets.push(updated);});
+ d4TicketListOpen=true;closeModal();render();toast('Ticket saved for your trip');return;
+}
+
 case 'collection-target':{if(!isMain()||!canSee(t))throw Error('Main Admin only');const amount=Number(fd.get('perPerson'));if(!Number.isFinite(amount)||amount<0||amount>100000000)throw Error('Invalid target');t.collection=t.collection||{targetPerPerson:0,payments:[]};t.collection.targetPerPerson=Math.round(amount*100)/100;persist();closeModal();view='collections';activeTrip=t.id;render();toast('Per-person trip target updated');return}
+case 'collection-member-total':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const totals=collectionMemberTotalSave(t,String(modalContext.member),fd.get('amount'));
+ const back=modalContext.returnTo||'collections';
+ closeModal();view=back;activeTrip=t.id;render();
+ toast('Member paid amount updated. Total received: '+money(totals.paid));return;
+}
+case 'collection-payment-edit':{
+ if(!t||!isTripAdmin(t))throw Error('Admins only');
+ const totals=collectionEditSave(t,modalContext.receiptId,{
+  member:fd.get('member'),amount:fd.get('amount'),date:fd.get('date'),
+  method:fd.get('method'),note:fd.get('note')
+ });
+ const returnTo=modalContext.returnTo||'collections';
+ closeModal();view=returnTo;activeTrip=t.id;render();
+ toast('Payment updated. Remaining: '+money(totals.pending));return;
+}
 case 'collection-payment':{const stage=String(fd.get('paymentStage')||'advance');if(!['advance','balance','full'].includes(stage))throw Error('Choose a valid payment stage');const c=collectionSave(t,String(fd.get('member')),fd.get('amount'),String(fd.get('method')||'Manual'),stage.toUpperCase()+' · '+String(fd.get('note')||''));const returnTo=modalContext.returnTo||'entry';closeModal();view=returnTo;activeTrip=t.id;render();toast('Payment saved. Pending: '+money(c.pending));return}
 case 'register-local':{const n=String(fd.get('newUser')||'').trim();if(n.length<2)throw Error('Enter at least 2 characters');if(n==='Karthik')throw Error('Demo owner name is reserved');if(n.length>40)throw Error('Name is too long');profile=n;localStorage.setItem(USER_STORE,profile);closeModal();go('trips');toast('Hello '+n+'! Join a trip with a code.');return}
 case 'delete-trip':{
@@ -692,10 +1011,14 @@ case 'expense':case 'expense-edit':{
 case 'plan':case 'plan-edit':{
  if(!isTripAdmin(t))throw Error('Admins only');
  const date=String(fd.get('date')),time=String(fd.get('time')),title=String(fd.get('title')||'').trim(),place=String(fd.get('place')||'').trim(),category=String(fd.get('category')||'Other');
- if(!datesInTrip(t).includes(date)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)||!title||!planCategories.includes(category))throw Error('Please enter a valid trip day, time, title and category.');
+ if(!datesInTrip(t).includes(date)||!( /^([01]\d|2[0-3]):[0-5]\d$/.test(time) || (name==='plan-edit' && !time && t.plans.some(p=>p.id===modalContext.planId&&p.goaPresetKey)) )||!title||!planCategories.includes(category))throw Error('Please enter a valid trip day, time (or leave a package stop flexible), title and category.');
  saveTripChange(t,()=>{if(name==='plan-edit'){
    const existing=t.plans.find(p=>p.id===modalContext.planId);if(!existing)throw Error('Activity no longer exists');
-   Object.assign(existing,{date,time,title,place,category});
+   if(existing.time!==time && existing.goaTimeLabel){
+      existing.goaTimeLabel=time?ampm(time):'Flexible';
+      existing.goaEndTime='';
+    }
+    Object.assign(existing,{date,time,title,place,category});
  }else t.plans.push({id:uid(),date,time,title,place,category,done:false});});
  daySelected=date;closeModal();tripTab='plan';go('trip');toast(name==='plan-edit'?'Activity updated ✅':'New activity saved ✅');return;
 }
@@ -704,7 +1027,9 @@ case 'plan-dates':{
  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||!/^\d{4}-\d{2}-\d{2}$/.test(end)||start>end)throw Error('Enter a valid date range.');
  const span=(new Date(end+'T12:00:00')-new Date(start+'T12:00:00'))/86400000;
  if(span>89)throw Error('Maximum 90 days per trip in demo');
- if(t.plans.some(p=>p.date<start||p.date>end)||t.expenses.some(e=>e.date<start||e.date>end)||t.notes.some(n=>n.date<start||n.date>end))throw Error('An existing plan, expense or note falls outside this range. Adjust it first.');
+ const excluded=(t.plans||[]).filter(item=>item.date&&(item.date<start||item.date>end));
+ if(excluded.length)throw Error('Cannot exclude '+excluded.length+' saved activities. Edit their trip day first.');
+ // Keep all historical expenses and payment transaction dates.
  saveTripChange(t,()=>{t.start=start;t.end=end;});daySelected=start;closeModal();tripTab='plan';go('trip');toast('Trip date range updated ✅');return;
 }
 
@@ -718,15 +1043,13 @@ function fileDownload(file){if(!file||!file.data)return toast('File not found');
 function downloadText(name,text,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function summary(t){const c=calculations(t);return `🧭 D4 Trip | ${t.name}\n📅 ${fmtDate(t.start)} – ${fmtDate(t.end)}\n👥 ${t.members.length} members\n💸 Total expenses: ${money(c.total)}\n🧾 ${t.expenses.length} bills\n\nGenerated from D4 Trip`}
 async function shareSummary(){const t=current();if(!t)return;const text=summary(t);try{if(navigator.share){await navigator.share({title:'D4 Trip - '+t.name,text});return}}catch(e){if(e.name==='AbortError')return}await navigator.clipboard?.writeText(text).catch(()=>{});toast('Summary copied (if permitted).')}
-function printReport(t){if(!t)return;const c=calculations(t),col=collectionTotals(t),ex=t.expenses.slice().sort((a,b)=>(a.date).localeCompare(b.date));const dayGroups=datesInTrip(t);const rows=(v)=>v||'<tr><td colspan="5">None</td></tr>';const table=(heads,rows)=>`<table><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>`;let report=`<div class="print-report"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="color:#007d7b;font-size:13pt;font-weight:900">🧭 D4 TRIP</div><h1>${esc(t.name)}</h1><p>${esc(t.destination)} · ${fmtDate(t.start)} – ${fmtDate(t.end)}</p></div><div style="font-size:42pt">${t.emoji}</div></div><div class="summary"><div><b>Total Spent</b><h2 style="margin:6px 0">${money(c.total)}</h2></div><div><b>Members</b><h2 style="margin:6px 0">${t.members.length}</h2></div><div><b>Expense Bills</b><h2 style="margin:6px 0">${t.expenses.length}</h2></div><div><b>Trip Days</b><h2 style="margin:6px 0">${dayGroups.length}</h2></div></div>
-<section><h2>Group Trip Contributions · Paid / Pending</h2><p>Trip fee target ${money(col.each)} per person · ${money(col.paid)} received · ${money(col.pending)} pending</p>${table(['Member','Target','Received','Pending','Status'],col.rows.map(r=>`<tr><td>${esc(r.member)}</td><td>${money(r.target)}</td><td>${money(r.paid)}</td><td>${money(r.pending)}</td><td>${esc(r.status)}</td></tr>`).join(''))}<h3>Receipts log</h3>${table(['Date','Member','Amount','Method'],(t.collection?.payments||[]).map(x=>`<tr><td>${fmtDate(x.date)}</td><td>${esc(x.member)}</td><td>${money(x.amount)}</td><td>${esc(x.method||'Manual')}</td></tr>`).join('')||'<tr><td colspan="4">No contributions recorded</td></tr>')}</section><section><h2>1 · Day-wise Expense Records</h2>${table(['Date','Category / Description','Paid by','Payment','Amount'],rows(ex.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${esc(e.category)} — ${esc(e.note)}</td><td>${esc(e.paidBy)}</td><td>${esc(e.method)}</td><td>${money(e.amount)}</td></tr>`).join('')))}</section>
-<section><h2>2 · Category Summary</h2>${table(['Category','Total'],Object.entries(c.categories).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${money(v)}</td></tr>`).join(''))}</section>
-<section><h2>3 · Day-by-Day Totals</h2>${table(['Trip Day','Date','Spent'],dayGroups.map((d,i)=>`<tr><td>Day ${i+1}</td><td>${fmtDate(d)}</td><td>${money(c.daily[d]||0)}</td></tr>`).join(''))}</section>
-<section><h2>6 · Trip Itinerary</h2>${table(['Date','Time','Activity','Location'],t.plans.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(p.time)}</td><td>${esc(p.title)} ${p.done?'✓':''}</td><td>${esc(p.place)}</td></tr>`).join(''))}</section>
-<section><h2>7 · Notes</h2>${t.notes.map(n=>`<p><b>${fmtDate(n.date)} — ${esc(n.by)}:</b> ${esc(n.text)}</p>`).join('')||'<p>No notes.</p>'}</section>
-<section><h2>8 · Uploaded Receipts & Files</h2>${[...ex.filter(e=>e.receipt).map(e=>({...e.receipt,desc:e.note})),...t.files.map(f=>({...f,desc:f.name}))].map(f=>`<div style="display:inline-block;vertical-align:top;margin:7px;width:155px"><div style="font-size:9pt">${esc(f.desc)}</div>${f.type.startsWith('image/')?`<img src="${f.data}" alt="${esc(f.name)}">`:'<div style="border:1px solid #ccc;padding:14px">📄 PDF attached in app</div>'}<div class="tiny">${esc(f.name)}</div></div>`).join('')||'<p>No receipts uploaded.</p>'}</section>
-<footer>D4 Trip • Generated ${new Date().toLocaleDateString('en-IN')} • Amounts in INR. Images included where available; PDF attachments must be shared separately. This is a locally created report.</footer></div>`;
-if(!ex.some(e=>e.receipt)&&!t.files.length)report=report.replace(/<section><h2>8 · Uploaded Receipts & Files<\/h2>[\s\S]*?<\/section>/,'');$('#printMount').innerHTML=report;setTimeout(()=>window.print(),250);}
+function printReport(t){
+ if(!t)return;
+ if(!window.D4ModernCardPDF){toast('PDF template is loading. Please refresh and try again.');return;}
+ const report=window.D4ModernCardPDF.render(t,calculations(t),collectionTotals(t),datesInTrip(t));
+ $('#printMount').innerHTML=report;
+ setTimeout(()=>window.print(),250);
+}
 function action(el){const id=el.dataset.action,t=current(),ctx=el.dataset.ctx;switch(id){
 case 'install-help':{const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);const msg=ios?'On iPhone: open this link in Safari, tap Share, then Add to Home Screen.':'On Android: open in Chrome, tap menu, then Install app or Add to Home screen.';alert('D4 Trip App Install\n\n'+msg+'\n\nTo sync between your own devices, open Settings and sign in to Firebase after it has been configured.');break;}
 case 'enter-app':go('home');break;
@@ -736,6 +1059,18 @@ case 'replay-intro':if(!window.D4TripIntro?.play({force:true}))toast('Intro prev
 case 'collection-popup-filter':collectionFilter=el.dataset.filter||'all';collectionPage=0;showCollectionMembers();break;
 case 'collection-page-prev':collectionPage=Math.max(0,collectionPage-1);showCollectionMembers();break;
 case 'collection-page-next':collectionPage++;showCollectionMembers();break;
+case 'collection-member-total':{
+ if(!t||!isTripAdmin(t))return toast('Admins only');
+ const member=String(el.dataset.member||'');
+ if(!t.members.includes(member))return toast('Member not found');
+ openModal('collection-member-total',{tripId:t.id,member,returnTo:view});break;
+}
+case 'collection-edit-payment':{
+ if(!t||!isTripAdmin(t))return toast('Only admins can edit payments');
+ const item=t.collection?.payments?.find(p=>p.id===el.dataset.id);
+ if(!item)return toast('Payment not found');
+ openModal('collection-payment-edit',{tripId:t.id,receiptId:item.id,returnTo:view});break;
+}
 case 'collection-member-pay':if(!isTripAdmin(t))return toast('Admins only');openModal('collection-payment',{tripId:t.id,member:el.dataset.member,returnTo:view});break;
 case 'collection-filter':collectionFilter=el.dataset.filter||'all';render();break;
  case 'entry-back':go('entry');break;
@@ -743,7 +1078,33 @@ case 'collection-filter':collectionFilter=el.dataset.filter||'all';render();brea
 case 'collection-open':{const tt=trip(el.dataset.id);if(!canSee(tt))return toast('Trip access denied');activeTrip=tt.id;go('collections');break;}
 case 'collection-quick-add':{const tt=trip(el.dataset.id);if(!isTripAdmin(tt))return toast('Admins only');openModal('collection-payment',{tripId:tt.id,returnTo:view});break;}
 case 'collection-edit-target':{const tt=trip(el.dataset.id);if(!isMain()||!canSee(tt))return toast('Main Admin only');openModal('collection-target',{tripId:tt.id});break;}
+case 'goa-reset-payments':{
+ if(!t||!isMain()||!goaPaymentPlan(t))return toast('Main Admin only');
+ if(!confirm('Reset ALL recorded Goa package payments? Advance ₹1,000 and train ₹1,150 per member will remain marked paid. Existing receipt history will be backed up.'))return;
+ const backup=JSON.stringify({tripId:t.id,tripName:t.name,exportedAt:new Date().toISOString(),payments:t.collection?.payments||[]},null,2);
+ const blob=new Blob([backup],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='d4-goa-payments-before-reset.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
+ try{saveTripChange(t,()=>{t.collection=t.collection||{targetPerPerson:8500,payments:[]};t.collection.payments=[];t.collection.targetPerPerson=8500;t.collection.goaResetAt=new Date().toISOString()});render();toast('Old package payments reset. Advance + train still paid.');}catch(e){toast(e.message)}break;
+}
 case 'collection-delete':{if(!ensurePermission(isTripAdmin(t)))return;const receipt=t.collection?.payments?.find(x=>x.id===el.dataset.id);if(!receipt)return;if(!confirm('Undo '+money(receipt.amount)+' received from '+receipt.member+'?'))return;t.collection.payments=t.collection.payments.filter(x=>x.id!==receipt.id);persist();render();toast('Payment entry removed');break;}
+case 'd4-ticket-mode':d4SelectedTransport=el.dataset.mode||'train';render();break;
+case 'd4-ticket-direction':d4TicketDirection=el.dataset.direction==='down'?'down':'up';d4TicketPaymentFilter='all';d4TicketListOpen=true;render();break;
+case 'd4-ticket-filter':d4TicketPaymentFilter=['all','paid','unpaid'].includes(el.dataset.filter)?el.dataset.filter:'all';d4TicketListOpen=true;render();break;
+case 'd4-ticket-manage':d4TicketListOpen=true;render();document.querySelector('.d4-ticket-library')?.scrollIntoView({behavior:'smooth',block:'start'});break;
+case 'd4-ticket-files':d4TicketListOpen=false;render();break;
+case 'd4-ticket-add':if(!ensurePermission(isTripAdmin(t)))return;openModal('d4-ticket-editor');break;
+case 'd4-ticket-edit':if(!ensurePermission(isTripAdmin(t)))return;openModal('d4-ticket-editor',{ticketId:el.dataset.id});break;
+case 'd4-ticket-payment-edit':if(!ensurePermission(!!t&&isTripAdmin(t)))return;openModal('d4-ticket-payment-count');break;
+case 'd4-ticket-status':{
+ if(!ensurePermission(!!t&&isTripAdmin(t)))return;
+ const next=el.dataset.status, ticket=(t.tickets||[]).find(x=>x.id===el.dataset.id);
+ if(!ticket||!['paid','unpaid'].includes(next)){toast('Ticket not found');break;}
+ if(ticket.status===next)break;
+ try{saveTripChange(t,()=>{ticket.status=next});render();toast('Ticket marked '+(next==='paid'?'Paid':'Unpaid'));}
+ catch(e){toast(e.message||'Could not update ticket');}
+ break;
+}
+case 'd4-ticket-delete':{if(!ensurePermission(isTripAdmin(t)))return;const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket&&confirm('Delete ticket '+ticket.title+'?')){try{saveTripChange(t,()=>{t.tickets=t.tickets.filter(x=>x.id!==ticket.id)});render();toast('Ticket removed')}catch(e){toast(e.message)}}break;}
+case 'd4-ticket-view':{const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket?.attachment?.data)fileDownload(ticket.attachment);else if(ticket)toast(ticket.title+' · '+(ticket.date||'No date')+' · '+money(Number(ticket.price||0))+' · '+(ticket.status==='paid'?'Paid':'Unpaid')+' (No file attached)');else toast('Ticket not found');break;}
 case 'nav':{let target=el.dataset.view,tab=el.dataset.tab;if(el.classList.contains('quick')){target=target==='nav'?'chat':target;}go(target,tab);break}
 case 'delete-trip':{if(!isMain())return toast('Main Admin only');openModal('delete-trip',{tripId:el.dataset.id||current()?.id});break;}
 case 'select-trip':selectTrip(el.dataset.id);break;
@@ -756,7 +1117,8 @@ case 'chat-room':chatRoom=el.dataset.room;if(chatRoom==='admins'&&!isTripAdmin(t
 case 'quick-expense':openModal('expense');break;
 case 'quick-chat':{chatRoom=isTripAdmin(t)?'admins':'group';go('chat');break;}
 case 'quick-report':tripTab='report';go('trip');break;
-case 'quick-plan':openModal('plan');break;
+case 'goa-import':if(t&&window.D4GoaMilestones?.importPlan)window.D4GoaMilestones.importPlan(t);break;
+ case 'quick-plan':openModal('plan');break;
  case 'plan-edit':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p)openModal('plan-edit',{planId:p.id});break;}
  case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;openModal('plan-dates');break;}
  case 'plan-delete':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p&&confirm('Delete '+p.title+' ('+ampm(p.time)+')?')){saveTripChange(t,()=>{t.plans=t.plans.filter(x=>x.id!==p.id);});closeModal();render();toast('Activity deleted');}break;}
@@ -781,7 +1143,7 @@ case 'modal':openModal(el.dataset.modal);break;
 case 'd4-back':{if(view==='trip'&&tripTab!=='overview'){tripTab='overview';go('trip')}else if(view==='trip'){go('collections')}else if(view==='collections'||view==='home'||view==='trips'){go('entry')}else if(current()){tripTab='overview';go('trip')}else{go('entry')}break;}
 case 'close-modal':closeModal();break;
 case 'copy-code':if(!ensurePermission(isMain()))return;navigator.clipboard?.writeText(t.code).then(()=>toast('Trip code copied')).catch(()=>toast('Trip code: '+t.code))||toast('Trip code: '+t.code);break;
-case 'plan-toggle':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p){saveTripChange(t,()=>{p.done=!p.done;});render()}break}
+case 'plan-toggle':{if(!ensurePermission(isTripAdmin(t)))return;const p=t.plans.find(x=>x.id===el.dataset.id);if(p){const wasDone=!!p.done;saveTripChange(t,()=>{p.done=!p.done;});render();if(!wasDone)window.D4GoaMilestones?.focusNext?.();}break}
 case 'edit-expense':{if(!ensurePermission(isTripAdmin(t)))return;openModal('expense-edit',{expenseId:el.dataset.id});break;}
 case 'delete-expense':{if(!ensurePermission(isTripAdmin(t)))return;const e=t.expenses.find(x=>x.id===el.dataset.id);if(e&&confirm(`Delete ${e.note||e.category} (${money(e.amount)})?`)){saveTripChange(t,()=>{t.expenses=t.expenses.filter(x=>x.id!==e.id);});render();toast('Expense deleted')}break}
 case 'receipt':{let e=t.expenses.find(x=>x.id===el.dataset.id);if(e?.receipt)fileDownload(e.receipt);break}
@@ -806,16 +1168,36 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
 if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;db=value;persist();activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=27',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
-window.D4TripLocal={teamId,showTeam(t){db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?"trip":"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=73',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>
-<script src="./premium-production.js?build=27"></script>
+<script src="./modern-card-pdf.js?build=46"></script>
+<script src="./premium-production.js?build=45"></script>
+<script src="./goa-milestones.js?build=29"></script>
+<script src="./reference-premium.js?build=60"></script>
+<script>
+/* Tickets shortcut: attach to the visible premium Goa dashboard, not the legacy home. */
+(function(){
+  function ensureTickets(){
+    var root=document.querySelector('.ref-hero-actions.ref-luxe-actions');
+    if(!root||root.querySelector('[data-view="tickets"]'))return;
+    var btn=document.createElement('button');btn.type='button';btn.className='ref-action';btn.dataset.action='nav';btn.dataset.view='tickets';
+    btn.innerHTML='<span class="ref-action-ico" aria-hidden="true">🎟️</span><strong>Tickets</strong>';
+    root.appendChild(btn);
+  }
+  document.addEventListener('DOMContentLoaded',function(){ensureTickets();new MutationObserver(ensureTickets).observe(document.querySelector('#app')||document.body,{childList:true,subtree:true});});
+})();
+</script>
+<script src="./trip-day-controls.js?build=40"></script>
+<script src="./journey-completion.js?build=45"></script>
+<script src="./install-app.js?build=38"></script>
 <script type="module" src="./firebase-sync.js?build=27"></script>
-<script type="module" src="./team-sync.js?build=27"></script>
+<script type="module" src="./team-sync.js?build=30"></script>
 <script type="module" src="./team-join.js?build=27"></script>
 <script type="module" src="./team-invite-runtime.js?build=27"></script>
 <script type="module" src="./shared-runtime.js?build=27"></script>
+<script src="./icon-picker.js?build=71"></script>
 </body>
 </html>
