@@ -361,9 +361,6 @@
     if (tripTab === 'settle') { tripTab = 'overview'; return tripOverview(t); }
     return original.tripPage();
   };
-  chatsPage = function () {
-    return window.D4LiveChat?.page() || '<section class="card"><h2>Trip Chat</h2><p>Connecting to chat…</p></section>';
-  };
   profilePage = function () {
     // Guest invite links must open the name-only request form, never an account/login screen.
     if (teamId && !window.D4Team?.hasAccess?.()) return original.profilePage();

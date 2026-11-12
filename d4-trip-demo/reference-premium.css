@@ -190,7 +190,7 @@ body.d4-premium .d4-single-join-entry,body.d4-premium .d4-new-entry{max-width:65
 body.d4-premium .d4-new-sky{background:linear-gradient(140deg,#132e45,#071523),url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1000&q=80') center/cover!important}
 body.d4-premium .d4-new-bottom button{background:linear-gradient(145deg,#fff0ae,#e0a537)!important;color:#17253b!important;border:1px solid #ffe7aa!important}
 body.d4-premium .bottom-nav.ref-bottom-nav{
- display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
  position:fixed!important;left:50%!important;right:auto!important;top:auto!important;bottom:0!important;
  transform:translateX(-50%)!important;width:min(100%,700px)!important;max-width:700px!important;
  height:calc(68px + env(safe-area-inset-bottom))!important;max-height:none!important;

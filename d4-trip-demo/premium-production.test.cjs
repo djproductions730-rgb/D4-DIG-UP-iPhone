@@ -36,7 +36,7 @@ for(const [asset,version] of [
   assert.ok(html.includes('./'+asset+'?build='+version), 'Current asset missing from index: '+asset);
   assert.ok(sw.includes('./'+asset+'?build='+version), 'Current asset missing from offline cache: '+asset);
 }
-assert.match(html, /sw\.js\?build=71/, 'Force service-worker update');
+assert.match(html, /sw\.js\?build=73/, 'Force service-worker update');
 assert.match(src, /d4-build-version/, 'Admin v26 build marker');
 assert.doesNotMatch(src, /Request management is loading|Open your shared trip first/, 'Old stuck loading/share instructions must not ship');
 
@@ -148,9 +148,9 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,5,'Reference layout displays five mobile navigation buttons');
+assert.equal((nav.match(/<button /g)||[]).length,4,'Reference layout displays four mobile navigation buttons');
 assert.match(nav,/class="bottom-nav ref-bottom-nav"/,'Navigation uses the approved bottom bar');
-for(const label of ['Home','Day Plan','Chat','More'])assert.ok(nav.includes(label),label+' missing');
+for(const label of ['Home','Day Plan','More'])assert.ok(nav.includes(label),label+' missing');
 assert.match(nav,/data-ref-action="toggle-plus"/,'Gold central plus button must open actions');
 assert.doesNotMatch(nav,/class="d4-liquid-rail"/,'Outdated right rail must not reappear');
 const moreHandler=events.click.find(fn=>fn.toString().includes('dataset.refAction'));
@@ -188,10 +188,7 @@ assert.match(css,/touch-action:pan-y/);
 assert.match(board, /Continue/);
 assert.match(board, /Skip/);
 assert.match(board, /enter-selected-trip/);
-assert.match(context.chatsPage(), /Connecting to chat/);
-context.window.D4LiveChat = {page: () => 'Shared chat rooms'};
-assert.equal(context.chatsPage(), 'Shared chat rooms');
-assert.doesNotMatch(context.chatsPage(),/legacy-live-chat/);
+assert.ok(!nav.includes('data-view="chat"'), 'Chat must be absent from navigation');
 const dashboard=context.tripOverview(t);
 assert.ok(dashboard.includes('Existing destination'),'Existing data, not mock names');
 assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashboard keeps requests in their dedicated section');

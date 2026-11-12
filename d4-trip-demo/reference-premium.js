@@ -394,7 +394,6 @@
       mobileItem(navSvg('home'),'Home','open-tab','data-ctx="overview"',view==='trip'&&tripTab==='overview'),
       mobileItem(navSvg('calendar'),'Day Plan','open-tab','data-ctx="plan"',view==='trip'&&tripTab==='plan'),
       '<button type="button" class="ref-nav-plus" data-ref-action="toggle-plus" aria-label="'+(canEdit?'Add trip item':'Explore trip sections')+'" aria-expanded="'+(quickPanel==='plus')+'"><span>＋</span></button>',
-      mobileItem(navSvg('chat'),'Chat','nav','data-view="chat"',view==='chat'),
       '<button type="button" class="ref-nav-item'+(quickPanel==='more'?' active':'')+'" data-ref-action="toggle-more" aria-label="More sections" aria-expanded="'+(quickPanel==='more')+'"><span class="ref-nav-icon">'+navSvg('more')+'</span><small>More</small></button>'
     ];
     let overlay='';

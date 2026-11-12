@@ -1,4 +1,4 @@
-name: D4 Trip Chat and Notifications Release
+name: D4 Trip Remove Chat Release
 on:
   push:
     branches:
@@ -92,7 +92,7 @@ jobs:
               continue
             fi
             status=0
-            for file in live-chat.js live-chat.css trip-notifications.js icon-picker.js icon-picker.css manifest.webmanifest icons/turquoise-premium-v71-192.png icons/ocean-premium-v71-192.png icons/sunset-premium-v71-192.png icons/rose-premium-v71-192.png icons/midnight-premium-v71-192.png goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
+            for file in icon-picker.js icon-picker.css manifest.webmanifest icons/turquoise-premium-v71-192.png icons/ocean-premium-v71-192.png icons/sunset-premium-v71-192.png icons/rose-premium-v71-192.png icons/midnight-premium-v71-192.png goa-train-v53.css goa-train-v51.css goa-payment-v50.css modern-card-pdf.js modern-card-pdf.css report-readability.css journey-completion.js journey-completion.css milestone-day1.svg milestone-day2.svg milestone-day3.svg goa-milestones.js premium-production.js premium-production.css reference-premium.js sw.js; do
               curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$URL/$file?release=${GITHUB_SHA}" -o "/tmp/d4-${file//\//_}" || { status=1; break; }
               if ! cmp -s "d4-trip-demo/$file" "/tmp/d4-${file//\//_}"; then
                 echo "Mismatch in LIVE file: $file"
