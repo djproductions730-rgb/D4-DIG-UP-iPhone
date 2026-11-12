@@ -1,0 +1,32 @@
+name: D4 Trip Member Access & Single Add Button
+on:
+  push:
+    paths:
+      - 'd4-trip-demo/index.html'
+      - 'd4-trip-demo/team-sync.js'
+      - 'd4-trip-demo/members.test.cjs'
+      - 'd4-trip-demo/milestone03.behavior.test.cjs'
+      - 'd4-trip-demo/team-sync.test.cjs'
+      - '.github/workflows/d4-trip-member-access.yml'
+  pull_request:
+    paths:
+      - 'd4-trip-demo/index.html'
+      - 'd4-trip-demo/team-sync.js'
+      - 'd4-trip-demo/members.test.cjs'
+      - 'd4-trip-demo/milestone03.behavior.test.cjs'
+      - 'd4-trip-demo/team-sync.test.cjs'
+      - '.github/workflows/d4-trip-member-access.yml'
+permissions:
+  contents: read
+jobs:
+  member-access:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm member and shared-team JS syntax
+        run: node --input-type=module --check < d4-trip-demo/team-sync.js
+      - name: Verify Main Admin-only removal and single Admin Add Member action
+        run: node --test d4-trip-demo/members.test.cjs d4-trip-demo/milestone03.behavior.test.cjs d4-trip-demo/team-sync.test.cjs

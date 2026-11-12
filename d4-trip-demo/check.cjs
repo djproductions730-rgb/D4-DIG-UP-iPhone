@@ -18,7 +18,7 @@ const checked = spawnSync(process.execPath, ['--input-type=module', '--check'], 
 if (checked.status !== 0) throw new Error(checked.stderr || 'Module syntax invalid');
 for (const required of [
   '<script src="./firebase-config.js"></script>',
-  '<script type="module" src="./firebase-sync.js"></script>',
+  '<script type="module" src="./firebase-sync.js?build=27"></script>',
   'window.D4TripLocal=',
   'window.D4TripCloud?.localChanged?.()'
 ]) if (!html.includes(required)) throw new Error('Missing app sync bridge: '+required);
@@ -28,8 +28,16 @@ for (const required of [
   'allow list: if false',
   'allow read, write: if false'
 ]) if (!rules.includes(required)) throw new Error('Missing restrictive Firestore rule: '+required);
+const inviteSyntax = spawnSync(process.execPath,['--input-type=module','--check'],{input:fs.readFileSync(path.join(dir,'team-invite-runtime.js'),'utf8'),encoding:'utf8'});
+if(inviteSyntax.status!==0)throw Error(inviteSyntax.stderr);
+const inviteTests=spawnSync(process.execPath,['--test',path.join(dir,'team-invites/service.test.cjs')],{stdio:'inherit'});
+if(inviteTests.status!==0)process.exit(inviteTests.status||1);
+const premiumTest = spawnSync(process.execPath, [path.join(dir,'premium-production.test.cjs')], {
+  stdio: 'inherit'
+});
+if (premiumTest.status !== 0) process.exit(premiumTest.status || 1);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
-const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
+const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','delete-trip.test.cjs','expense-plan.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
   stdio: 'inherit'
 });
 if (tests.status !== 0) process.exit(tests.status || 1);
