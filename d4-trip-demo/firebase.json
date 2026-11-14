@@ -103,5 +103,8 @@
     "ui": {
       "enabled": false
     }
+  },
+  "storage": {
+    "rules": "storage.rules"
   }
 }

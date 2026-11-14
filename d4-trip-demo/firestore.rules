@@ -147,6 +147,30 @@ service cloud.firestore {
         allow update: if validDecision() || validResendRequest();
         allow delete: if mainAdmin();
       }
+      // Metadata for ticket photos; image bytes live in protected Firebase Storage.
+      match /ticketPhotos/{ticketId} {
+        function ticketViewer() {
+          return mainAdmin() ||
+            (hasEmailGrant() && access().role in ['member','admin']) ||
+            guestMember();
+        }
+        function validTicketPhoto() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['id','direction','storagePath','name','type','size','createdAt','byUid']) &&
+            d.keys().hasAll(['id','direction','storagePath','name','type','size','createdAt','byUid']) &&
+            d.id == ticketId &&
+            d.direction in ['up','down'] &&
+            d.storagePath == 'tripTickets/' + tripId + '/' + d.direction + '/' + ticketId &&
+            d.name is string && d.name.size() > 0 && d.name.size() <= 120 &&
+            d.type is string && d.type.matches('image/.*') &&
+            d.size is int && d.size > 0 && d.size <= 15 * 1024 * 1024 &&
+            d.createdAt == request.time && d.byUid == request.auth.uid;
+        }
+        allow get, list: if ticketViewer();
+        allow create: if editor() && validTicketPhoto();
+        allow update: if false;
+        allow delete: if editor();
+      }
       match /accessUid/{guestUid} {
         function ownGrant() { return signedIn() && request.auth.uid == guestUid; }
         function validApprovedGrant() {

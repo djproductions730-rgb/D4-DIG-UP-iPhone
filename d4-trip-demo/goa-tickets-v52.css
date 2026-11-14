@@ -1,0 +1,11 @@
+/* Transport selector for D4 Trip ticket screen (v52-compatible) */
+.d4-tickets-page{padding-bottom:24px}
+.d4-tickets-page>h2{font-size:24px;font-weight:900;margin:8px 0;color:#fff}
+.d4-tickets-page>p{font-size:13px;color:#d4e4f6;margin:0 0 16px}
+.d4-transport-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+.d4-transport-option{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:100px;padding:12px 7px;border:1px solid #647d9a;border-radius:16px;background:linear-gradient(135deg,#132a46,#24405d);color:#e9f5ff;font-size:30px;cursor:pointer}
+.d4-transport-option strong{font-size:13px;color:#fff}
+.d4-transport-option small{font-size:10px;color:#cbddf2}
+.d4-transport-option.active{border-color:#f5c56e;background:linear-gradient(135deg,#30465e,#493d41);box-shadow:0 0 0 1px #c89a56 inset}
+.d4-ticket-selected>h3{font-size:17px;font-weight:900;color:#fff;margin:18px 0 11px}
+@media(max-width:390px){.d4-transport-option{min-height:90px;font-size:26px;padding:10px 4px}.d4-transport-option strong{font-size:12px}}

@@ -55,6 +55,14 @@ const uiTests = spawnSync(process.execPath, ['--test',
   ...['payment-edits.test.cjs','trip-sections.test.cjs','install-app.test.cjs','payment-roster.test.cjs','trip-day-controls.test.cjs','home-circular-luxe.test.cjs']
     .map(file=>path.join(dir,file))], { stdio:'inherit' });
 if (uiTests.status !== 0) process.exit(uiTests.status || 1);
+const ticketSyntax = spawnSync(process.execPath,['--check',path.join(dir,'ticket-gallery.js')],{encoding:'utf8'});
+if(ticketSyntax.status!==0)throw Error(ticketSyntax.stderr);
+const ticketCloudSyntax = spawnSync(process.execPath,['--input-type=module','--check'],{
+  input:fs.readFileSync(path.join(dir,'ticket-gallery-cloud.js'),'utf8'),encoding:'utf8'
+});
+if(ticketCloudSyntax.status!==0)throw Error(ticketCloudSyntax.stderr);
+const ticketTests = spawnSync(process.execPath,['--test',path.join(dir,'ticket-gallery.test.cjs')],{stdio:'inherit'});
+if(ticketTests.status!==0)process.exit(ticketTests.status||1);
 console.log('PASS: app JavaScript syntax, Firebase bridge links and deny-by-default rule checks');
 const tests = spawnSync(process.execPath, ['--test', ...['firebase-sync.test.cjs','members.test.cjs','delete-trip.test.cjs','expense-plan.test.cjs','team-sync.test.cjs','milestone03.behavior.test.cjs','shared-beta.test.cjs'].map(file=>path.join(dir,file))], {
   stdio: 'inherit'
