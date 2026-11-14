@@ -17,7 +17,22 @@
   return entries.map((entry,index)=>({entry,index,date:entryDate(entry)})).filter(row=>filter==='all'||row.date&&start&&row.date>=start&&row.date<end).sort((a,b)=>calendarDay(b.date)-calendarDay(a.date)||timeOfDay(b.entry,b.date)-timeOfDay(a.entry,a.date)||b.index-a.index);
  }
  if(typeof module!=='undefined'&&module.exports){module.exports={filterEntries,entryDate};return}
- let range='all',selectedYear=new Date().getFullYear();const labels={all:'All',today:'Today',yesterday:'Yesterday',week:'This Week',month:'This Month',year:'Year'};
+ let range='all',selectedYear=new Date().getFullYear(),selectedStart='',selectedEnd='';
+ const labels={all:'All',today:'Today',yesterday:'Yesterday',week:'This Week',month:'This Month',year:'Year'};
+ const asISO=date=>[date.getFullYear(),String(date.getMonth()+1).padStart(2,'0'),String(date.getDate()).padStart(2,'0')].join('-');
+ function validISO(value){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const [year,month,day]=value.split('-').map(Number),date=new Date(year,month-1,day);
+  return date.getFullYear()===year&&date.getMonth()===month-1&&date.getDate()===day;
+ }
+ function historyPeriodRows(){
+  if(range!=='custom')return filterEntries(data.entries,range,selectedYear);
+  return filterEntries(data.entries,'all',selectedYear).filter(({date})=>date&&asISO(date)>=selectedStart&&asISO(date)<=selectedEnd);
+ }
+ function historyPeriodLabel(){
+  if(range==='custom')return selectedStart+' to '+selectedEnd;
+  return range==='year'?String(selectedYear):labels[range]+(range==='week'?' (Monday–Sunday)':'');
+ }
  const style=document.createElement('style');
  style.textContent=`
 .history-premium-head,.premium-card-footer,.premium-balance{display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -57,7 +72,17 @@
   .sad-spends li b,.sad-spends li strong,.sad-spends li small{grid-column:2;grid-row:auto;text-align:left}
  }
  
- `;document.head.appendChild(style);
+ `;style.textContent+='.history-custom-range{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 11px;padding:12px;background:#21112f;border:1px solid #8e54ae;border-radius:16px}'+
+ '.history-custom-range label{display:grid;gap:6px;font-size:12px;color:#ead4fc;font-weight:650;min-width:0}'+
+ '.history-custom-range input{width:100%;min-width:0;min-height:44px;color:#fff;background:#371d4c;border:1px solid #a46ac2;border-radius:10px;padding:9px 8px;color-scheme:dark}'+
+ '.history-custom-actions{grid-column:1/-1;display:flex;gap:8px}'+
+ '.history-custom-actions button,.history-download-pdf{min-height:44px;padding:10px 13px;border-radius:12px;font-weight:750}'+
+ '.history-apply-range{flex:1;background:linear-gradient(130deg,#9638cb,#6326bb);color:white}'+
+ '.history-reset-range{background:#39244b;color:#f5eaff;border:1px solid #9567b6}'+
+ '.history-download-pdf{width:100%;margin:5px 0 8px;color:#fff;background:linear-gradient(110deg,#6327ba,#ae34c9);border:1px solid #e7a4fb;box-shadow:0 0 13px #a04dd14d}'+
+ '.history-download-pdf:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}'+
+ '@media(max-width:360px){.history-custom-range{grid-template-columns:1fr}.history-custom-actions{flex-wrap:wrap}}';
+ document.head.appendChild(style);
  function historyBalances(banks, entries){
   const valid=value=>value!=null&&String(value).trim()!==''&&Number.isFinite(Number(value));
   const paise=value=>Math.round(Number(value)*100);
@@ -148,7 +173,7 @@
   else spendRange=button.dataset.spendRange;
   render();
  });
- transactionHistory=function(){const {rows,html:bankControls}=filterHistoryByBank(filterEntries(data.entries,range,selectedYear));const years=Array.from(new Set([new Date().getFullYear(),selectedYear,...data.entries.map(entry=>entryDate(entry)?.getFullYear()).filter(Boolean)])).sort((a,b)=>b-a);let html='<div class="history-premium-head"><div><h2>Transaction History</h2><p>All your money movements</p></div><button class="history-add" type="button" onclick="openTransaction()">+ Add</button></div><div class="history-filters" role="group" aria-label="Filter transaction history">'+Object.entries(labels).map(([key,label])=>'<button class="history-filter" type="button" aria-pressed="'+(range===key)+'" data-history-range="'+key+'">'+label+'</button>').join('')+'</div>'+(range==='year'?'<div class="history-year"><label class="field" for="history-year">Choose year</label><select class="input" id="history-year" onchange="setHistoryYear(this.value)">'+years.map(y=>'<option '+(y===selectedYear?'selected':'')+'>'+y+'</option>').join('')+'</select></div>':'')+bankControls+'<p class="history-result-note" role="status">'+rows.length+' transaction'+(rows.length===1?'':'s')+' · '+(range==='year'?selectedYear:labels[range])+(range==='week'?' (Monday–Sunday)':'')+'</p>';
+ transactionHistory=function(){const {rows,html:bankControls}=filterHistoryByBank(historyPeriodRows());const years=Array.from(new Set([new Date().getFullYear(),selectedYear,...data.entries.map(entry=>entryDate(entry)?.getFullYear()).filter(Boolean)])).sort((a,b)=>b-a);let html='<div class="history-premium-head"><div><h2>Transaction History</h2><p>All your money movements</p></div><button class="history-add" type="button" onclick="openTransaction()">+ Add</button></div><div class="history-filters" role="group" aria-label="Filter transaction history">'+Object.entries(labels).map(([key,label])=>'<button class="history-filter" type="button" aria-pressed="'+(range===key)+'" data-history-range="'+key+'">'+label+'</button>').join('')+'</div>'+(range==='year'?'<div class="history-year"><label class="field" for="history-year">Choose year</label><select class="input" id="history-year" onchange="setHistoryYear(this.value)">'+years.map(y=>'<option '+(y===selectedYear?'selected':'')+'>'+y+'</option>').join('')+'</select></div>':'')+'<form class="history-custom-range" id="history-custom-range"><label for="history-start">Start Date<input class="input" type="date" id="history-start" name="start" required value="'+tidy(selectedStart)+'"></label><label for="history-end">End Date<input class="input" type="date" id="history-end" name="end" required value="'+tidy(selectedEnd)+'"></label><div class="history-custom-actions"><button type="submit" class="history-apply-range">Apply Dates</button><button type="button" class="history-reset-range" data-reset-history-dates>Clear</button></div></form>'+bankControls+'<p class="history-result-note" role="status">'+rows.length+' transaction'+(rows.length===1?'':'s')+' · '+historyPeriodLabel()+'</p><button type="button" class="history-download-pdf" data-download-history'+(rows.length?'':' disabled')+'>⬇ Download PDF Statement ('+rows.length+')</button>';
  if(!rows.length)return html+'<div class="card empty"><div class="symbol">🧾</div><b>No transactions in this period</b><p class="muted">Choose another date range or tap All to see your history.</p></div>';
  const balances=historyBalances(data.banks,data.entries);let group='';for(const {entry:e,index,date} of rows){const key=dayKey(date);if(key!==group){html+='<h3 class="history-date-heading">▣ &nbsp;'+tidy(dayLabel(date))+(date?', '+date.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'')+'</h3>';group=key}const b=data.banks.find(b=>String(b.id)===String(e.bankId));
  const balance=balances[index];
@@ -165,4 +190,32 @@
  html+='<article class="card history-statement-card '+(isExpense?'expense-card':isIncome?'income-card':'transfer-card')+'"><div class="premium-bank-corner">'+marks+'</div><div class="history-row"><div class="badge-icon">'+categoryIcon(e.category)+'</div><div class="grow"><div class="label">'+tidy(e.category==='Online Shopping'&&e.note?String(e.note).split(' · ')[0]:title)+'</div><div class="muted">'+tidy(e.category==='Online Shopping'?[e.category,...String(e.note||'').split(' · ').slice(1)].join(' · '):e.note||e.type||'Transaction')+'</div>'+paymentLine+'</div><div class="right"><div class="statement-amount '+(isExpense?'txamount expense':isIncome?'txamount income':'')+'">'+amountText+'</div><div class="muted">'+tidy(e.type||'')+'</div></div></div>'+balanceHtml+'<div class="premium-card-footer"><span>'+tidy(dateText)+'</span><button type="button" class="premium-edit" data-edit-entry="'+index+'" aria-label="Edit transaction '+(index+1)+'">✎ Edit</button></div></article>'}return html};
  window.setHistoryYear=function(year){const y=Number(year);if(!Number.isInteger(y)||y<1900||y>9999)return;selectedYear=y;range='year';render()};
  document.getElementById('view').addEventListener('click',e=>{const target=e.target.closest('[data-history-range]');if(target&&Object.hasOwn(labels,target.dataset.historyRange)){range=target.dataset.historyRange;render()}});
+ document.getElementById('view').addEventListener('submit',event=>{
+  if(event.target.id!=='history-custom-range')return;
+  event.preventDefault();
+  const start=event.target.elements.namedItem('start').value;
+  const end=event.target.elements.namedItem('end').value;
+  if(!validISO(start)||!validISO(end)){alert('Choose a valid start and end date.');return}
+  if(start>end){alert('Start Date cannot be after End Date.');return}
+  selectedStart=start;selectedEnd=end;range='custom';render();
+ });
+ document.getElementById('view').addEventListener('click',event=>{
+  const reset=event.target.closest('[data-reset-history-dates]');
+  if(reset){selectedStart='';selectedEnd='';range='all';render();return}
+  const pdf=event.target.closest('[data-download-history]');
+  if(!pdf)return;
+  const {rows}=filterHistoryByBank(historyPeriodRows());
+  if(!rows.length){alert('No transactions in this date range.');return}
+  if(typeof window.downloadHistoryStatement!=='function'){alert('PDF generator unavailable. Please refresh the app.');return}
+  const bank=selectedBankName?selectedBankName.toUpperCase():'All banks';
+  try{
+   const detailed=rows.map(row=>{
+    const e=row.entry;
+    const source=data.banks.find(b=>String(b.id)===String(e.bankId))?.name||e.fromBank||e.bank||'Unassigned';
+    const dest=e.type==='Transfer'?(data.banks.find(b=>String(b.id)===String(e.toBankId))?.name||e.toBank||'Unassigned'):'';
+    return {...row,bank:dest?source+' to '+dest:source};
+   });
+   window.downloadHistoryStatement({rows:detailed,period:historyPeriodLabel(),bank});
+  }catch(error){console.error('Statement download failed:',error);alert('Could not generate the PDF. Please try again.')}
+ });
 })();
