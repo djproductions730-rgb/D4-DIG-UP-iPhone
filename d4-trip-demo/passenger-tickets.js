@@ -3,11 +3,11 @@ const seed=['4445391086','4765359971','4445389483'];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const api=()=>window.D4TripTicketsBridge;
 let selected=0,editing=false;
-function tickets(){const data=api()?.read();return data?.length?data:seed.map(pnr=>({pnr,passengers:[],imageName:''}));}
+function tickets(){const data=api()?.read();return Array.isArray(data)?data:seed.map(pnr=>({pnr,passengers:[],imageName:''}));}
 function save(data){if(!api()?.canEdit())return alert('Only admins can edit tickets');api().save(data);editing=false;draw();}
 function draw(){
 const host=document.getElementById('d4-passenger-tickets');if(!host)return;
-const all=tickets();selected=Math.min(selected,all.length-1);const t=all[selected]||{pnr:'',passengers:[]};const admin=api()?.canEdit();
+const all=tickets();selected=Math.max(0,Math.min(selected,all.length-1));const t=all[selected]||{pnr:'',passengers:[]};const admin=api()?.canEdit();
 host.innerHTML='<div class="d4-pt-head"><h3>🎟️ Passenger E-Tickets</h3><p>PNR-wise passenger names, coach, seat and berth details</p></div>'+
 '<div class="d4-pt-tabs">'+all.map((x,i)=>'<button type="button" data-pt-tab="'+i+'" class="'+(selected===i?'active':'')+'">Ticket '+(i+1)+'</button>').join('')+'</div>'+
 '<div class="d4-pt-paper"><small>PNR NUMBER</small><h2>'+esc(t.pnr)+'</h2><div class="d4-pt-people">'+(t.passengers?.length?t.passengers.map((p,i)=>'<div class="d4-pt-person"><span>👤</span><div><strong>'+esc(p.name||'Passenger '+(i+1))+'</strong><small>'+esc(p.coach||'Coach pending')+' · '+esc(p.seat||'Seat pending')+' · '+esc(p.berth||'Berth pending')+'</small></div></div>').join(''):'<p class="d4-pt-empty">Passenger names not added yet. Upload your ticket or add details manually.</p>')+'</div>'+(t.imageName?'<small>📎 '+esc(t.imageName)+' (file name only)</small>':'')+'</div>'+
@@ -19,7 +19,7 @@ document.addEventListener('click',e=>{const h=e.target.closest('#d4-passenger-ti
 if(b.hasAttribute('data-pt-tab')){selected=Number(b.dataset.ptTab);editing=false;draw();}
 if(!api()?.canEdit())return;
 if(b.hasAttribute('data-pt-edit')||b.hasAttribute('data-pt-passenger')){editing=true;draw();if(b.hasAttribute('data-pt-passenger'))document.querySelector('#d4-pt-fields')?.insertAdjacentHTML('beforeend',personFields());}
-if(b.hasAttribute('data-pt-add')){const a=tickets();a.push({pnr:'',passengers:[]});save(a);selected=a.length-1;editing=true;draw();}
+if(b.hasAttribute('data-pt-add')){const a=tickets();a.push({pnr:'',passengers:[]});selected=a.length-1;editing=true;draw();}
 if(b.hasAttribute('data-pt-more'))document.querySelector('#d4-pt-fields')?.insertAdjacentHTML('beforeend',personFields());
 if(b.hasAttribute('data-pt-remove'))b.closest('.d4-pt-fields')?.remove();
 if(b.hasAttribute('data-pt-cancel')){editing=false;draw();}
