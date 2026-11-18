@@ -47,20 +47,3 @@ jobs:
           npm install --no-save --ignore-scripts firebase-tools@15.34.2
           npx firebase hosting:sites:get d4-trip --project d4-trip --non-interactive
           echo "Read-only Hosting authorization check succeeded; NO DEPLOYMENT performed."
-      - name: Check access to the live Firestore rules (read only)
-        run: |
-          set -euo pipefail
-          token="$(gcloud auth print-access-token)"
-          base='https://firebaserules.googleapis.com/v1'
-          status=$(curl -sS -o /tmp/d4-rule-release.json -w '%{http_code}' -H "Authorization: Bearer $token" "$base/projects/d4-trip/releases/cloud.firestore")
-          echo "Firestore Rules release read HTTP $status"
-          [ "$status" = 200 ]
-          ruleset=$(jq -er .rulesetName /tmp/d4-rule-release.json)
-          status=$(curl -sS -o /tmp/d4-live-ruleset.json -w '%{http_code}' -H "Authorization: Bearer $token" "$base/$ruleset")
-          echo "Firestore Rules source read HTTP $status"
-          [ "$status" = 200 ]
-          jq -erj '.source.files[] | select(.name=="firestore.rules") | .content' /tmp/d4-live-ruleset.json > /tmp/d4-current.rules
-          sha256sum /tmp/d4-current.rules d4-trip-demo/firestore.rules
-          status=$(curl -sS -o /tmp/d4-rule-permissions.json -w '%{http_code}' -X POST -H "Authorization: Bearer $token" -H 'Content-Type: application/json' -d '{"permissions":["firebaserules.rulesets.create","firebaserules.releases.update"]}' 'https://cloudresourcemanager.googleapis.com/v1/projects/d4-trip:testIamPermissions')
-          echo "Firestore Rules write permission check HTTP $status"
-          if [ "$status" = 200 ]; then jq -c .permissions /tmp/d4-rule-permissions.json; fi

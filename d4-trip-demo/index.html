@@ -666,6 +666,81 @@ let d4SelectedTransport='train';
 let d4TicketDirection='up';
 const d4DirectionLabel=direction=>direction==='down'?'Down':'Up';
 const d4TicketCount=count=>count+' '+(count===1?'ticket':'tickets');
+const D4_TICKET_DEVICE_BYTES=3000000;
+const usesCloudTicketStorage=()=>!!teamId||!!window.D4TripCloud?.linked;
+const isDeviceTicketFile=attachment=>typeof attachment?.deviceKey==='string'&&attachment.deviceKey.startsWith('ticket:');
+async function storeDeviceTicketFile(file){
+ const type=file.type||(/\.pdf$/i.test(file.name)?'application/pdf':'');
+ if(type!=='application/pdf'&&!type.startsWith('image/'))throw Error('Choose a PDF or image: '+file.name);
+ if(!file.size||file.size>D4_TICKET_DEVICE_BYTES)throw Error('Choose a file between 1 byte and 3 MB: '+file.name);
+ const deviceKey='ticket:'+uid();
+ await memoryBlobSave(deviceKey,file);
+ return {name:file.name,type,deviceKey};
+}
+function deleteDeviceTicketFile(attachment){
+ if(isDeviceTicketFile(attachment))return memoryBlobDelete(attachment.deviceKey).catch(()=>{});
+}
+async function viewTicketFile(ticket){
+ const file=ticket?.attachment;
+ if(file?.data)return fileDownload(file);
+ if(!isDeviceTicketFile(file))return toast(ticket?'No file attached to this ticket.':'Ticket not found');
+ try{
+   const blob=await memoryBlobGet(file.deviceKey);
+   if(!blob)return toast('This ticket file is stored on the device where it was added.');
+   const url=URL.createObjectURL(blob);
+   fileDownload({...file,data:url});
+   setTimeout(()=>URL.revokeObjectURL(url),5000);
+ }catch(error){toast('Could not open ticket file: '+error.message);}
+}
+function readTicketDataURL(blob){
+ return new Promise((resolve,reject)=>{
+   const reader=new FileReader();
+   reader.onload=()=>resolve(reader.result);
+   reader.onerror=()=>reject(Error('Could not read ticket file'));
+   reader.readAsDataURL(blob);
+ });
+}
+async function exportTripBackup(prefix){
+ try{
+   const backup=structuredClone(db);
+   for(const trip of backup.trips){
+     for(const ticket of (trip.tickets||[])){
+       const file=ticket.attachment;
+       if(!isDeviceTicketFile(file))continue;
+       const blob=await memoryBlobGet(file.deviceKey);
+       if(!blob)throw Error('Open the device with '+file.name+' to export this trip with its tickets.');
+       file.data=await readTicketDataURL(blob);
+       delete file.deviceKey;
+       file.deviceFile=true;
+     }
+   }
+   downloadText(prefix+today()+'.json',JSON.stringify(backup,null,2));
+   toast('Backup exported');
+ }catch(error){toast('Backup failed: '+error.message);}
+}
+async function restoreTripBackup(value){
+ const staged=[];
+ const before=db;
+ try{
+   for(const trip of value.trips){
+     for(const ticket of (trip.tickets||[])){
+       const file=ticket.attachment;
+       if(typeof file?.data!=='string'||(!file.deviceFile&&file.data.length<=400000))continue;
+       if(usesCloudTicketStorage())throw Error('Restore this backup in a device-only trip to include its large ticket files.');
+       if(!/^data:(application\/pdf|image\/[a-z0-9.+-]+)?;base64,/i.test(file.data))throw Error('Invalid ticket file in backup.');
+       const blob=await (await fetch(file.data)).blob();
+       ticket.attachment=await storeDeviceTicketFile(new File([blob],file.name,{type:file.type||blob.type}));
+       staged.push(ticket.attachment);
+     }
+   }
+   db=value;
+   if(!persist())throw Error('Trip data storage is full.');
+ }catch(error){
+   db=before;
+   await Promise.all(staged.map(deleteDeviceTicketFile));
+   throw error;
+ }
+}
 function d4TicketsPage(){
  const t=current()||visibleTrips()[0],admin=!!t&&isTripAdmin(t);
  const item=d4TransportModes.find(x=>x[0]===d4SelectedTransport)||d4TransportModes[0];
@@ -901,7 +976,7 @@ case 'd4-ticket-editor':{
  <input id="f_ticketFiles" type="file" accept="image/*,.pdf,application/pdf" ${existing?'':'multiple'} hidden>
  <button class="btn ghost block d4-ticket-choose" type="button" data-action="d4-ticket-choose">＋ Choose files</button>
  <ul class="d4-ticket-queue" id="d4-ticket-queue" aria-label="Selected files"></ul>
- <p class="muted">PDFs and processed images must be under 300 KB per file.</p>
+ <p class="muted">${usesCloudTicketStorage()?'Cloud trips: PDFs and processed images up to 300 KB per file.':'PDFs and images up to 3 MB per file. Files are stored on this device.'}</p>
  <p id="d4-ticket-form-error" class="tiny" role="alert" hidden></p>`;
  break;
 }
@@ -932,15 +1007,21 @@ case 'd4-ticket-editor':{
  submit.disabled=true;
  submit.textContent='Preparing files…';
  error.hidden=true;
+ const attachments=[],cloudStorage=usesCloudTicketStorage();
+ let saved=false;
  try{
-   const attachments=[];
    for(const file of context.files){
+     if(!cloudStorage){
+       attachments.push(await storeDeviceTicketFile(file));
+       continue;
+     }
      const attachment=await readAttachment(file);
      if(!attachment||attachment.data.length>400000)throw Error('Use a PDF or image under 300 KB after processing: '+file.name);
      attachments.push(attachment);
    }
    const liveTrip=trip(context.tripId);
    if(modalContext!==context||!isTripAdmin(liveTrip)||!canSee(liveTrip))return;
+   if(cloudStorage!==usesCloudTicketStorage())throw Error('Cloud connection changed. Try adding the files again.');
    const previous=Array.isArray(liveTrip.tickets)?liveTrip.tickets:[];
    const existing=previous.find(x=>x.id===context.ticketId);
    if(context.ticketId&&!existing)throw Error('Ticket no longer exists.');
@@ -957,12 +1038,15 @@ case 'd4-ticket-editor':{
        throw Error('These files exceed the trip’s available shared storage. Choose smaller files.');
      }
    });
+   saved=true;
+   if(!teamId)void deleteDeviceTicketFile(existing?.attachment);
    d4TicketDirection=context.direction;
    closeModal();render();
    toast(teamId?'Saving '+d4TicketCount(attachments.length)+' to the shared trip…':existing?'Ticket file replaced':d4TicketCount(attachments.length)+' added');
  }catch(err){
    if(modalContext===context){error.textContent=err.message;error.hidden=false;}
  }finally{
+   if(!saved)await Promise.all(attachments.map(deleteDeviceTicketFile));
    if(modalContext===context){delete form.dataset.busy;renderTicketQueue();}
  }
  return;
@@ -1146,11 +1230,10 @@ case 'd4-ticket-remove-file':
    $('#activeForm .d4-ticket-choose').focus();
  }
  break;
-case 'd4-ticket-delete':{if(!ensurePermission(isTripAdmin(t)))return;const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket&&confirm('Delete ticket '+ticket.title+'?')){try{saveTripChange(t,()=>{t.tickets=t.tickets.filter(x=>x.id!==ticket.id)});render();toast('Ticket removed')}catch(e){toast(e.message)}}break;}
+case 'd4-ticket-delete':{if(!ensurePermission(isTripAdmin(t)))return;const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket&&confirm('Delete ticket '+ticket.title+'?')){try{saveTripChange(t,()=>{t.tickets=t.tickets.filter(x=>x.id!==ticket.id)});if(!teamId)void deleteDeviceTicketFile(ticket.attachment);render();toast('Ticket removed')}catch(e){toast(e.message)}}break;}
 case 'd4-ticket-view':{
  const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);
- if(ticket?.attachment?.data)fileDownload(ticket.attachment);
- else toast(ticket?'No file attached to this ticket.':'Ticket not found');
+ void viewTicketFile(ticket);
  break;
 }
 case 'nav':{let target=el.dataset.view,tab=el.dataset.tab;if(el.classList.contains('quick')){target=target==='nav'?'chat':target;}go(target,tab);break}
@@ -1201,7 +1284,7 @@ case 'attach-chat':$('#chatAttachment').click();break;
 case 'pdf':printReport(t);break;
 case 'report-trip':{const target=trip(el.dataset.id);if(canSee(target)){activeTrip=target.id;tripTab='report';go('trip')}break}
 case 'share-report':shareSummary();break;
-case 'backup':downloadText('D4-Trip-Backup-'+today()+'.json',JSON.stringify(db,null,2));toast('Backup exported');break;
+case 'backup':void exportTripBackup('D4-Trip-Backup-');break;
 case 'import':$('#backupImport').click();break;
 case 'reset':if(confirm('Clear all local trip data? This cannot be undone unless you have a backup.')){db=emptyData();profile='Karthik';localStorage.setItem(USER_STORE,profile);persist();go('entry');toast('Local trips cleared')}break;
 }}
@@ -1225,11 +1308,11 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
  const memberSelect=$('#f_member');
  if(memberSelect)memberSelect.innerHTML=members.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
 }
-if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;db=value;persist();activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
+if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;await restoreTripBackup(value);activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=74',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
-window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=75',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>exportTripBackup('D4-Trip-Local-Backup-'),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
 </script>

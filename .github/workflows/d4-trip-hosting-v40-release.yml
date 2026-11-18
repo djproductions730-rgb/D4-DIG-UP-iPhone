@@ -1,4 +1,4 @@
-name: D4 Trip Ticket Files Release
+name: D4 Trip Device Ticket Files Release
 on:
   push:
     branches:
