@@ -674,7 +674,7 @@ async function storeDeviceTicketFile(file){
  if(type!=='application/pdf'&&!type.startsWith('image/'))throw Error('Choose a PDF or image: '+file.name);
  if(!file.size||file.size>D4_TICKET_DEVICE_BYTES)throw Error('Choose a file between 1 byte and 3 MB: '+file.name);
  const deviceKey='ticket:'+uid();
- await memoryBlobSave(deviceKey,file);
+ await memoryBlobSave(deviceKey,file.type===type?file:new Blob([file],{type}));
  return {name:file.name,type,deviceKey};
 }
 function deleteDeviceTicketFile(attachment){

@@ -54,6 +54,7 @@ jobs:
             'modern-card-pdf.js','modern-card-pdf.css','report-readability.css','goa-payment-v50.css','goa-train-v51.css']){
             assert.ok(fs.statSync('d4-trip-demo/'+file).size>100,'Missing trip asset '+file);
           }
+          assert.ok(html.includes('D4_TICKET_DEVICE_BYTES=3000000'), 'Missing 3 MB device ticket limit');
           console.log('PASS: v53 Hosting-only build and AI milestone illustrations');
           NODE
 
