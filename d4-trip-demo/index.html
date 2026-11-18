@@ -345,6 +345,17 @@ body.d4-premium .ref-trip-hero .d4-team-sync-guide.d4-sync-minimal{position:abso
 body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-width:108px!important;padding:8px 12px!important;font-size:12px!important;border-radius:15px!important}
 @media(max-width:390px){body.d4-premium .ref-trip-hero .d4-team-sync-guide.d4-sync-minimal{top:91px!important;right:8px!important}}
 </style><link rel="stylesheet" href="./icon-picker.css?build=71">
+
+<style id="d4-ticket-upload-v74">
+.d4-ticket-v62 .d4-ticket-journey{display:grid;justify-items:stretch;gap:5px;min-width:0}
+.d4-ticket-v62 .d4-ticket-journey .d4-ticket-upload-button{background:linear-gradient(135deg,#a1d3ff,#559ad7);color:#092440;font-size:13px;min-height:44px;padding:6px}
+.d4-ticket-v62 .d4-ticket-journey:nth-child(2) .d4-ticket-upload-button{background:linear-gradient(135deg,#a0e6da,#58b7b4)}
+.d4-ticket-v62 .d4-ticket-entry-detail b,.d4-ticket-queue li span{overflow-wrap:anywhere}
+.d4-ticket-v62 .d4-ticket-entry-icon{font-size:14px;font-weight:900;color:#ffdf92}
+.d4-ticket-queue{padding:0;list-style:none;display:grid;gap:6px;margin:10px 0 0}
+.d4-ticket-queue li{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:5px 8px}
+.d4-ticket-queue li .btn,.d4-ticket-choose{min-height:44px}
+</style>
 </head>
 <body>
   <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip cinematic welcome" hidden>
@@ -652,39 +663,40 @@ function tripCard(t){const d=datesInTrip(t);return `<button class="card trip-car
 function feature(icon,title,desc,action){return `<button class="feature-card" style="width:100%;color:inherit;text-align:left;cursor:pointer" data-action="${action}"><span class="feature-icon">${graphicIcon(icon)}</span><span style="flex:1"><strong>${esc(title)}</strong><small>${esc(desc)}</small></span><span>›</span></button>`}
 const d4TransportModes=[['train','🚆','Train'],['bus','🚌','Bus'],['car','🚗','Car'],['bike','🏍️','Bike'],['ship','🚢','Ship'],['flight','✈️','Flight']];
 let d4SelectedTransport='train';
-let d4TicketListOpen=false;
-let d4TicketDirection='up',d4TicketPaymentFilter='all';
+let d4TicketDirection='up';
+const d4DirectionLabel=direction=>direction==='down'?'Down':'Up';
+const d4TicketCount=count=>count+' '+(count===1?'ticket':'tickets');
 function d4TicketsPage(){
  const t=current()||visibleTrips()[0],admin=!!t&&isTripAdmin(t);
  const item=d4TransportModes.find(x=>x[0]===d4SelectedTransport)||d4TransportModes[0];
  const all=(Array.isArray(t?.tickets)?t.tickets:[]).filter(x=>x.mode===d4SelectedTransport);
- const directional=all.filter(x=>(x.direction==='down'?'down':'up')===d4TicketDirection);
- const filtered=directional.filter(x=>d4TicketPaymentFilter==='all'||x.status===d4TicketPaymentFilter);
- const paymentKey=d4SelectedTransport+'_'+d4TicketDirection;
- const payment=(t?.ticketPaymentCounts||{})[paymentKey]||{};
- const totalMembers=Math.max(0,Number(payment.totalMembers)||0),paid=Math.min(totalMembers,Math.max(0,Number(payment.paidMembers)||0)),unpaid=totalMembers-paid;
- const ticketPrice=Math.max(0,Number(payment.ticketPrice)||0),sum=totalMembers*ticketPrice,paidSum=paid*ticketPrice;
- const icon={train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[d4SelectedTransport]||item[1];
- const directionLabel=d4TicketDirection==='up'?'Up Ticket · Going':'Down Ticket · Return';
+ const journeys={up:all.filter(x=>x.direction!=='down'),down:all.filter(x=>x.direction==='down')};
+ const directional=journeys[d4TicketDirection];
+ const directionLabel=d4DirectionLabel(d4TicketDirection)+' Tickets';
+ const icons={train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'};
  return `<section class="d4-ticket-page d4-ticket-v62">
  <button class="btn ghost small" data-action="nav" data-view="home">← Home</button>
  <div class="d4-ticket-premium-head"><b>✦ D4 <i>Trip</i></b><span>YOUR TRAVEL TICKETS</span></div>
- <div class="d4-ticket-modes">${d4TransportModes.map(x=>`<button class="d4-ticket-mode ${x[0]===d4SelectedTransport?'selected':''}" data-action="d4-ticket-mode" data-mode="${x[0]}" aria-pressed="${x[0]===d4SelectedTransport}"><span>${{train:'🚄',bus:'🚍',car:'🚘',bike:'🏍️',ship:'🛳️',flight:'🛫'}[x[0]]}</span><b>${x[2]}</b></button>`).join('')}</div>
+ <div class="d4-ticket-modes">${d4TransportModes.map(x=>`<button class="d4-ticket-mode ${x[0]===d4SelectedTransport?'selected':''}" data-action="d4-ticket-mode" data-mode="${x[0]}" aria-pressed="${x[0]===d4SelectedTransport}"><span>${icons[x[0]]||x[1]}</span><b>${x[2]}</b></button>`).join('')}</div>
  <div class="d4-ticket-stage d4-ticket-stage-premium">
  <div class="d4-ticket-hero-label">🎟️ ${item[2]} Tickets</div>
- <div class="d4-ticket-hero-counts"><div class="d4-paid-number"><small>✓ PAID</small><strong>${paid}</strong></div><div class="d4-unpaid-number"><small>⌛ UNPAID</small><strong>${unpaid}</strong></div></div>
- <div class="d4-ticket-vehicle" aria-label="${item[2]}">${icon}</div>
- <div class="d4-ticket-hero-caption">${esc(directionLabel)} · ${directional.length} saved tickets</div></div>
- <div class="d4-ticket-stats">
- <div><span>👥</span><small>Total Members</small><strong>${totalMembers}</strong></div>
- <div><span>🎟️</span><small>Ticket Price</small><strong>${money(ticketPrice)}</strong></div>
- <div><span>💰</span><small>Total Amount</small><strong>${money(sum)}</strong></div>
- <div><span>✅</span><small>Received</small><strong>${money(paidSum)}</strong></div><div><span>⌛</span><small>Pending</small><strong>${money(sum-paidSum)}</strong></div></div>
- ${admin?'<button class="btn sun d4-ticket-payment-edit" data-action="d4-ticket-payment-edit">✎ Edit Member Payment Count</button>':''}
- ${admin?`<div class="d4-ticket-admin-actions"><button class="btn sun" data-action="d4-ticket-add">＋ Add Ticket</button><button class="btn mint" data-action="d4-ticket-add">☁ Upload Ticket</button><button class="btn ghost" data-action="d4-ticket-manage">✎ Edit Tickets</button></div>`:''}
- <div class="d4-ticket-directions" role="group" aria-label="Ticket journey direction"><button class="${d4TicketDirection==='up'?'active':''}" data-action="d4-ticket-direction" data-direction="up" aria-pressed="${d4TicketDirection==='up'}">↑ Up Ticket <small>Going</small></button><button class="${d4TicketDirection==='down'?'active':''}" data-action="d4-ticket-direction" data-direction="down" aria-pressed="${d4TicketDirection==='down'}">↓ Down Ticket <small>Return</small></button></div>
- ${d4TicketListOpen?'<section class="d4-ticket-library"><div class="d4-ticket-library-heading"><h3>🎟️ '+esc(directionLabel)+' ('+directional.length+')</h3><button class="btn ghost small" data-action="d4-ticket-files">← Back</button></div>'+(admin?'<button class="btn sun d4-ticket-add-another" data-action="d4-ticket-add">＋ Add Another Ticket</button>':'')+'<div class="d4-ticket-filters">'+[['all','All'],['paid','Paid'],['unpaid','Unpaid']].map(x=>'<button data-action="d4-ticket-filter" data-filter="'+x[0]+'" class="'+(d4TicketPaymentFilter===x[0]?'active':'')+'">'+x[1]+' ('+(x[0]==='all'?directional.length:directional.filter(y=>y.status===x[0]).length)+')</button>').join('')+'</div>'+(filtered.length?filtered.map(x=>'<article class="d4-ticket-entry"><span class="d4-ticket-entry-icon">'+icon+'</span><div class="d4-ticket-entry-detail"><b>'+esc(x.title)+'</b><p>📅 '+esc(x.date||'No date')+' · '+money(Number(x.price||0))+'</p><span class="'+(x.status==='paid'?'d4-ticket-ok':'d4-ticket-due')+'">'+(x.status==='paid'?'✓ Paid':'⌛ Unpaid')+'</span></div><div class="d4-ticket-entry-actions"><button class="btn small ghost" data-action="d4-ticket-view" data-id="'+esc(x.id)+'" aria-label="View ticket">👁 View</button>'+(admin?'<button class="btn small ghost" data-action="d4-ticket-edit" data-id="'+esc(x.id)+'" aria-label="Edit ticket">✎</button><button class="btn small ghost" data-action="d4-ticket-delete" data-id="'+esc(x.id)+'" aria-label="Delete ticket">🗑</button>':'')+'</div></article>').join(''):'<p class="d4-ticket-empty">No tickets uploaded in this selection.</p>')+'</section>':''}
- ${!t?'<p class="muted">Open a trip to view its tickets.</p>':''}</section>`;
+ <div class="d4-ticket-vehicle" aria-label="${item[2]}">${icons[item[0]]||item[1]}</div>
+ <div class="d4-ticket-hero-caption">${d4TicketCount(all.length)} saved</div></div>
+ <div class="d4-ticket-directions" role="group" aria-label="Ticket journey direction">
+ ${Object.entries(journeys).map(([direction,entries])=>`<div class="d4-ticket-journey">
+ <button class="${direction===d4TicketDirection?'active':''}" data-action="d4-ticket-direction" data-direction="${direction}" aria-pressed="${direction===d4TicketDirection}">${direction==='up'?'↑':'↓'} ${d4DirectionLabel(direction)} Tickets <small>${d4TicketCount(entries.length)}</small></button>
+ ${admin?`<button class="btn d4-ticket-upload-button" data-action="d4-ticket-add" data-direction="${direction}" aria-label="Add ${d4DirectionLabel(direction)} Tickets">＋ Add Tickets</button>`:''}
+ </div>`).join('')}</div>
+ <section class="d4-ticket-library">
+ <div class="d4-ticket-library-heading"><h3>🎟️ ${directionLabel} (${directional.length})</h3></div>
+ ${directional.length?directional.map((x,index)=>`<article class="d4-ticket-entry">
+ <span class="d4-ticket-entry-icon">#${String(index+1).padStart(2,'0')}</span>
+ <div class="d4-ticket-entry-detail"><b>${esc(x.title||x.attachment?.name||'Ticket')}</b>${x.date?`<p>📅 ${esc(x.date)}</p>`:''}</div>
+ <div class="d4-ticket-entry-actions">
+ <button class="btn small ghost" data-action="d4-ticket-view" data-id="${esc(x.id)}" aria-label="View ticket ${index+1}">👁 View</button>
+ ${admin?`<button class="btn small ghost" data-action="d4-ticket-edit" data-id="${esc(x.id)}" aria-label="Replace file for ticket ${index+1}">✎</button><button class="btn small ghost" data-action="d4-ticket-delete" data-id="${esc(x.id)}" aria-label="Delete ticket ${index+1}">🗑</button>`:''}
+ </div></article>`).join(''):`<p class="d4-ticket-empty">${t?'No tickets uploaded for this journey.':'Open a trip to view its tickets.'}</p>`}
+ </section></section>`;
 }
 
 function home(){const vt=visibleTrips(),t=current(),totalExpenses=totalAll(),pending=vt.reduce((s,x)=>s+collectionTotals(x).pending,0);
@@ -875,57 +887,85 @@ case 'plan-dates':{if(!ensurePermission(isTripAdmin(t)))return;title='📅 Edit 
 case 'reminder':if(!ensurePermission(canSee(t)))return;title='⏰ Local Reminder';button='Save Local Reminder';body=`<div class="notice">Reminds you on this device while D4 Trip is open. Background/closed-app alarms are not guaranteed; no group push is sent.</div><div style="height:12px"></div>${field('title','Reminder message','Wake up! ☀️','text','required maxlength="160"')}${field('date','Reminder date',today(),'date','required')}${field('time','Alarm time',new Date(Date.now()+120000).toTimeString().slice(0,5),'time','required')}`;break;
 case 'note':if(!ensurePermission(isTripAdmin(t)))return;title='📝 Save Trip Notes';button='Save Note';body=`${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field"><label for="noteText">Notes / packing list / places to visit</label><textarea class="textarea" id="noteText" name="text" required maxlength="4000" placeholder="Write anything about the trip..."></textarea></div>`;break;
 case 'memory':if(!ensurePermission(canSee(t)))return;title='📸 Add Trip Memory';button='Upload to Memories';body=`<div class="notice">Your photos & videos stay on this device in browser storage. No cloud backup.</div><div style="height:12px"></div><div class="field"><label>Photos or videos (multiple)</label><input class="input" name="media" type="file" accept="image/*,video/*" multiple required></div>${field('caption','Memory caption','Goa highlights!','text','maxlength="160"')}${field('date','Trip day',t.start,'date','required')}`;break;
-case 'd4-ticket-payment-count':{
- if(!ensurePermission(!!t&&isTripAdmin(t)))return;
- const key=d4SelectedTransport+'_'+d4TicketDirection,values=(t.ticketPaymentCounts||{})[key]||{};
- title='✎ Edit Ticket Member Count';button='Save Payment Count';
- body='<p class="muted">This is only a member payment summary. Ticket PDF uploads stay separate.</p>'+
- field('totalMembers','Total Members',values.totalMembers??0,'number','required min="0" max="100000" step="1"')+
- field('paidMembers','Paid Members',values.paidMembers??0,'number','required min="0" max="100000" step="1"')+
- field('ticketPrice','Price per Member (₹)',values.ticketPrice??0,'number','required min="0" max="10000000" step="0.01"')+
- '<p class="muted">Unpaid Members, Total, Received and Pending calculate automatically.</p>';
- break;
-}
 case 'd4-ticket-editor':{
  if(!ensurePermission(isTripAdmin(t)))return;
- const existing=(t.tickets||[]).find(x=>x.id===context.ticketId);
- title=existing?'✏️ Edit Ticket':'🎟️ Add Ticket';button=existing?'Save Ticket Changes':'Upload & Save Ticket';
- body=selectField('direction','Journey','<option value="up" '+((existing?.direction||d4TicketDirection)==='up'?'selected':'')+'>↑ Up Ticket (Going)</option><option value="down" '+((existing?.direction||d4TicketDirection)==='down'?'selected':'')+'>↓ Down Ticket (Return)</option>')+
- field('title','Ticket title / route',existing?.title||'','text','required maxlength="100" placeholder="Chennai to Goa"')+
- field('date','Travel date',existing?.date||today(),'date','required')+
- field('price','Ticket price (₹)',existing?.price||0,'number','min="0" max="10000000" step="0.01" required')+
- selectField('status','Payment status','<option value="paid" '+(existing?.status==='paid'?'selected':'')+'>Paid</option><option value="unpaid" '+(existing?.status==='unpaid'?'selected':'')+'>Unpaid</option>')+
- '<div class="field"><label for="f_ticketFile">Ticket PDF or image (optional for edits)</label><input id="f_ticketFile" name="ticketFile" class="input" type="file" accept="image/*,.pdf,application/pdf"></div>'+
- '<p class="muted">Small PDF or image files only. Shared trip tickets are saved with trip data; files must remain below 300 KB after processing.</p>';
+ const existing=context.ticketId?(t.tickets||[]).find(x=>x.id===context.ticketId):null;
+ if(context.ticketId&&!existing){closeModal();return toast('Ticket not found');}
+ context.tripId=t.id;
+ context.direction=existing?(existing.direction==='down'?'down':'up'):context.direction;
+ context.mode=existing?.mode||d4SelectedTransport;
+ context.files=[];
+ title=existing?'Replace Ticket File':'Add '+d4DirectionLabel(context.direction)+' Tickets';
+ button=existing?'Replace file':'Add tickets';
+ body=`<p class="muted">${existing?'Choose a replacement PDF or image.':'Choose one or more PDFs or images.'}</p>
+ <input id="f_ticketFiles" type="file" accept="image/*,.pdf,application/pdf" ${existing?'':'multiple'} hidden>
+ <button class="btn ghost block d4-ticket-choose" type="button" data-action="d4-ticket-choose">＋ Choose files</button>
+ <ul class="d4-ticket-queue" id="d4-ticket-queue" aria-label="Selected files"></ul>
+ <p class="muted">PDFs and processed images must be under 300 KB per file.</p>
+ <p id="d4-ticket-form-error" class="tiny" role="alert" hidden></p>`;
  break;
 }
 case 'file':if(!ensurePermission(isTripAdmin(t)))return;title='📎 Upload Trip File';button='Save File';body=`<div class="notice" style="margin-bottom:14px">Local storage demo supports image/PDF up to 350 KB per file.</div><div class="field"><label>Choose photo or PDF</label><input class="input" type="file" name="file" accept="image/*,.pdf,application/pdf" required></div>`;break;
 default:return}
 $('#modalRoot').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
-
+ if(name==='d4-ticket-editor')renderTicketQueue();
+}
+function renderTicketQueue(){
+ const {files,ticketId}=modalContext;
+ const form=$('#activeForm'),submit=form.querySelector('[type="submit"]');
+ $('#d4-ticket-queue').innerHTML=files.map((file,index)=>`<li><span>${esc(file.name)}</span><button type="button" class="btn ghost small" data-action="d4-ticket-remove-file" data-index="${index}" aria-label="Remove ${esc(file.name)}">Remove</button></li>`).join('');
+ const choose=form.querySelector('.d4-ticket-choose');
+ choose.textContent=files.length?(ticketId?'Choose a different file':'＋ Add more files'):'＋ Choose files';
+ submit.disabled=!files.length;
+ submit.textContent=ticketId?'Replace file':files.length?'Add '+d4TicketCount(files.length):'Add tickets';
 }
 function closeModal(){activeModal='';modalContext={};$('#modalRoot').innerHTML=''}
 function generateCode(tname){const prefix='D4'+String(tname).replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,4);let code;do{const rand=globalThis.crypto?.getRandomValues?Array.from(crypto.getRandomValues(new Uint8Array(3))).map(b=>(b%36).toString(36)).join('').toUpperCase():Math.random().toString(36).slice(2,6).toUpperCase();code=prefix+rand;}while(db.trips.some(t=>t.code===code));return code;}
 function readAttachment(file){return new Promise((resolve,reject)=>{if(!file||!file.size)return resolve(null);if(!file.type.startsWith('image/')&&file.type!=='application/pdf')return reject(new Error('Only photos or PDF bills accepted.'));if(file.type==='application/pdf'){if(file.size>350000)return reject(new Error('PDF bills must be under 350 KB in this offline demo.'));const fr=new FileReader();fr.onerror=()=>reject(new Error('Unable to read PDF'));fr.onload=()=>resolve({name:file.name,type:file.type,data:fr.result});fr.readAsDataURL(file);return;}if(file.size>12000000)return reject(new Error('Photo must be under 12 MB.'));const url=URL.createObjectURL(file);const img=new Image();img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error('Cannot open this photo. Try JPEG/PNG.'))};img.onload=()=>{try{const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);let data=canvas.toDataURL('image/jpeg',.68);URL.revokeObjectURL(url);if(data.length>650000)throw Error('Compressed image still too large; crop the receipt and try again.');resolve({name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data})}catch(e){URL.revokeObjectURL(url);reject(e)}};img.src=url})}
 async function saveForm(ev){ev.preventDefault();const fd=new FormData(ev.target),name=activeModal,t=(modalContext.tripId?trip(modalContext.tripId):current());try{switch(name){
-case 'd4-ticket-payment-count':{
- if(!t||!isTripAdmin(t))throw Error('Admins only');
- const totalMembers=Number(fd.get('totalMembers')),paidMembers=Number(fd.get('paidMembers')),ticketPrice=Number(fd.get('ticketPrice'));
- if(!Number.isInteger(totalMembers)||totalMembers<0||totalMembers>100000||!Number.isInteger(paidMembers)||paidMembers<0||paidMembers>totalMembers||!Number.isFinite(ticketPrice)||ticketPrice<0||ticketPrice>10000000)throw Error('Enter valid counts: Paid cannot exceed Total');
- const key=d4SelectedTransport+'_'+d4TicketDirection;
- saveTripChange(t,()=>{t.ticketPaymentCounts=t.ticketPaymentCounts||{};t.ticketPaymentCounts[key]={totalMembers,paidMembers,ticketPrice};});
- closeModal();render();toast('Member payment count saved');return;
-}
 case 'd4-ticket-editor':{
  if(!t||!isTripAdmin(t))throw Error('Admins only');
- const title=String(fd.get('title')||'').trim(),date=String(fd.get('date')||''),price=Number(fd.get('price')),status=String(fd.get('status'));
- const direction=String(fd.get('direction')||'up');if(!['up','down'].includes(direction))throw Error('Choose Going or Return');
- if(!title||title.length>100||!/^\\d{4}-\\d{2}-\\d{2}$/.test(date)||!Number.isFinite(price)||price<0||price>10000000||!['paid','unpaid'].includes(status))throw Error('Enter valid ticket details');
- const existing=(t.tickets||[]).find(x=>x.id===modalContext.ticketId);
- const file=fd.get('ticketFile');let attachment=existing?.attachment||null;
- if(file&&file.size){attachment=await readAttachment(file);if(attachment?.data?.length>400000)throw Error('Ticket file too large for shared trip data (max about 300 KB). Try a smaller PDF or image.');}
- saveTripChange(t,()=>{t.tickets=Array.isArray(t.tickets)?t.tickets:[];const updated={id:existing?.id||uid(),mode:existing?.mode||d4SelectedTransport,direction,title,date,price,status,attachment,by:profile};if(existing)Object.assign(existing,updated);else t.tickets.push(updated);});
- d4TicketListOpen=true;closeModal();render();toast('Ticket saved for your trip');return;
+ const form=ev.target,context=modalContext;
+ if(form.dataset.busy||!context.files.length)return;
+ form.dataset.busy='true';
+ const submit=form.querySelector('[type="submit"]'),error=$('#d4-ticket-form-error');
+ submit.disabled=true;
+ submit.textContent='Preparing files…';
+ error.hidden=true;
+ try{
+   const attachments=[];
+   for(const file of context.files){
+     const attachment=await readAttachment(file);
+     if(!attachment||attachment.data.length>400000)throw Error('Use a PDF or image under 300 KB after processing: '+file.name);
+     attachments.push(attachment);
+   }
+   const liveTrip=trip(context.tripId);
+   if(modalContext!==context||!isTripAdmin(liveTrip)||!canSee(liveTrip))return;
+   const previous=Array.isArray(liveTrip.tickets)?liveTrip.tickets:[];
+   const existing=previous.find(x=>x.id===context.ticketId);
+   if(context.ticketId&&!existing)throw Error('Ticket no longer exists.');
+   const tickets=existing?previous.map(x=>x===existing?{...x,attachment:attachments[0]}:x):[
+     ...previous,...attachments.map(attachment=>({
+       id:uid(),mode:context.mode,direction:context.direction,title:attachment.name,
+       attachment,by:profile
+     }))
+   ];
+   saveTripChange(liveTrip,()=>{
+     liveTrip.tickets=tickets;
+     const cloudData=teamId?liveTrip:window.D4TripCloud?.linked?db:null;
+     if(cloudData&&new TextEncoder().encode(JSON.stringify(cloudData)).byteLength>900000){
+       throw Error('These files exceed the trip’s available shared storage. Choose smaller files.');
+     }
+   });
+   d4TicketDirection=context.direction;
+   closeModal();render();
+   toast(teamId?'Saving '+d4TicketCount(attachments.length)+' to the shared trip…':existing?'Ticket file replaced':d4TicketCount(attachments.length)+' added');
+ }catch(err){
+   if(modalContext===context){error.textContent=err.message;error.hidden=false;}
+ }finally{
+   if(modalContext===context){delete form.dataset.busy;renderTicketQueue();}
+ }
+ return;
 }
 
 case 'collection-target':{if(!isMain()||!canSee(t))throw Error('Main Admin only');const amount=Number(fd.get('perPerson'));if(!Number.isFinite(amount)||amount<0||amount>100000000)throw Error('Invalid target');t.collection=t.collection||{targetPerPerson:0,payments:[]};t.collection.targetPerPerson=Math.round(amount*100)/100;persist();closeModal();view='collections';activeTrip=t.id;render();toast('Per-person trip target updated');return}
@@ -1087,24 +1127,32 @@ case 'goa-reset-payments':{
 }
 case 'collection-delete':{if(!ensurePermission(isTripAdmin(t)))return;const receipt=t.collection?.payments?.find(x=>x.id===el.dataset.id);if(!receipt)return;if(!confirm('Undo '+money(receipt.amount)+' received from '+receipt.member+'?'))return;t.collection.payments=t.collection.payments.filter(x=>x.id!==receipt.id);persist();render();toast('Payment entry removed');break;}
 case 'd4-ticket-mode':d4SelectedTransport=el.dataset.mode||'train';render();break;
-case 'd4-ticket-direction':d4TicketDirection=el.dataset.direction==='down'?'down':'up';d4TicketPaymentFilter='all';d4TicketListOpen=true;render();break;
-case 'd4-ticket-filter':d4TicketPaymentFilter=['all','paid','unpaid'].includes(el.dataset.filter)?el.dataset.filter:'all';d4TicketListOpen=true;render();break;
-case 'd4-ticket-manage':d4TicketListOpen=true;render();document.querySelector('.d4-ticket-library')?.scrollIntoView({behavior:'smooth',block:'start'});break;
-case 'd4-ticket-files':d4TicketListOpen=false;render();break;
-case 'd4-ticket-add':if(!ensurePermission(isTripAdmin(t)))return;openModal('d4-ticket-editor');break;
-case 'd4-ticket-edit':if(!ensurePermission(isTripAdmin(t)))return;openModal('d4-ticket-editor',{ticketId:el.dataset.id});break;
-case 'd4-ticket-payment-edit':if(!ensurePermission(!!t&&isTripAdmin(t)))return;openModal('d4-ticket-payment-count');break;
-case 'd4-ticket-status':{
- if(!ensurePermission(!!t&&isTripAdmin(t)))return;
- const next=el.dataset.status, ticket=(t.tickets||[]).find(x=>x.id===el.dataset.id);
- if(!ticket||!['paid','unpaid'].includes(next)){toast('Ticket not found');break;}
- if(ticket.status===next)break;
- try{saveTripChange(t,()=>{ticket.status=next});render();toast('Ticket marked '+(next==='paid'?'Paid':'Unpaid'));}
- catch(e){toast(e.message||'Could not update ticket');}
+case 'd4-ticket-direction':d4TicketDirection=el.dataset.direction==='down'?'down':'up';render();break;
+case 'd4-ticket-add':
+ if(!ensurePermission(isTripAdmin(t)))return;
+ openModal('d4-ticket-editor',{direction:el.dataset.direction==='down'?'down':'up'});
+ break;
+case 'd4-ticket-edit':
+ if(!ensurePermission(isTripAdmin(t)))return;
+ openModal('d4-ticket-editor',{ticketId:el.dataset.id});
+ break;
+case 'd4-ticket-choose':
+ if(activeModal==='d4-ticket-editor'&&!$('#activeForm').dataset.busy)$('#f_ticketFiles').click();
+ break;
+case 'd4-ticket-remove-file':
+ if(activeModal==='d4-ticket-editor'&&!$('#activeForm').dataset.busy){
+   modalContext.files.splice(Number(el.dataset.index),1);
+   renderTicketQueue();
+   $('#activeForm .d4-ticket-choose').focus();
+ }
+ break;
+case 'd4-ticket-delete':{if(!ensurePermission(isTripAdmin(t)))return;const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket&&confirm('Delete ticket '+ticket.title+'?')){try{saveTripChange(t,()=>{t.tickets=t.tickets.filter(x=>x.id!==ticket.id)});render();toast('Ticket removed')}catch(e){toast(e.message)}}break;}
+case 'd4-ticket-view':{
+ const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);
+ if(ticket?.attachment?.data)fileDownload(ticket.attachment);
+ else toast(ticket?'No file attached to this ticket.':'Ticket not found');
  break;
 }
-case 'd4-ticket-delete':{if(!ensurePermission(isTripAdmin(t)))return;const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket&&confirm('Delete ticket '+ticket.title+'?')){try{saveTripChange(t,()=>{t.tickets=t.tickets.filter(x=>x.id!==ticket.id)});render();toast('Ticket removed')}catch(e){toast(e.message)}}break;}
-case 'd4-ticket-view':{const ticket=(t?.tickets||[]).find(x=>x.id===el.dataset.id);if(ticket?.attachment?.data)fileDownload(ticket.attachment);else if(ticket)toast(ticket.title+' · '+(ticket.date||'No date')+' · '+money(Number(ticket.price||0))+' · '+(ticket.status==='paid'?'Paid':'Unpaid')+' (No file attached)');else toast('Ticket not found');break;}
 case 'nav':{let target=el.dataset.view,tab=el.dataset.tab;if(el.classList.contains('quick')){target=target==='nav'?'chat':target;}go(target,tab);break}
 case 'delete-trip':{if(!isMain())return toast('Main Admin only');openModal('delete-trip',{tripId:el.dataset.id||current()?.id});break;}
 case 'select-trip':selectTrip(el.dataset.id);break;
@@ -1160,6 +1208,18 @@ case 'reset':if(confirm('Clear all local trip data? This cannot be undone unless
 document.addEventListener('click',e=>{const el=e.target.closest('[data-action]');if(el){e.preventDefault();action(el)}else if(e.target.classList?.contains('modal-backdrop'))closeModal()});
 document.addEventListener('submit',async e=>{if(e.target.classList.contains('inline-payment-form')){e.preventDefault();const form=e.target,t=trip(form.dataset.trip);if(!t||!canSee(t))return toast('Trip access denied');try{const amount=new FormData(form).get('amount'),c=collectionSave(t,form.dataset.member,amount);render();toast('Received saved! Pending: '+money(c.pending))}catch(err){toast('⚠️ '+err.message)}return;}if(e.target.id==='activeForm')await saveForm(e);if(e.target.id==='chatForm'){e.preventDefault();return toast('Chat is upcoming.');const t=current(),room=(isMain()&&chatRoom.startsWith('direct:')&&t.members.includes(chatRoom.slice(7)))?chatRoom:(isTripAdmin(t)&&chatRoom==='admins'?'admins':'group'),f=new FormData(e.target),msg=String(f.get('message')||'').trim();if(!msg&&!chatAttached)return;if(room.startsWith('direct:'))return toast('Direct chat requires secure member messaging.');if(room==='admins'&&!isTripAdmin(t))return toast('Admins only');if(!t.chats||typeof t.chats!=='object')t.chats={admins:[],group:[]};if(!Array.isArray(t.chats[room]))t.chats[room]=[];t.chats[room].push({id:uid(),from:profile,text:msg||'📎 Attachment',attachment:chatAttached,time:new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),date:today()});chatAttached=null;persist();render();}});
 document.addEventListener('change',async e=>{const target=e.target;
+if(target.id==='f_ticketFiles'&&activeModal==='d4-ticket-editor'){
+ const selected=Array.from(target.files||[]);
+ if(selected.length&&!$('#activeForm').dataset.busy){
+   if(modalContext.ticketId)modalContext.files=selected.slice(0,1);
+   else modalContext.files.push(...selected);
+   $('#d4-ticket-form-error').hidden=true;
+   renderTicketQueue();
+ }
+ target.value='';
+ return;
+}
+
 if(target.id==='f_target'&&activeModal==='assign-admin'){
  const members=trip(target.value)?.members.filter(n=>n!=='D')||[];
  const memberSelect=$('#f_member');
@@ -1168,7 +1228,7 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
 if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;db=value;persist();activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=73',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=74',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>downloadText('D4-Trip-Local-Backup-'+today()+'.json',JSON.stringify(db,null,2)),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 

@@ -1,4 +1,4 @@
-name: D4 Trip Remove Chat Release
+name: D4 Trip Ticket Files Release
 on:
   push:
     branches:
@@ -76,7 +76,7 @@ jobs:
       - name: Install pinned Firebase CLI
         run: npm install --no-save --ignore-scripts firebase-tools@15.34.2
 
-      - name: Deploy Hosting after console-verified chat rules
+      - name: Deploy D4 Trip to Firebase Hosting
         working-directory: d4-trip-demo
         run: npx firebase deploy --only hosting --project d4-trip --config firebase.json --non-interactive
 
