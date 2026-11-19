@@ -682,15 +682,82 @@ function deleteDeviceTicketFile(attachment){
 }
 async function viewTicketFile(ticket){
  const file=ticket?.attachment;
- if(file?.data)return fileDownload(file);
- if(!isDeviceTicketFile(file))return toast(ticket?'No file attached to this ticket.':'Ticket not found');
+ if(!file?.data&&!isDeviceTicketFile(file))return toast(ticket?'No file attached to this ticket.':'Ticket not found');
+ const dialog=document.createElement('dialog');
+ dialog.style.cssText='width:min(96vw,52rem);max-width:96vw;max-height:92dvh;padding:14px;border:1px solid #47688c;border-radius:16px;background:#132332;color:white';
+ dialog.innerHTML=`<div class="row"><strong style="flex:1;overflow-wrap:anywhere"></strong>
+ <button type="button" class="btn small ghost" data-download disabled>Download</button>
+ <button type="button" class="btn small ghost" data-close>Close</button></div>
+ <p role="status">Opening ticket…</p><div data-preview></div>
+ <div class="row" data-pages hidden style="margin-top:12px">
+ <button type="button" class="btn small ghost" data-prev>Previous</button>
+ <span data-page aria-live="polite"></span>
+ <button type="button" class="btn small ghost" data-next>Next</button></div>`;
+ dialog.querySelector('strong').textContent=file.name||ticket.title||'Ticket';
+ dialog.setAttribute('aria-label','Ticket preview');
+ const status=dialog.querySelector('[role="status"]'),preview=dialog.querySelector('[data-preview]');
+ const download=dialog.querySelector('[data-download]');
+ let objectUrl,loading;
+ dialog.querySelector('[data-close]').onclick=()=>dialog.close();
+ dialog.addEventListener('close',()=>{
+   if(loading)void loading.destroy().catch(()=>{});
+   if(objectUrl)setTimeout(()=>URL.revokeObjectURL(objectUrl),5000);
+   dialog.remove();
+ },{once:true});
+ document.body.append(dialog);
+ dialog.showModal();
  try{
-   const blob=await memoryBlobGet(file.deviceKey);
-   if(!blob)return toast('This ticket file is stored on the device where it was added.');
-   const url=URL.createObjectURL(blob);
-   fileDownload({...file,data:url});
-   setTimeout(()=>URL.revokeObjectURL(url),5000);
- }catch(error){toast('Could not open ticket file: '+error.message);}
+   const blob=file.data?await (await fetch(file.data)).blob():await memoryBlobGet(file.deviceKey);
+   if(!blob)throw Error('This ticket file is stored on the device where it was added.');
+   if(!dialog.open)return;
+   objectUrl=URL.createObjectURL(blob);
+   download.disabled=false;
+   download.onclick=()=>fileDownload({...file,data:objectUrl});
+   if((file.type||blob.type).startsWith('image/') && !/\.pdf$/i.test(file.name||'')){
+     const img=document.createElement('img');
+     img.alt=file.name||'Ticket';img.style.cssText='display:block;width:100%;height:auto';
+     img.onload=()=>{status.hidden=true;};
+     img.onerror=()=>{status.textContent='Image preview could not load. Tap Download to save the ticket.';};
+     img.src=objectUrl;preview.append(img);
+     return;
+   }
+   const pdfBase='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/legacy/build/';
+   const pdfjs=await import(pdfBase+'pdf.mjs');
+   if(!dialog.open)return;
+   pdfjs.GlobalWorkerOptions.workerSrc=pdfBase+'pdf.worker.mjs';
+   loading=pdfjs.getDocument({data:new Uint8Array(await blob.arrayBuffer()),isEvalSupported:false});
+   const pdf=await loading.promise;
+   if(!dialog.open)return;
+   const pages=dialog.querySelector('[data-pages]'),prev=dialog.querySelector('[data-prev]'),next=dialog.querySelector('[data-next]');
+   let pageNumber=1;
+   async function showPage(number){
+     prev.disabled=next.disabled=true;
+     try{
+       const page=await pdf.getPage(number);
+       if(!dialog.open)return;
+       const viewport=page.getViewport({scale:1.65});
+       const canvas=document.createElement('canvas');
+       canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+       canvas.style.cssText='display:block;width:100%;height:auto;background:white;border-radius:4px';
+       canvas.setAttribute('aria-label','Ticket page '+number);
+       await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+       if(!dialog.open)return;
+       preview.replaceChildren(canvas);pageNumber=number;
+       dialog.querySelector('[data-page]').textContent=number+' / '+pdf.numPages;
+       status.hidden=true;
+     }catch(error){
+       if(dialog.open){status.hidden=false;status.textContent='Page preview unavailable. Tap Download to save the ticket.';}
+     }finally{
+       prev.disabled=pageNumber===1;next.disabled=pageNumber===pdf.numPages;
+     }
+   }
+   prev.onclick=()=>void showPage(pageNumber-1);
+   next.onclick=()=>void showPage(pageNumber+1);
+   if(pdf.numPages>1){pages.hidden=false;pages.style.display='flex';}
+   await showPage(1);
+ }catch(error){
+   if(dialog.open)status.textContent=objectUrl?'Preview unavailable. Tap Download to save the ticket.':error.message;
+ }
 }
 function readTicketDataURL(blob){
  return new Promise((resolve,reject)=>{
@@ -1311,7 +1378,7 @@ if(target.id==='f_target'&&activeModal==='assign-admin'){
 if(target.id==='directChatMember'){const tt=current();if(!isMain()||!tt||(target.value&&!tt.members.includes(target.value))){toast('Main Admin only');return}chatRoom=target.value?'direct:'+target.value:'group';render();return}if(target.id==='profileSelect'){profile=target.value;localStorage.setItem(USER_STORE,profile);if(!canSee(current())){activeTrip=visibleTrips()[0]?.id||'';view='home'}if(view==='admin'&&!isMain())view='home';render();toast('Demo switched to '+profile)}if(target.id==='themeSelect'){theme=target.value;localStorage.setItem(UI_STORE,theme);render()}if(target.id==='chatAttachment'){try{chatAttached=await readAttachment(target.files?.[0]);toast('Attachment ready. Tap send.')}catch(err){toast(err.message)}target.value=''}if(target.id==='backupImport'){try{const file=target.files?.[0];if(!file)return;const value=JSON.parse(await file.text());if(!value||!Array.isArray(value.trips)||value.trips.some(t=>!t.id||!t.name||!Array.isArray(t.members)||!Array.isArray(t.expenses)||!t.chats))throw Error('Invalid D4 Trip backup');if(!confirm('Replace current local trips with the backup?'))return;await restoreTripBackup(value);activeTrip=visibleTrips()[0]?.id||'';go('home');toast('Backup restored')}catch(err){toast('Import failed: '+err.message)}target.value=''}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=75',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?build=76',{updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}))}
 window.D4TripLocal={teamId,showTeam(t){const wasShowingTrip=!!t && db.trips.some(x=>x.id===t.id);const currentView=view;db={version:1,trips:t?[t]:[]};activeTrip=t?.id||"";view=t?(wasShowingTrip?currentView:"trip"):"profile";render()},currentTrip:()=>current(),getData:()=>JSON.parse(JSON.stringify(db)),setData(value){if(!value||!Array.isArray(value.trips))throw Error('Invalid trip data');db=withoutExamples(JSON.parse(JSON.stringify(value)));localStorage.setItem(STORE,JSON.stringify(db));activeTrip=visibleTrips()[0]?.id||'';render()},backup:()=>exportTripBackup('D4-Trip-Local-Backup-'),render,toast,view:()=>view};
 render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkLocalAlerts()});checkLocalAlerts();
 
