@@ -889,7 +889,7 @@ function expenseSplitFields(t){
   selectField('splitMode','Split method','<option value="note">No split</option><option value="equal">Equal split</option><option value="custom">Custom amounts</option>')+
   '<fieldset data-expense-people hidden disabled><legend>Choose friends</legend><div class="checks">'+t.members.map((name,index)=>
    '<label class="check"><input type="checkbox" name="participant" value="'+esc(name)+'" data-share-index="'+index+'" checked> '+esc(name)+'</label>').join('')+'</div>'+
-   '<div data-expense-custom hidden>'+t.members.map((name,index)=>field('expenseShare'+index,name,'','number','min="0" step="0.01"')).join('')+'</div></fieldset>'+
+   '<div data-expense-custom hidden>'+t.members.map((name,index)=>field('expenseShare'+index,esc(name),'','number','min="0" step="0.01"')).join('')+'</div></fieldset>'+
   '<output class="d4-expense-split-output" aria-live="polite"></output></details>';
 }
 function readExpenseSplit(fd,t,amount){

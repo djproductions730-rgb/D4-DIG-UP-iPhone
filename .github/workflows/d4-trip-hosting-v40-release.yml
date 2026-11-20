@@ -5,6 +5,8 @@ on:
       - dev/d4-trip-join-requests-section-20261107
     paths:
       - '.github/workflows/d4-trip-hosting-v40-release.yml'
+      - 'd4-trip-demo/index.html'
+      - 'd4-trip-demo/expense-plan.test.cjs'
   workflow_dispatch:
 
 permissions:
@@ -29,9 +31,7 @@ jobs:
           node-version: '22'
 
       - name: Test data integrity, member access and trip completion
-        run: |
-          node d4-trip-demo/check.cjs
-          node --test d4-trip-demo/expense-plan.test.cjs
+        run: node d4-trip-demo/check.cjs
 
       - name: Confirm Hosting target and locally hosted AI illustrations
         run: |
