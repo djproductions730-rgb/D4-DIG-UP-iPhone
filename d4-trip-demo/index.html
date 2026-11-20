@@ -366,6 +366,24 @@ body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-wid
 .d4-ticket-queue li{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:5px 8px}
 .d4-ticket-queue li .btn,.d4-ticket-choose{min-height:44px}
 </style>
+<style>
+#modalRoot .d4-expense-backdrop{display:grid!important;place-items:center!important;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))!important;background:#080619c9!important}
+#modalRoot .d4-expense-popup{display:flex!important;flex-direction:column;width:min(100%,420px)!important;max-height:min(82dvh,680px)!important;border:1px solid #b477ff!important;border-radius:22px!important;background:#18162c!important;color:#fff!important;overflow:hidden!important;box-shadow:0 18px 64px #120b26cc!important}
+#modalRoot .d4-expense-popup .modal-header{flex:none;display:flex!important;justify-content:space-between!important;padding:10px 14px!important;background:#27203e!important;border-bottom:1px solid #79569e!important}
+#modalRoot .d4-expense-popup .modal-header h2{margin:0;font-size:20px;color:#fff}
+#modalRoot .d4-expense-popup .modal-back{display:none!important}
+#modalRoot .d4-expense-popup #activeForm{display:flex;flex-direction:column;min-height:0}
+#modalRoot .d4-expense-popup .modal-body{min-height:0;overflow:auto;overscroll-behavior:contain;padding:12px 14px!important;background:#18162c!important}
+#modalRoot .d4-expense-popup .field{margin-bottom:8px}
+#modalRoot .d4-expense-popup .field-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#modalRoot .d4-expense-popup input:not([type=checkbox]),#modalRoot .d4-expense-popup select{width:100%;min-width:0;min-height:44px;padding:8px 10px!important;font-size:16px!important;background:#1b1931!important;border:1px solid #8768af!important;color:#fff!important}
+#modalRoot .d4-expense-popup .d4-expense-amount{margin:0 auto 8px;max-width:205px;text-align:center}
+#modalRoot .d4-expense-popup .d4-expense-amount input{font-size:28px!important;text-align:center}
+#modalRoot .d4-expense-popup .d4-expense-split{background:#211c37;border-color:#8064ad;margin:6px 0}
+#modalRoot .d4-expense-popup .d4-expense-advanced{margin:3px 0}
+#modalRoot .d4-expense-popup .modal-footer{flex:none;position:static!important;padding:9px 14px!important;background:#27203e!important;border-top:1px solid #79569e!important}
+#modalRoot .d4-expense-popup .modal-footer button{min-height:44px;background:linear-gradient(105deg,#a33ae7,#7024d5)!important;color:#fff!important}
+</style>
 </head>
 <body>
   <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip cinematic welcome" hidden>
@@ -1121,7 +1139,8 @@ case 'd4-ticket-editor':{
 }
 case 'file':if(!ensurePermission(isTripAdmin(t)))return;title='📎 Upload Trip File';button='Save File';body=`<div class="notice" style="margin-bottom:14px">Local storage demo supports image/PDF up to 350 KB per file.</div><div class="field"><label>Choose photo or PDF</label><input class="input" type="file" name="file" accept="image/*,.pdf,application/pdf" required></div>`;break;
 default:return}
-$('#modalRoot').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
+const expensePopup=name==='expense'||name==='expense-edit';
+$('#modalRoot').innerHTML=`<div class="modal-backdrop${expensePopup?' d4-expense-backdrop':''}"><div class="modal${expensePopup?' d4-expense-popup':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
  if(name==='expense'||name==='expense-edit')mountExpenseSplit($('#activeForm'),t);
  if(name==='d4-ticket-editor')renderTicketQueue();
 }
