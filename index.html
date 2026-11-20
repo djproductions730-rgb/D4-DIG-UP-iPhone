@@ -243,20 +243,22 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 .monthly-trends h2{margin:0}
 .monthly-trends select{width:auto;margin:0}
 .monthly-key{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 10px;font-size:12px}
-.monthly-list{display:grid;grid-auto-flow:column;grid-auto-columns:min(72%,235px);gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 1px 8px}
-.monthly-card{scroll-snap-align:start;min-width:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:10px}
-.monthly-card.peak{border-color:#e65f75}
-.monthly-card h3{margin:0 0 8px;font-size:15px}
-.monthly-row{display:flex;justify-content:space-between;gap:6px;font-size:12px;margin:6px 0 3px}
-.monthly-row strong{overflow-wrap:anywhere;text-align:right}
-.monthly-track{height:7px;border-radius:8px;background:var(--line);overflow:hidden}
-.monthly-track span{display:block;height:100%;width:var(--fill);background:#21b982;border-radius:8px}
-.monthly-track .expense{background:#9a84d6}
-.monthly-track .expense.higher{background:#ed657e}
-.monthly-track .expense.lower{background:#21b982}
-.monthly-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
-.monthly-tag{border-radius:12px;padding:3px 7px;background:#40375d;color:#fff;font-size:10px}
-.monthly-tag.higher,.monthly-tag.peak{background:#973149}.monthly-tag.lower{background:#11674d}
+.monthly-glass{padding:12px;border:1px solid #6952a3;border-radius:17px;background:radial-gradient(ellipse at 75% 0,#2b2052,#141329 68%);color:#f5efff}
+.monthly-readout{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;min-height:60px;padding:8px 10px;border:1px solid #655195;border-radius:12px;background:#1c1836;font-size:12px}
+.monthly-readout strong{flex-basis:100%;font-size:14px}
+.monthly-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:6px}
+.monthly-plot{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(64px,1fr);width:max(100%,var(--plot-width));background:repeating-linear-gradient(to top,transparent 0 calc(25% - 1px),#62528280 calc(25% - 1px) 25%) 0 0/100% 136px no-repeat;margin-top:12px}
+.monthly-pair{display:grid;grid-template-rows:136px 28px 19px;justify-items:center;min-width:0;padding:0 2px;border:0;background:transparent;color:#dcd1f9;cursor:pointer}
+.monthly-pair:focus-visible{outline:2px solid #d5b5ff;outline-offset:-2px;border-radius:8px}
+.monthly-pair[aria-pressed=true] .monthly-month{color:white;background:#503483;border-radius:7px}
+.monthly-month{padding:3px 6px;align-self:center;font-size:12px}
+.monthly-bars{display:flex;align-items:end;justify-content:center;gap:4px;width:100%;height:100%;border-bottom:1px solid #a58ccc}
+.monthly-bar{width:25%;max-width:27px;height:var(--fill);border-radius:6px 6px 1px 1px;color:#5df4ef;background:linear-gradient(to top,#19757c80,#39d8daaf);box-shadow:inset 0 0 6px currentColor,0 0 7px #49e9ed40}
+.monthly-bar.expense{color:#be9cff;background:linear-gradient(to top,#5c389b80,#a878e6af)}
+.monthly-bar.higher,.monthly-bar.peak{color:#ff899b;background:linear-gradient(to top,#8c344a80,#e95771af)}
+.monthly-bar.lower{color:#74ffb4;background:linear-gradient(to top,#1c785180,#36c87baf)}
+.monthly-peak{font-size:9px;color:#ff9bad;font-weight:800}
+
 .tx-upi-icons button[aria-pressed=true]{border-color:#a764ff;box-shadow:0 0 0 1px #a764ff}
 #upi-settings-list{display:grid;gap:4px;max-height:42dvh;overflow:auto;margin:8px 0}
 #upi-settings-list label{display:flex;align-items:center;gap:9px;min-height:42px;padding:4px}
@@ -715,18 +717,37 @@ function monthlyTrends(now=new Date()){
  const peak=Math.max(...series.filter(m=>!m.partial).map(m=>m.expense),0);
  const max=Math.max(...series.flatMap(m=>[m.income,m.expense]),1);
  const options=years.map(y=>'<option'+(y===year?' selected':'')+'>'+y+'</option>').join('');
- const cards=series.reverse().map(m=>{
+ const months=series.map((m,i)=>{
   const status=m.difference>0?'higher':m.difference<0?'lower':'';
-  const peakMonth=!m.partial&&peak>0&&m.expense===peak;
-  const month=new Date(year,m.month-1,1).toLocaleDateString('en-IN',{month:'short'});
-  const compare=m.difference===null?'No previous data':status?(status==='higher'?'↑ ':'↓ ')+fmt(Math.abs(m.difference)):'No change';
-  const bars=[['Income',m.income,''],['Expenses',m.expense,'expense '+status]].map(([label,value,style])=>
-   '<div class="monthly-row"><span>'+label+'</span><strong>'+fmt(value)+'</strong></div><div class="monthly-track" aria-hidden="true"><span class="'+style+'" style="--fill:'+value/max*100+'%"></span></div>').join('');
-  return '<article class="monthly-card'+(peakMonth?' peak':'')+'"><h3>'+month+(m.partial?' · To date':'')+'</h3>'+bars+
-   '<div class="monthly-tags"><span class="monthly-tag '+status+'">'+compare+'</span>'+(peakMonth?'<span class="monthly-tag peak">Peak expense</span>':'')+'</div></article>';
- }).join('');
- return '<section class="monthly-trends" aria-label="Monthly income and expenses"><header><h2>Monthly Analysis</h2><select class="input" aria-label="Analysis year" onchange="monthlyTrendYear=Number(this.value);this.closest(\'.monthly-trends\').outerHTML=monthlyTrends()">'+options+'</select></header>'+
-  '<p class="monthly-key muted">↑ Higher spend · ↓ Lower spend vs previous month. Current month compares the same dates.</p><div class="monthly-list">'+cards+'</div></section>';
+  const isPeak=!m.partial&&peak>0&&m.expense===peak;
+  const date=new Date(year,m.month-1,1);
+  const month=date.toLocaleDateString('en-IN',{month:'short'});
+  const title=date.toLocaleDateString('en-IN',{month:'long'})+(m.partial?' · To date':'');
+  const change=m.difference===null?'No previous data':status?(status==='higher'?'↑ ':'↓ ')+fmt(Math.abs(m.difference)):'No change';
+  const income='Income '+fmt(m.income), expense='Expenses '+fmt(m.expense);
+  const selected=i===series.length-1;
+  const bars=[[m.income,''],[m.expense,'expense '+(status||(isPeak?'peak':''))]].map(([value,style])=>
+   '<span class="monthly-bar '+style+'" style="--fill:'+value/max*100+'%"></span>').join('');
+  return {title,income,expense,change,html:'<button type="button" class="monthly-pair" aria-pressed="'+selected+'" aria-label="'+title+', '+income+', '+expense+'" data-month-title="'+title+'" data-income="'+income+'" data-expense="'+expense+'" data-change="'+change+'" onclick="selectGlassMonth(this)">'+
+   '<span class="monthly-bars" aria-hidden="true">'+bars+'</span><span class="monthly-month" aria-hidden="true">'+month+'</span>'+(isPeak?'<span class="monthly-peak">Peak spend</span>':'')+'</button>'};
+ });
+ const last=months.at(-1);
+ return '<section class="monthly-trends" aria-label="Monthly income and expenses"><header><h2>Monthly Analysis</h2><select class="input" aria-label="Analysis year" onchange="monthlyTrendYear=Number(this.value);this.closest(\'.monthly-trends\').outerHTML=monthlyTrends();scrollGlassChart()">'+options+'</select></header>'+
+  '<p class="monthly-key muted">Income · Expenses · ↑ Higher / ↓ Lower vs previous month</p><div class="monthly-glass">'+
+  '<div class="monthly-readout" aria-live="polite"><strong>'+last.title+'</strong><span>'+last.income+'</span><span>'+last.expense+'</span><span>'+last.change+'</span></div>'+
+  '<div class="monthly-scroll"><div class="monthly-plot" style="--plot-width:'+months.length*64+'px">'+months.map(m=>m.html).join('')+'</div></div></div>'+
+  '<p class="muted">Current month compares the same dates last month.</p></section>';
+}
+function selectGlassMonth(button){
+ const section=button.closest('.monthly-trends');
+ section.querySelector('.monthly-pair[aria-pressed=true]').setAttribute('aria-pressed','false');
+ button.setAttribute('aria-pressed','true');
+ const labels=[button.dataset.monthTitle,button.dataset.income,button.dataset.expense,button.dataset.change];
+ [...section.querySelector('.monthly-readout').children].forEach((node,i)=>{node.textContent=labels[i]});
+}
+function scrollGlassChart(){
+ const chart=document.querySelector('.monthly-scroll');
+ if(chart)chart.scrollLeft=chart.scrollWidth;
 }
 
 function home(){
@@ -757,7 +778,7 @@ function openLogout(){showSheet('Logout','<p>Log out of DIG UP on this device?</
 function logoutLocalApp(){try{localStorage.setItem(LOGOUT_KEY,'1')}catch(_){alert('Could not save logout. Please try again.');return;}loggedOut=true;selectedBank=null;tab='home';document.getElementById('sheet').innerHTML='';closeSheet();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#view button').focus()}
 function resumeLocalApp(){try{localStorage.removeItem(LOGOUT_KEY)}catch(_){alert('Could not reopen the app. Please try again.');return;}loggedOut=false;tab=openingTab();render()}
 function go(next){if(next==='savings')next='plans';if(next==='banks'&&tab!==next)resetBankWalletFilters();tab=next;selectedBank=null;closeSheet();render();window.scrollTo({top:0,behavior:'instant'})}
-function render(){document.body.classList.toggle('d4-logged-out',loggedOut);if(loggedOut){document.getElementById('nav').innerHTML='';document.getElementById('view').innerHTML='<section class="card" style="margin-top:32px;text-align:center"><h2>You’re logged out</h2><p class="muted">Your records are saved in this browser.</p><button type="button" class="button" onclick="resumeLocalApp()">Open on this device</button><p class="muted">This local app has no password or OTP sign-in yet. Anyone using this browser can reopen it.</p></section>';return;}document.getElementById('nav').innerHTML=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['more','☷','More']].map(([id,ic,label])=>'<button type="button" class="navbtn '+((id===tab||(id==='more'&&['savings','loans','pluxee','settings'].includes(tab)))?'active':'')+'" '+(id==='more'?'data-d4-more="1"':'data-tab="'+id+'"')+' aria-label="'+label+'"><span class="ico">'+ic+'</span><span>'+label+'</span></button>').join('');let html=tab==='pluxee'?pluxeePage():tab==='savings'?savingsPage():tab==='home'?home():tab==='banks'?banksPage()+pluxeePage(true):tab==='transactions'?transactionHistory():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html}
+function render(){document.body.classList.toggle('d4-logged-out',loggedOut);if(loggedOut){document.getElementById('nav').innerHTML='';document.getElementById('view').innerHTML='<section class="card" style="margin-top:32px;text-align:center"><h2>You’re logged out</h2><p class="muted">Your records are saved in this browser.</p><button type="button" class="button" onclick="resumeLocalApp()">Open on this device</button><p class="muted">This local app has no password or OTP sign-in yet. Anyone using this browser can reopen it.</p></section>';return;}document.getElementById('nav').innerHTML=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['more','☷','More']].map(([id,ic,label])=>'<button type="button" class="navbtn '+((id===tab||(id==='more'&&['savings','loans','pluxee','settings'].includes(tab)))?'active':'')+'" '+(id==='more'?'data-d4-more="1"':'data-tab="'+id+'"')+' aria-label="'+label+'"><span class="ico">'+ic+'</span><span>'+label+'</span></button>').join('');let html=tab==='pluxee'?pluxeePage():tab==='savings'?savingsPage():tab==='home'?home():tab==='banks'?banksPage()+pluxeePage(true):tab==='transactions'?transactionHistory():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html;scrollGlassChart()}
 let d4SheetScrollY=0;
 function fitTransactionPopup(){
  const overlay=document.getElementById('overlay');
