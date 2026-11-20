@@ -144,5 +144,23 @@ ZET|zetapp.in`.split('\n').map(line => {
   showSelection();
   return ()=>value;
  }
- return {mount,symbol,matches};
+ function mountQuick(container, input){
+  const names=upiApps.preferred();
+  if(!names.length)return;
+  container.innerHTML='<div class="field" id="tx-upi-label">UPI app</div><div class="tx-upi-icons" role="group" aria-labelledby="tx-upi-label"></div>';
+  const row=container.lastElementChild;
+  for(const name of names){
+   const button=document.createElement('button');
+   button.type='button';button.title=name;button.value=name;
+   button.setAttribute('aria-label',name);
+   button.setAttribute('aria-pressed','false');
+   button.innerHTML=symbol(name);
+   button.onclick=()=>{
+    input.value=input.value===name?'':name;
+    for(const option of row.children)option.setAttribute('aria-pressed',String(option.value===input.value));
+   };
+   row.append(button);
+  }
+ }
+ return {mount,mountQuick,symbol,matches};
 })();

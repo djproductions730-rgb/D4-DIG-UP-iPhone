@@ -202,13 +202,35 @@ html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-
 })();
 </script><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&amp;display=swap" media="print" onload="this.media='all'"><style>.pxwallet{background:#f7f6fc;color:#28243a;padding:18px;border-radius:20px;font:15px system-ui}.pxwallet .pxhero{background:linear-gradient(120deg,#302675,#6250ba);color:white;padding:20px;border-radius:16px}.pxwallet h2{margin:6px 0 0;font:700 32px system-ui;color:inherit}.pxwallet small{letter-spacing:.08em}.pxstats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.pxstats div{background:#ffffff;color:#494457;border-radius:14px;padding:13px}.pxstats b{color:#167147;display:block;font:700 24px system-ui;overflow-wrap:anywhere}.pxperiod{margin:10px 0}.pxperiod>div{display:flex;align-items:center;justify-content:space-between;gap:5px}.pxperiod>div:first-child button{flex:1}.pxperiod button{min-height:44px}.pxperiod button[aria-pressed=true]{background:#503ea1;color:white}.pxperiod button:disabled{opacity:.45}.pxperiod>div+div{margin-top:6px}.px-week button{min-width:0;flex:1;padding:4px 0!important}.px-week small{display:block}.px-office{display:flex;gap:4px}.px-office button{flex:1;min-height:44px;padding:6px}.px-office button[aria-pressed=true]{background:#503ea1;color:white}.px-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:end;margin:14px 0}.px-place{display:grid;grid-row:1;justify-items:center;text-align:center;overflow-wrap:anywhere;min-width:0}.px-place:first-child{grid-column:2}.px-place:nth-child(2){grid-column:1}.px-place:nth-child(3){grid-column:3}.px-place strong{width:100%;display:grid;place-items:center;height:40px;border-radius:8px 8px 0 0;background:#ddd7f1}.px-place:first-child strong{height:64px;background:#5947a1;color:white}.px-place:nth-child(2) strong{height:52px}.pxactions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pxactions button{min-width:0;min-height:44px}.pxwallet button{background:white;border:1px solid #bdb5da;color:#45368b;border-radius:12px;padding:11px;font-weight:650}.pxrow{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dedbe7;padding:12px 0;gap:10px}.pxrow span{overflow-wrap:anywhere}.pxrow b{white-space:nowrap}.pxwallet .pxout{color:#b42336}.px-merchant-logo{width:38px;height:32px;object-fit:contain;vertical-align:middle;margin-inline-end:6px;background:#fff;border-radius:7px;padding:3px;box-sizing:border-box}.pxwallet .px-available{display:block;font-size:26px;margin-top:2px}.px-home-balances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.px-home-balances button{background:transparent;color:inherit;text-align:left;border:0;border-left:1px solid #ffffff66;padding:0 0 0 12px;font:inherit}.px-home-balances strong{display:block;font-size:clamp(17px,4.5vw,27px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin:5px 0}.px-home-balances span{font-size:12px}.pxwallet .pxin{color:#167147}.px-history>summary{font-size:18px;font-weight:800;padding:14px 0;cursor:pointer}.pxwallet,body:has(.pxwallet) #sheet{--px-font:"Nunito",ui-rounded,"Avenir Next","Trebuchet MS",sans-serif;font-family:var(--px-font)}.pxwallet :is(h2,h3,button,input,select,summary,b,strong),body:has(.pxwallet) #sheet :is(h2,button,input,select,textarea){font-family:var(--px-font)}.pxwallet h2,.pxwallet h3{font-weight:800;letter-spacing:-.025em}.pxwallet :is(b,strong,input){font-variant-numeric:tabular-nums}</style><link rel="stylesheet" href="./navigation-ui.css?v=full-neon-20261109"><link rel="stylesheet" href="./pluxee-dashboard.css?v=neon-wallet-20261109"><meta name="d4-app-revision" content="1"><meta name="d4-app-build" content="development"><link rel="stylesheet" href="./app-update.css?v=update-manager-1"><style>
 #overlay.open:has(#txform){top:var(--tx-top,0px)!important;bottom:auto!important;height:var(--tx-height,100dvh)!important;z-index:10000!important}
-#overlay.open #sheet:has(#txform){max-height:min(69dvh,570px,100%)!important}
+#overlay.open #sheet:has(#txform){max-height:min(86dvh,620px,100%)!important}
 #txform :is(input,select,textarea){font-size:16px!important}
 #sheet .tx-footer{flex:none;padding:8px 14px;background:#201731;border-top:1px solid #674386}
 #sheet .tx-footer button{width:100%;min-height:44px;background:linear-gradient(110deg,#bb37e8,#7225d7);color:white}
 body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 </style><style>
 .upi-picker{margin:12px 0}.upi-picker summary{border:1px solid #967bb6;border-radius:12px;padding:12px;cursor:pointer}.upi-symbol{display:inline-grid;position:relative;vertical-align:middle;place-items:center;width:30px;height:30px;border-radius:7px;overflow:hidden;background:#f5f2ff;color:#4a346b;font:bold 12px system-ui;flex:none}.upi-symbol img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:white;padding:3px}.upi-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;max-height:220px;overflow:auto;margin-top:6px}.upi-options button{display:flex;align-items:center;gap:8px;padding:7px;min-height:44px;border:1px solid #93829f;border-radius:10px;background:#211b32;color:white;text-align:left}.upi-options [aria-pressed=true]{border:2px solid #ce91ff}.upi-options [aria-pressed=true]:after{content:'✓';margin-left:auto}.history-statement-card .upi-symbol{width:22px;height:22px}
+#sheet:has(#txform){border-color:#9255ef}
+#txform{display:grid;gap:10px}
+#txform .input{margin:0;min-width:0}
+.tx-types,.tx-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.tx-types{padding:3px;border-radius:12px;background:#29213d}
+.tx-types button,.tx-upi-icons button{min-height:44px;border:1px solid transparent;border-radius:9px;background:transparent;color:#f5edff;font-weight:800}
+.tx-types button[aria-pressed=true],#sheet:has(#txform) .tx-footer button{background:#ff7b83;color:#26121c}
+#txform[data-type=Income] .tx-types button[aria-pressed=true],#sheet:has(#txform[data-type=Income]) .tx-footer button{background:#65f0ae;color:#102b20}
+.tx-amount{display:flex;align-items:center;justify-content:center;gap:5px;font-size:24px;font-weight:800}
+#txform #txamount{max-width:175px;background:transparent;border:0;box-shadow:none;font-size:28px!important;font-weight:800}
+.tx-fields .field{display:block;margin:0 0 3px}
+.tx-bank-picker summary.input{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;list-style:none;padding:4px 9px}
+.tx-bank-picker summary::-webkit-details-marker{display:none}
+.tx-bank-picker summary:after{content:'⌄'}
+.tx-bank-picker summary .bank-logo{width:28px;height:28px}
+#txform [hidden],#tx-upi:empty,#category-save-error:empty{display:none!important}
+#tx-category-details{display:contents}
+.tx-upi-icons{display:flex;flex-wrap:wrap;gap:8px}
+.tx-upi-icons button{min-width:48px;border-color:#756088}
+.tx-upi-icons button[aria-pressed=true]{border-color:#a764ff;box-shadow:0 0 0 1px #a764ff}
+#upi-settings-list{display:grid;gap:4px;max-height:42dvh;overflow:auto;margin:8px 0}
+#upi-settings-list label{display:flex;align-items:center;gap:9px;min-height:42px;padding:4px}
 </style><script src="./upi-apps.js"></script></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
 <linearGradient id="launch-gold" x2="1" y2=".5"><stop stop-color="#d59838"/><stop offset=".45" stop-color="#ffe4a5"/><stop offset="1" stop-color="#eeb855"/></linearGradient>
@@ -724,7 +746,60 @@ function bankChoiceButtons(selectId){
  function sync(){buttons.forEach((b,i)=>{const active=select.value===select.options[i].value;b.classList.toggle('selected',active);b.setAttribute('aria-pressed',String(active))})}
  select.insertAdjacentElement('afterend',grid);select.addEventListener('change',sync);sync();
 }
-function openTransaction(initialType='Expense'){if(!data.banks.length){alert('Add a bank account first.');openBankPicker();return;}showSheet('Add Transaction','<form id="txform"><label class="field">Bank Account</label><select class="input" id="txbank">'+data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('')+'</select><label class="field">Transaction Type</label><select class="input" id="txtype"><option>Expense</option><option>Income</option></select><label class="field">For what?</label><select class="input" id="txcat">'+Object.keys(cats).map(k=>'<option value="'+tidy(k)+'">'+categoryIcon(k)+' '+tidy(k)+'</option>').join('')+'</select><label class="field">Amount (₹)</label><input class="input" type="number" id="txamount" min="0.01" step="0.01" placeholder="Amount" required><label class="field">Notes · What did you spend on?</label><textarea class="input" id="txnote" maxlength="500" placeholder="e.g. Lunch with family"></textarea><button class="button" type="submit" style="width:100%">Save Transaction</button></form>');bankChoiceButtons('txbank');const payment=upiApps.mount(document.getElementById('txtype').previousElementSibling);document.getElementById('txtype').value=initialType==='Income'?'Income':'Expense';document.getElementById('txform').onsubmit=e=>{e.preventDefault();const id=document.getElementById('txbank').value,b=data.banks.find(b=>String(b.id)===id),amount=Number(document.getElementById('txamount').value),type=document.getElementById('txtype').value,category=document.getElementById('txcat').value,note=document.getElementById('txnote').value.trim();if(!b||!Number.isFinite(amount)||amount<=0)return alert('Invalid transaction');const balanceBefore=Number(b.balance);b.balance=balanceBefore+(type==='Expense'?-amount:amount);data.entries.push({bankId:b.id,type,amount,category,note,payment:payment(),balanceBefore,balanceAfter:Number(b.balance),created:new Date().toISOString()});closeSheet();tab='transactions';save()}}
+function openTransaction(initialType='Expense'){
+ if(!data.banks.length){alert('Add a bank account first.');openBankPicker();return;}
+ const type=initialType==='Income'?'Income':'Expense';
+ showSheet('Add Transaction',`<form id="txform" data-type="${type}">
+  <div class="tx-types" role="group" aria-label="Transaction type">
+   <button type="button" data-tx-type="Expense">Expense</button>
+   <button type="button" data-tx-type="Income">Income</button>
+  </div>
+  <input type="hidden" id="txtype" value="${type}">
+  <div class="tx-amount"><span aria-hidden="true">₹</span><input class="input" type="number" inputmode="decimal" id="txamount" aria-label="Amount in rupees" min="0.01" step="0.01" placeholder="0" required></div>
+  <div class="tx-fields">
+   <div><label class="field" for="txcat">Category</label><select class="input" id="txcat">${Object.keys(cats).map(k=>'<option value="'+tidy(k)+'">'+tidy(k)+'</option>').join('')}</select></div>
+   <div><span class="field" id="tx-bank-label">Bank</span><select id="txbank" aria-labelledby="tx-bank-label">${data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('')}</select>
+    <details class="tx-bank-picker"><summary class="input" id="tx-bank-summary"></summary></details>
+   </div>
+  </div>
+  <div id="tx-category-details"></div>
+  <div id="tx-upi"></div>
+  <input type="hidden" id="txpayment">
+  <input class="input" id="txnote" aria-label="Note (optional)" maxlength="500" placeholder="Note (optional)">
+  <button class="button" type="submit">Save ${type.toLowerCase()}</button>
+ </form>`);
+ const form=document.getElementById('txform'), typeInput=form.querySelector('#txtype');
+ const submit=document.querySelector('.tx-footer button');
+ const typeButtons=form.querySelectorAll('[data-tx-type]');
+ function syncType(){
+  form.dataset.type=typeInput.value;
+  typeButtons.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.txType===typeInput.value)));
+  submit.textContent='Save '+typeInput.value.toLowerCase();
+ }
+ typeButtons.forEach(button=>button.onclick=()=>{
+  typeInput.value=button.dataset.txType;
+  syncType();
+  typeInput.dispatchEvent(new Event('change',{bubbles:true}));
+ });
+ syncType();
+ bankChoiceButtons('txbank');
+ const bank=form.querySelector('#txbank'), picker=form.querySelector('.tx-bank-picker');
+ const bankChoices=form.querySelector('.d4-bank-choice-grid');
+ form.querySelector('#tx-category-details').before(bankChoices);
+ picker.addEventListener('toggle',()=>{bankChoices.hidden=!picker.open});
+ bankChoices.hidden=true;
+ function syncBank(){
+  const selected=bankChoices.children[bank.selectedIndex];
+  if(!selected)return;
+  picker.querySelector('summary').innerHTML=selected.querySelector('.d4-bank-choice-icon').innerHTML;
+  picker.querySelector('summary').setAttribute('aria-label','Bank: '+bank.selectedOptions[0].textContent);
+  picker.open=false;
+  bankChoices.hidden=true;
+ }
+ bank.addEventListener('change',syncBank);
+ syncBank();
+ upiApps.mountQuick(form.querySelector('#tx-upi'),form.querySelector('#txpayment'));
+}
 function openPluxeeToMoney(){
  const sources=pluxeeAccounts(),targets=data.banks.filter(b=>!isPluxeeAccount(b));
  if(!sources.length){alert('Please add a Pluxee wallet first.');go('pluxee');return}
@@ -835,6 +910,7 @@ openTransaction=function(initialType='Expense'){
   if(type.value!=='Expense'&&officeSpendCategories.includes(category.value))pickTransactionCategory('Food');
   refresh();
  });
+ category.addEventListener('change',refresh);
  form.addEventListener('click',refresh);
  form.elements.merchant.addEventListener('change',refresh);
  refresh();
