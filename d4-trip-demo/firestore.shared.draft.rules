@@ -1,0 +1,138 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Milestone 05 DRAFT ONLY. This file is not configured in firebase.json and
+    // MUST NOT be deployed before trusted member provisioning is implemented.
+    // The currently deployed UID-private rules remain in firestore.rules.
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function memberPath(tripId, uid) {
+      return /databases/$(database)/documents/trips/$(tripId)/members/$(uid);
+    }
+
+    function tripPath(tripId) {
+      return /databases/$(database)/documents/trips/$(tripId);
+    }
+
+    function roomPath(tripId, roomId) {
+      return /databases/$(database)/documents/trips/$(tripId)/rooms/$(roomId);
+    }
+
+    function activeMember(tripId) {
+      return signedIn() && exists(memberPath(tripId, request.auth.uid)) &&
+        get(memberPath(tripId, request.auth.uid)).data.status == 'active';
+    }
+
+    function tripAdmin(tripId) {
+      return activeMember(tripId) &&
+        get(memberPath(tripId, request.auth.uid)).data.role in ['owner', 'admin'];
+    }
+
+    // A direct conversation must explicitly include BOTH trip owner and caller.
+    // Room records can only be provisioned by trusted server/Admin SDK.
+    function roomAllowed(tripId, roomId) {
+      return activeMember(tripId) &&
+        exists(roomPath(tripId, roomId)) &&
+        (
+          get(roomPath(tripId, roomId)).data.type == 'group' ||
+          (
+            get(roomPath(tripId, roomId)).data.type == 'admins' &&
+            tripAdmin(tripId)
+          ) ||
+          (
+            get(roomPath(tripId, roomId)).data.type == 'direct' &&
+            request.auth.uid in get(roomPath(tripId, roomId)).data.participantUids &&
+            get(tripPath(tripId)).data.ownerUid in
+              get(roomPath(tripId, roomId)).data.participantUids
+          )
+        );
+    }
+
+    function validTextMessage() {
+      return request.resource.data.keys().hasAll(
+          ['senderUid', 'kind', 'text', 'createdAt']) &&
+        request.resource.data.keys().hasOnly(
+          ['senderUid', 'kind', 'text', 'createdAt']) &&
+        request.resource.data.senderUid == request.auth.uid &&
+        request.resource.data.kind == 'text' &&
+        request.resource.data.text is string &&
+        request.resource.data.text.size() >= 1 &&
+        request.resource.data.text.size() <= 2000 &&
+        request.resource.data.createdAt == request.time;
+    }
+
+    // Existing same-UID account snapshot model is retained unchanged.
+    match /users/{userId}/snapshots/{snapshotId} {
+      function isPrivateOwner() {
+        return signedIn() &&
+          request.auth.uid == userId &&
+          snapshotId == 'primary';
+      }
+      function validPrivateSnapshot() {
+        return request.resource.data.keys().hasAll(
+          ['data', 'revision', 'updatedBy', 'updatedAt']) &&
+          request.resource.data.keys().hasOnly(
+            ['data', 'revision', 'updatedBy', 'updatedAt']) &&
+          request.resource.data.data is map &&
+          request.resource.data.data.trips is list &&
+          request.resource.data.revision is int &&
+          request.resource.data.revision > 0 &&
+          request.resource.data.updatedBy == request.auth.uid &&
+          request.resource.data.updatedAt == request.time;
+      }
+      allow get: if isPrivateOwner();
+      allow list: if false;
+      allow create: if isPrivateOwner() && validPrivateSnapshot() &&
+        request.resource.data.revision == 1;
+      allow update: if isPrivateOwner() && validPrivateSnapshot() &&
+        request.resource.data.revision == resource.data.revision + 1;
+      allow delete: if false;
+    }
+
+    match /trips/{tripId} {
+      allow get: if activeMember(tripId);
+      allow list, create, update, delete: if false;
+
+      match /members/{memberUid} {
+        allow get: if activeMember(tripId);
+        allow list: if tripAdmin(tripId);
+        allow create, update, delete: if false;
+      }
+
+      match /rooms/{roomId} {
+        allow get: if roomAllowed(tripId, roomId);
+        allow list, create, update, delete: if false;
+
+        match /messages/{messageId} {
+          allow get: if roomAllowed(tripId, roomId);
+          allow list: if roomAllowed(tripId, roomId) &&
+            request.query.limit != null && request.query.limit <= 100;
+          allow create: if roomAllowed(tripId, roomId) && validTextMessage();
+          allow update, delete: if false;
+        }
+      }
+
+      // Financial writes must go through an audited, verified server transaction.
+      match /payments/{paymentId} {
+        allow get, list: if activeMember(tripId);
+        allow create, update, delete: if false;
+      }
+      match /expenses/{expenseId} {
+        allow get, list: if activeMember(tripId);
+        allow create, update, delete: if false;
+      }
+      match /audit/{eventId} {
+        allow get, list: if tripAdmin(tripId);
+        allow create, update, delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
