@@ -79,6 +79,48 @@ function loanDateLabel(v){
  const d=new Date(v+'T12:00:00Z');
  return Number.isNaN(d.getTime())?'Date not set':d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'});
 }
+function calculateLoanEmi(principal, annualRate, months){
+ const monthlyRate=annualRate/1200;
+ const emi=monthlyRate===0
+  ? principal/months
+  : principal*(monthlyRate/-Math.expm1(-months*Math.log1p(monthlyRate)));
+ const total=emi*months;
+ return {emi,total,interest:Math.max(0,total-principal)};
+}
+function openEmiCalculator(){
+ showSheet('EMI Calculator', `
+  <form id="d4-emi-form">
+   <p class="loan-caption">Estimate a fixed-rate loan on a reducing balance. Fees are excluded.</p>
+   <label for="d4-emi-principal">Loan amount (₹)</label>
+   <input id="d4-emi-principal" name="principal" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="400000" required>
+   <label for="d4-emi-rate">Annual interest rate (%)</label>
+   <input id="d4-emi-rate" name="rate" type="number" inputmode="decimal" min="0" step="any" placeholder="12" required>
+   <label for="d4-emi-months">Tenure (months)</label>
+   <input id="d4-emi-months" name="months" type="number" inputmode="numeric" min="1" step="1" placeholder="48" required>
+   <button type="submit" class="button">Calculate EMI</button>
+   <div role="status" aria-atomic="true"></div>
+  </form>`);
+ const form=document.getElementById('d4-emi-form');
+ const result=form.querySelector('[role="status"]');
+ const rupees=new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR'});
+ form.addEventListener('input',()=>{result.innerHTML='';});
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  const principal=form.elements.principal.valueAsNumber;
+  const rate=form.elements.rate.valueAsNumber;
+  const months=form.elements.months.valueAsNumber;
+  const {emi,total,interest}=calculateLoanEmi(principal,rate,months);
+  if(![emi,total,interest].every(Number.isFinite)){
+   result.textContent='Enter a loan amount, rate and tenure within a calculable range.';
+   return;
+  }
+  result.innerHTML='<div class="loan-hero"><div class="loan-hero-meta">ESTIMATED MONTHLY EMI</div>'+
+   '<div class="loan-hero-total">'+rupees.format(emi)+'</div></div>'+
+   '<div class="loan-summary-grid" style="grid-template-columns:repeat(2,minmax(0,1fr))">'+
+   '<div class="loan-summary-stat"><span>Total interest</span><strong>'+rupees.format(interest)+'</strong></div>'+
+   '<div class="loan-summary-stat"><span>Total repayment</span><strong>'+rupees.format(total)+'</strong></div></div>';
+ });
+}
 function loansPage(){
  const list=Array.isArray(data.loans)?data.loans:[];
  const all=list.map(l=>({loan:l,...loanDueSummary(l)}));
@@ -92,7 +134,7 @@ function loansPage(){
  const upcoming=statuses.filter(x=>x.kind==='soon').sort((a,b)=>a.date.localeCompare(b.date));
  const soon=upcoming.filter(x=>x.kind==='soon');
  const needsSetup=statuses.filter(x=>x.kind==='setup').length;
- let html='<div class="section-head"><h2>💳 Loans & EMI</h2><button class="button" type="button" data-loan-action="new">+ Add Loan</button></div>';
+ let html='<div class="section-head"><h2>💳 Loans & EMI</h2><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><button class="button ghost" type="button" data-loan-action="calculate" aria-label="EMI Calculator" title="EMI Calculator" style="width:44px;min-height:44px;padding:0;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8.5 7h7M9 11h.01M15 11h.01M9 15h.01M15 15h.01M9 19h.01M15 19h.01" stroke-width="2"/></svg></button><button class="button" type="button" data-loan-action="new">+ Add Loan</button></div></div>';
  html+='<div class="loan-hero"><div class="loan-hero-meta">ESTIMATED LOAN OUTSTANDING</div><div class="loan-hero-total">'+fmt(totalOutstanding)+'</div><div class="loan-hero-foot"><span>'+list.length+' Loans</span><span>Local tracker</span></div></div>';
  if(!list.length)return html+'<div class="card empty"><div class="symbol">🪙</div><b>No loans added</b><p class="muted">Add a personal loan, pay-later balance or EMI to start tracking.</p></div>';
  html+='<div class="loan-summary-grid">'+
@@ -216,6 +258,7 @@ function undoLocalLoanPayment(loanId,paymentId){
  closeSheet();tab='loans';save();
 }
 function handleLoanAction(action,id,paymentId){
+ if(action==='calculate')openEmiCalculator();
  if(action==='new')loanForm();
  if(action==='edit')loanForm(id);
  if(action==='pay')loanPaymentForm(id);
