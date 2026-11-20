@@ -243,17 +243,21 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 .monthly-trends h2{margin:0}
 .monthly-trends select{width:auto;margin:0}
 .monthly-key{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 10px;font-size:12px}
-.monthly-glass{padding:12px;border:1px solid #6952a3;border-radius:17px;background:radial-gradient(ellipse at 75% 0,#2b2052,#141329 68%);color:#f5efff}
-.monthly-readout{display:flex;flex-wrap:wrap;align-items:center;gap:5px 12px;min-height:60px;padding:8px 10px;border:1px solid #655195;border-radius:12px;background:#1c1836;font-size:12px}
-.monthly-readout strong{flex-basis:100%;font-size:14px}
+.monthly-glass{position:relative;padding:12px;border:1px solid #6952a3;border-radius:17px;background:radial-gradient(ellipse at 75% 0,#2b2052,#141329 68%);color:#f5efff}
+.monthly-readout{position:absolute;z-index:2;top:10px;left:var(--tip-left,10px);width:min(210px,calc(100% - 20px));display:grid;gap:4px;padding:10px 36px 10px 12px;border:1px solid #b48af6;border-radius:12px;background:#251a43;color:#fff;box-shadow:0 6px 20px #0a051db0;font-size:13px}
+.monthly-readout[hidden]{display:none}
+.monthly-readout:after{content:'';position:absolute;top:100%;left:var(--tip-point,50%);width:10px;height:10px;background:#251a43;border:solid #b48af6;border-width:0 1px 1px 0;transform:translate(-50%,-5px) rotate(45deg)}
+.monthly-readout strong{font-size:15px}
+.monthly-readout button{position:absolute;top:3px;right:3px;width:34px;height:34px;border:0;border-radius:8px;background:transparent;color:#fff;font-size:21px;cursor:pointer}
+.monthly-readout [data-tone=higher]{color:#ff9bad}.monthly-readout [data-tone=lower]{color:#74ffb4}
 .monthly-scroll{overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:6px}
-.monthly-plot{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(64px,1fr);width:max(100%,var(--plot-width));background:repeating-linear-gradient(to top,transparent 0 calc(25% - 1px),#62528280 calc(25% - 1px) 25%) 0 0/100% 136px no-repeat;margin-top:12px}
-.monthly-pair{display:grid;grid-template-rows:136px 28px 19px;justify-items:center;min-width:0;padding:0 2px;border:0;background:transparent;color:#dcd1f9;cursor:pointer}
+.monthly-plot{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);width:max(100%,var(--plot-width));background:repeating-linear-gradient(to top,transparent 0 calc(25% - 1px),#62528280 calc(25% - 1px) 25%) 0 0/100% 176px no-repeat;margin-top:12px}
+.monthly-pair{display:grid;grid-template-rows:176px 36px 22px;justify-items:center;min-width:0;padding:0 2px;border:0;background:transparent;color:#dcd1f9;cursor:pointer}
 .monthly-pair:focus-visible{outline:2px solid #d5b5ff;outline-offset:-2px;border-radius:8px}
-.monthly-pair[aria-pressed=true] .monthly-month{color:white;background:#503483;border-radius:7px}
-.monthly-month{padding:3px 6px;align-self:center;font-size:12px}
+.monthly-pair[aria-expanded=true] .monthly-month{color:white;background:#503483;border-radius:7px}
+.monthly-month{padding:4px 7px;align-self:center;font-size:15px}
 .monthly-bars{display:flex;align-items:end;justify-content:center;gap:4px;width:100%;height:100%;border-bottom:1px solid #a58ccc}
-.monthly-bar{width:25%;max-width:27px;height:var(--fill);border-radius:6px 6px 1px 1px;color:#5df4ef;background:linear-gradient(to top,#19757c80,#39d8daaf);box-shadow:inset 0 0 6px currentColor,0 0 7px #49e9ed40}
+.monthly-bar{width:30%;max-width:42px;height:var(--fill);border-radius:6px 6px 1px 1px;color:#5df4ef;background:linear-gradient(to top,#19757c80,#39d8daaf);box-shadow:inset 0 0 6px currentColor,0 0 7px #49e9ed40}
 .monthly-bar.expense{color:#be9cff;background:linear-gradient(to top,#5c389b80,#a878e6af)}
 .monthly-bar.higher,.monthly-bar.peak{color:#ff899b;background:linear-gradient(to top,#8c344a80,#e95771af)}
 .monthly-bar.lower{color:#74ffb4;background:linear-gradient(to top,#1c785180,#36c87baf)}
@@ -701,14 +705,15 @@ function monthlyTrendData(entries, year, now=new Date()){
   if(type==='expense'&&d<=today)bucket.expenseToDate+=amount;
   months.set(id,bucket);
  }
- const series=Array.from({length:limit},(_,i)=>{
-  const month=i+1, id=year*12+month;
-  const totals=months.get(id)||{income:0,expense:0};
+ const series=[];
+ for(let month=1;month<=limit;month++){
+  const id=year*12+month, totals=months.get(id);
+  if(!totals)continue;
   const previous=months.get(id-1);
   const partial=year===currentYear&&month===currentMonth;
   const baseline=previous?.[partial?'expenseToDate':'expense'];
-  return {month,partial,...totals,difference:baseline===undefined?null:Math.round((totals.expense-baseline)*100)/100};
- });
+  series.push({month,partial,...totals,difference:baseline===undefined?null:Math.round((totals.expense-baseline)*100)/100});
+ }
  return {series,years:[...years].sort((a,b)=>b-a)};
 }
 function monthlyTrends(now=new Date()){
@@ -717,7 +722,7 @@ function monthlyTrends(now=new Date()){
  const peak=Math.max(...series.filter(m=>!m.partial).map(m=>m.expense),0);
  const max=Math.max(...series.flatMap(m=>[m.income,m.expense]),1);
  const options=years.map(y=>'<option'+(y===year?' selected':'')+'>'+y+'</option>').join('');
- const months=series.map((m,i)=>{
+ const months=series.map(m=>{
   const status=m.difference>0?'higher':m.difference<0?'lower':'';
   const isPeak=!m.partial&&peak>0&&m.expense===peak;
   const date=new Date(year,m.month-1,1);
@@ -725,25 +730,48 @@ function monthlyTrends(now=new Date()){
   const title=date.toLocaleDateString('en-IN',{month:'long'})+(m.partial?' · To date':'');
   const change=m.difference===null?'No previous data':status?(status==='higher'?'↑ ':'↓ ')+fmt(Math.abs(m.difference)):'No change';
   const income='Income '+fmt(m.income), expense='Expenses '+fmt(m.expense);
-  const selected=i===series.length-1;
   const bars=[[m.income,''],[m.expense,'expense '+(status||(isPeak?'peak':''))]].map(([value,style])=>
    '<span class="monthly-bar '+style+'" style="--fill:'+value/max*100+'%"></span>').join('');
-  return {title,income,expense,change,html:'<button type="button" class="monthly-pair" aria-pressed="'+selected+'" aria-label="'+title+', '+income+', '+expense+'" data-month-title="'+title+'" data-income="'+income+'" data-expense="'+expense+'" data-change="'+change+'" onclick="selectGlassMonth(this)">'+
-   '<span class="monthly-bars" aria-hidden="true">'+bars+'</span><span class="monthly-month" aria-hidden="true">'+month+'</span>'+(isPeak?'<span class="monthly-peak">Peak spend</span>':'')+'</button>'};
+  return '<button type="button" class="monthly-pair" aria-expanded="false" aria-controls="monthly-tooltip" aria-label="'+title+', '+income+', '+expense+'" data-month-title="'+title+'" data-income="'+income+'" data-expense="'+expense+'" data-change="'+change+'" data-tone="'+status+'" onclick="selectGlassMonth(this)">'+
+   '<span class="monthly-bars" aria-hidden="true">'+bars+'</span><span class="monthly-month" aria-hidden="true">'+month+'</span>'+(isPeak?'<span class="monthly-peak">Peak spend</span>':'')+'</button>';
  });
- const last=months.at(-1);
  return '<section class="monthly-trends" aria-label="Monthly income and expenses"><header><h2>Monthly Analysis</h2><select class="input" aria-label="Analysis year" onchange="monthlyTrendYear=Number(this.value);this.closest(\'.monthly-trends\').outerHTML=monthlyTrends();scrollGlassChart()">'+options+'</select></header>'+
-  '<p class="monthly-key muted">Income · Expenses · ↑ Higher / ↓ Lower vs previous month</p><div class="monthly-glass">'+
-  '<div class="monthly-readout" aria-live="polite"><strong>'+last.title+'</strong><span>'+last.income+'</span><span>'+last.expense+'</span><span>'+last.change+'</span></div>'+
-  '<div class="monthly-scroll"><div class="monthly-plot" style="--plot-width:'+months.length*64+'px">'+months.map(m=>m.html).join('')+'</div></div></div>'+
-  '<p class="muted">Current month compares the same dates last month.</p></section>';
+  (months.length?'<p class="monthly-key muted">Income · Expenses · ↑ Higher / ↓ Lower vs previous month</p><div class="monthly-glass">'+
+  '<div class="monthly-readout" id="monthly-tooltip" hidden aria-live="polite"><button type="button" aria-label="Close month details" onclick="closeGlassMonth(this.closest(\'.monthly-trends\'),true)">×</button><strong></strong><span></span><span></span><span></span></div>'+
+  '<div class="monthly-scroll" onscroll="positionGlassMonth(this.closest(\'.monthly-trends\'))"><div class="monthly-plot" style="--plot-width:'+months.length*104+'px">'+months.join('')+'</div></div></div>'+
+  '<p class="muted">Current month compares the same dates last month.</p>':'<p class="muted">No income or expense entries for this year.</p>')+'</section>';
+}
+function closeGlassMonth(section,restoreFocus=false){
+ const active=section.querySelector('.monthly-pair[aria-expanded=true]');
+ if(!active)return;
+ active.setAttribute('aria-expanded','false');
+ section.querySelector('.monthly-readout').hidden=true;
+ if(restoreFocus)active.focus({preventScroll:true});
+}
+function positionGlassMonth(section){
+ const active=section.querySelector('.monthly-pair[aria-expanded=true]');
+ if(!active)return;
+ const tip=section.querySelector('.monthly-readout'), glass=tip.parentElement;
+ const rect=active.getBoundingClientRect(), frame=glass.getBoundingClientRect();
+ if(rect.right<=frame.left||rect.left>=frame.right){closeGlassMonth(section);return;}
+ const center=rect.left-frame.left+rect.width/2;
+ const left=Math.max(10,Math.min(center-tip.offsetWidth/2,glass.clientWidth-tip.offsetWidth-10));
+ tip.style.setProperty('--tip-left',left+'px');
+ tip.style.setProperty('--tip-point',Math.max(8,Math.min(center-left,tip.offsetWidth-8))+'px');
 }
 function selectGlassMonth(button){
  const section=button.closest('.monthly-trends');
- section.querySelector('.monthly-pair[aria-pressed=true]').setAttribute('aria-pressed','false');
- button.setAttribute('aria-pressed','true');
+ const wasOpen=button.getAttribute('aria-expanded')==='true';
+ closeGlassMonth(section);
+ if(wasOpen)return;
+ button.setAttribute('aria-expanded','true');
+ const tip=section.querySelector('.monthly-readout');
  const labels=[button.dataset.monthTitle,button.dataset.income,button.dataset.expense,button.dataset.change];
- [...section.querySelector('.monthly-readout').children].forEach((node,i)=>{node.textContent=labels[i]});
+ const fields=tip.querySelectorAll('strong,span');
+ fields.forEach((node,i)=>{node.textContent=labels[i]});
+ fields[3].dataset.tone=button.dataset.tone;
+ tip.hidden=false;
+ positionGlassMonth(section);
 }
 function scrollGlassChart(){
  const chart=document.querySelector('.monthly-scroll');
