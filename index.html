@@ -226,6 +226,14 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 .tx-bank-picker summary .bank-logo{width:28px;height:28px}
 #txform [hidden],#tx-upi:empty,#category-save-error:empty{display:none!important}
 #tx-category-details{display:contents}
+#tx-category-trigger{display:flex;align-items:center;gap:7px;min-height:44px;text-align:left;padding:4px 9px}
+#tx-category-trigger .category-art{width:29px;height:29px}
+#tx-category-trigger span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tx-category-trigger:after{content:'⌄';margin-left:auto}
+#tx-category-choices{max-height:220px;overflow:auto;padding:4px;margin:0}
+#tx-upi-setup summary{width:fit-content;cursor:pointer;min-height:36px;padding:7px 0}
+#tx-upi-setup[open]{padding:8px;border:1px solid #756088;border-radius:10px}
+#tx-upi-setup #upi-settings-list{max-height:26dvh}
 .tx-upi-icons{display:flex;flex-wrap:wrap;gap:8px}
 .tx-upi-icons button{min-width:48px;border-color:#756088}
 .tx-upi-icons button[aria-pressed=true]{border-color:#a764ff;box-shadow:0 0 0 1px #a764ff}
@@ -757,13 +765,14 @@ function openTransaction(initialType='Expense'){
   <input type="hidden" id="txtype" value="${type}">
   <div class="tx-amount"><span aria-hidden="true">₹</span><input class="input" type="number" inputmode="decimal" id="txamount" aria-label="Amount in rupees" min="0.01" step="0.01" placeholder="0" required></div>
   <div class="tx-fields">
-   <div><label class="field" for="txcat">Category</label><select class="input" id="txcat">${Object.keys(cats).map(k=>'<option value="'+tidy(k)+'">'+tidy(k)+'</option>').join('')}</select></div>
+   <div><span class="field">Category</span><button class="input tx-category-trigger" type="button" id="tx-category-trigger" aria-expanded="false" aria-controls="tx-category-choices"></button><select id="txcat" hidden>${Object.keys(cats).map(k=>'<option value="'+tidy(k)+'">'+tidy(k)+'</option>').join('')}</select></div>
    <div><span class="field" id="tx-bank-label">Bank</span><select id="txbank" aria-labelledby="tx-bank-label">${data.banks.map(b=>'<option value="'+tidy(String(b.id))+'">'+tidy(b.name+' — '+(b.nick||'Account'))+'</option>').join('')}</select>
     <details class="tx-bank-picker"><summary class="input" id="tx-bank-summary"></summary></details>
    </div>
   </div>
   <div id="tx-category-details"></div>
   <div id="tx-upi"></div>
+  <details id="tx-upi-setup"><summary>Choose UPI apps</summary><div id="tx-upi-editor"></div></details>
   <input type="hidden" id="txpayment">
   <input class="input" id="txnote" aria-label="Note (optional)" maxlength="500" placeholder="Note (optional)">
   <button class="button" type="submit">Save ${type.toLowerCase()}</button>
@@ -798,7 +807,17 @@ function openTransaction(initialType='Expense'){
  }
  bank.addEventListener('change',syncBank);
  syncBank();
- upiApps.mountQuick(form.querySelector('#tx-upi'),form.querySelector('#txpayment'));
+ const upiRow=form.querySelector('#tx-upi'), payment=form.querySelector('#txpayment');
+ const setup=form.querySelector('#tx-upi-setup'), editor=form.querySelector('#tx-upi-editor');
+ function refreshUpi(){
+  upiApps.mountQuick(upiRow,payment);
+  setup.querySelector('summary').textContent=upiRow.children.length?'Manage UPI apps':'Choose UPI apps';
+ }
+ refreshUpi();
+ setup.addEventListener('toggle',()=>{
+  if(!setup.open){editor.replaceChildren();return;}
+  upiApps.editPreferences(editor,()=>{refreshUpi();setup.open=false});
+ });
 }
 function openPluxeeToMoney(){
  const sources=pluxeeAccounts(),targets=data.banks.filter(b=>!isPluxeeAccount(b));

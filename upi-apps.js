@@ -146,6 +146,8 @@ ZET|zetapp.in`.split('\n').map(line => {
  }
  function mountQuick(container, input){
   const names=upiApps.preferred();
+  container.replaceChildren();
+  if(!names.includes(input.value))input.value='';
   if(!names.length)return;
   container.innerHTML='<div class="field" id="tx-upi-label">UPI app</div><div class="tx-upi-icons" role="group" aria-labelledby="tx-upi-label"></div>';
   const row=container.lastElementChild;
@@ -153,7 +155,7 @@ ZET|zetapp.in`.split('\n').map(line => {
    const button=document.createElement('button');
    button.type='button';button.title=name;button.value=name;
    button.setAttribute('aria-label',name);
-   button.setAttribute('aria-pressed','false');
+   button.setAttribute('aria-pressed',String(name===input.value));
    button.innerHTML=symbol(name);
    button.onclick=()=>{
     input.value=input.value===name?'':name;

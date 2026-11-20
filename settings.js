@@ -28,7 +28,7 @@
  function persist(next){try{localStorage.setItem(PREF,JSON.stringify(next));prefs=next;apply();return true}catch(_){alert('Could not save preferences. Check browser storage space.');return false}}
  system.addEventListener('change',apply);apply();
  const action=(icon,title,subtitle,handler)=>'<button type="button" class="settings-action" onclick="'+handler+'"><span class="setting-icon" aria-hidden="true">'+icon+'</span><span class="setting-copy"><strong>'+title+'</strong><small>'+subtitle+'</small></span><span aria-hidden="true">›</span></button>';
- settings=function(){return '<div class="settings-intro"><span class="settings-kicker">MAKE IT YOURS</span><h2>⚙ Settings</h2><p class="muted">Your profile, appearance and data — in one place.</p></div>'+profileCard()+'<h2>Personalise</h2><div class="settings-stack">'+action('👤','My Profile',tidy(prefs.name||data.linkedName||'Add your display name')+' · Stored on this device','openLocalProfile()')+action('🎨','Theme & Appearance',tidy(({system:'Follow device',light:'Light',dark:'Dark'})[prefs.mode]||'Follow device')+' · Choose your colour','openAppearance()')+action('💳','UPI Apps','Choose which logos appear when adding a transaction','openUpiPreferences()')+'</div><h2>Data & Migration</h2><div class="settings-stack">'+action('📥','Import My Old Data','Move from Android APK or restore a D4 web backup','openMigrationHelp()')+action('💾','Download My Backup','Save a private copy of this browser’s records','exportBackup()')+'</div><h2>Help & Support</h2><div class="settings-stack">'+action('🧭','Migration Guide','Step-by-step help to bring your old records here','openMigrationHelp()')+action('💬','Support & Troubleshooting','Import errors, OTP help and missing records','openSupportHelp()')+action('🔒','Privacy & Account Safety','Understand local storage and account verification','openPrivacyHelp()')+'</div><h2>App access</h2><div class="settings-stack">'+action('🚪','Logout','Close DIG UP on this device · Keep your saved data','openLogout()')+'</div><p class="settings-status" style="margin-top:20px">'+(data.linkedName?'Imported snapshot: '+tidy(data.linkedName)+'. ':'')+'One-time local copy. Automatic Android sync is not enabled.</p>'};
+ settings=function(){return '<div class="settings-intro"><span class="settings-kicker">MAKE IT YOURS</span><h2>⚙ Settings</h2><p class="muted">Your profile, appearance and data — in one place.</p></div>'+profileCard()+'<h2>Personalise</h2><div class="settings-stack">'+action('💳','UPI Apps','Choose which logos appear when adding a transaction','openUpiPreferences()')+action('👤','My Profile',tidy(prefs.name||data.linkedName||'Add your display name')+' · Stored on this device','openLocalProfile()')+action('🎨','Theme & Appearance',tidy(({system:'Follow device',light:'Light',dark:'Dark'})[prefs.mode]||'Follow device')+' · Choose your colour','openAppearance()')+'</div><h2>Data & Migration</h2><div class="settings-stack">'+action('📥','Import My Old Data','Move from Android APK or restore a D4 web backup','openMigrationHelp()')+action('💾','Download My Backup','Save a private copy of this browser’s records','exportBackup()')+'</div><h2>Help & Support</h2><div class="settings-stack">'+action('🧭','Migration Guide','Step-by-step help to bring your old records here','openMigrationHelp()')+action('💬','Support & Troubleshooting','Import errors, OTP help and missing records','openSupportHelp()')+action('🔒','Privacy & Account Safety','Understand local storage and account verification','openPrivacyHelp()')+'</div><h2>App access</h2><div class="settings-stack">'+action('🚪','Logout','Close DIG UP on this device · Keep your saved data','openLogout()')+'</div><p class="settings-status" style="margin-top:20px">'+(data.linkedName?'Imported snapshot: '+tidy(data.linkedName)+'. ':'')+'One-time local copy. Automatic Android sync is not enabled.</p>'};
  function photoMarkup(photo,name){return '<span class="profile-portrait">'+(safePhoto(photo)?'<img src="'+photo+'" alt="Your profile photo">':tidy(initials(name)))+'</span>'}
  function safePhoto(photo){return avatarPaths.includes(photo)||typeof photo==='string'&&photo.length<350000&&/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(photo)}
  function initials(name){return String(name||'You').trim().split(/\s+/).slice(0,2).map(x=>Array.from(x)[0]||'').join('').toUpperCase()||'Y'}
@@ -48,9 +48,9 @@
   const selected=Array.isArray(prefs.upiApps)?new Set(prefs.upiApps):new Set();
   return upiApps.matches('').map(app=>app.name).filter(name=>selected.has(name));
  };
- window.openUpiPreferences=function(){
-  showSheet('UPI Apps','<form id="upi-settings"><label class="field" for="upi-search">Search UPI apps</label><input class="input" id="upi-search" type="search" placeholder="Search apps" autocomplete="off"><div id="upi-settings-list"></div><button type="submit" class="button">Save UPI apps</button></form>');
-  const form=document.getElementById('upi-settings'), search=form.querySelector('#upi-search'), list=form.querySelector('#upi-settings-list');
+ upiApps.editPreferences=(container,onSave)=>{
+  container.innerHTML='<label class="field" for="upi-search">Search UPI apps</label><input class="input" id="upi-search" type="search" placeholder="Search apps" autocomplete="off"><div id="upi-settings-list"></div><button type="button" class="button" id="save-upi-apps">Save UPI apps</button>';
+  const search=container.querySelector('#upi-search'), list=container.querySelector('#upi-settings-list');
   const selected=new Set(upiApps.preferred());
   function refresh(){
    list.replaceChildren();
@@ -66,11 +66,14 @@
   }
   search.oninput=refresh;
   search.onkeydown=event=>{if(event.key==='Enter')event.preventDefault()};
-  form.onsubmit=event=>{
-   event.preventDefault();
-   if(persist({...prefs,upiApps:[...selected]}))closeSheet();
+  container.querySelector('#save-upi-apps').onclick=()=>{
+   if(persist({...prefs,upiApps:[...selected]}))onSave();
   };
   refresh();
+ };
+ window.openUpiPreferences=function(){
+  showSheet('UPI Apps','<div id="upi-settings"></div>');
+  upiApps.editPreferences(document.getElementById('upi-settings'),closeSheet);
  };
  window.openAppearance=function(){showSheet('Theme & Appearance','<p class="muted">Changes apply across the app and stay saved on this device.</p><label class="field">Display mode</label><div class="theme-options">'+[['system','◐ Device'],['light','☀ Light'],['dark','☾ Dark']].map(([v,t])=>'<button type="button" class="theme-choice" aria-pressed="'+((prefs.mode||'system')===v)+'" onclick="setDisplayPreference(\'mode\',\''+v+'\')">'+t+'</button>').join('')+'</div><label class="field">Accent colour</label><div class="theme-options">'+[['violet','🟣 Violet'],['teal','🟢 Teal'],['rose','🌸 Rose']].map(([v,t])=>'<button type="button" class="theme-choice" aria-pressed="'+((prefs.accent||'violet')===v)+'" onclick="setDisplayPreference(\'accent\',\''+v+'\')">'+t+'</button>').join('')+'</div>')};
  window.setDisplayPreference=function(key,value){if(!((key==='mode'&&['system','light','dark'].includes(value))||(key==='accent'&&Object.hasOwn(accents,value))))return;if(persist({...prefs,[key]:value})){render();openAppearance()}};
