@@ -10,12 +10,12 @@ function setup(){
  const trip={id:'qa',start:'2026-11-10',end:'2026-11-12',members:['Admin','Member'],expenses:[],plans:[],notes:[]};
  let permitted=true,saved=true,closed=0;
  const messages=[];
- const ctx=vm.createContext({structuredClone,FormData:class{constructor(data){this.data=data}get(k){return this.data[k]}},
-  current:()=>trip,trip:()=>trip,activeModal:'expense',modalContext:{},isTripAdmin:()=>permitted,
+ const ctx=vm.createContext({structuredClone,FormData:class{constructor(data){this.data=data}get(k){return this.data[k]??null}getAll(k){return this.data[k]||[]}},
+  money:n=>'₹'+n,current:()=>trip,trip:()=>trip,activeModal:'expense',modalContext:{},isTripAdmin:()=>permitted,
   datesInTrip:()=>['2026-11-10','2026-11-11','2026-11-12'],planCategories:['Food','Travel','Other'],
   readAttachment:async()=>null,uid:()=>String(trip.expenses.length+trip.plans.length+1),
   persist:()=>saved,closeModal:()=>closed++,go(){},toast:m=>messages.push(m),tripTab:'',daySelected:''});
- vm.runInContext(extract('function saveTripChange(', 'function datesInTrip(')+'\n'+extract('async function saveForm(', 'function fileDownload('),ctx);
+ vm.runInContext(extract('function saveTripChange(', 'function datesInTrip(')+'\n'+extract('function readExpenseSplit(', 'function mountExpenseSplit(')+'\n'+extract('function sharedPaise(', '\n')+'\n'+extract('async function saveForm(', 'function fileDownload('),ctx);
  return {trip,messages,ctx,allow:v=>permitted=v,storage:v=>saved=v,get closed(){return closed},
   async submit(modal,values,context={}){ctx.activeModal=modal;ctx.modalContext=context;await ctx.saveForm({preventDefault(){},target:values})}};
 }
@@ -58,4 +58,21 @@ test('activities add, move days, keep completion, and reject invalid times/dates
  await h.submit('plan-dates',{start:'2026-11-10',end:'2026-11-11'});
  assert.equal(JSON.stringify(h.trip),before);
  h.allow(false);await h.submit('plan',plan);assert.equal(JSON.stringify(h.trip),before);
+});
+
+test('equal splits assign the extra paise and save only chosen friends',async()=>{
+ const h=setup();await h.submit('expense',{...expense,amount:'10.01',splitMode:'equal',participant:['Admin','Member']});
+ const saved=h.trip.expenses[0];
+ assert.equal(saved.mode,'equal');
+ assert.equal(h.ctx.sharedPaise(saved).Admin,501);
+ assert.equal(h.ctx.sharedPaise(saved).Member,500);
+});
+test('custom splits reject invalid members and totals and retain exact amounts',async()=>{
+ const h=setup();
+ await h.submit('expense',{...expense,splitMode:'equal',participant:['Stranger']});
+ await h.submit('expense',{...expense,splitMode:'custom',participant:['Member'],expenseShare1:'12'});
+ assert.equal(h.trip.expenses.length,0);
+ await h.submit('expense',{...expense,splitMode:'custom',participant:['Admin','Member'],expenseShare0:'2.34',expenseShare1:'10'});
+ assert.equal(h.trip.expenses[0].shares.Member,10);
+ assert.equal(h.trip.expenses[0].shares.Admin,2.34);
 });

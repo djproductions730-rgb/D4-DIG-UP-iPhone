@@ -29,7 +29,9 @@ jobs:
           node-version: '22'
 
       - name: Test data integrity, member access and trip completion
-        run: node d4-trip-demo/check.cjs
+        run: |
+          node d4-trip-demo/check.cjs
+          node --test d4-trip-demo/expense-plan.test.cjs
 
       - name: Confirm Hosting target and locally hosted AI illustrations
         run: |

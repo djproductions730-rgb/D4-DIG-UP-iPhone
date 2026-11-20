@@ -244,6 +244,16 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 .d4-payment-counts{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}.d4-payment-counts b{font-size:12px;padding:10px 13px;border-radius:12px;background:#222c4b;color:#fff;border:1px solid #65718e}
 .member{gap:10px;align-items:center}.member .btn{margin-left:auto;min-height:44px;color:#fff;border:1px solid #8491ac}.cc-popup,.cc-member-tile,.cc-simple-popup{color:#f7f8ff}.cc-member-tile small,.cc-member-tile span{color:#d8e1fa}.cc-primary,.cc-add,.cc-tiny-edit,.cc-filter{min-height:44px}.cc-tile-money b{color:#fff}.cc-tile-status{font-weight:800}.cc-banner{background-image:linear-gradient(90deg,rgba(11,20,42,.92),rgba(13,30,53,.44)),url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=85');background-size:cover;background-position:center}.hero{background-image:linear-gradient(90deg,rgba(12,17,38,.9),rgba(12,17,38,.42)),url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=85');background-size:cover;background-position:center}.hero p,.hero h2,.cc-banner p,.cc-banner h2{color:#fff;text-shadow:0 1px 3px #0009}.modal-backdrop input,.modal-backdrop select,.modal-backdrop textarea{color:#fff;background:#1b2542;border:1px solid #8695b2}.modal-backdrop label{color:#eef3ff}.cc-popup button{color:inherit}
 </style>
+<style>
+.d4-expense-amount{margin:0 0 14px}.d4-expense-amount input{font-size:28px!important;font-weight:800}
+.d4-expense-split{border:1px solid #6583a8;border-radius:15px;padding:10px 12px;margin:10px 0;background:#172841;color:#f4f9ff}
+.d4-expense-split summary{cursor:pointer;min-height:32px;font-weight:800}
+.d4-expense-split legend{font-weight:700;margin-bottom:8px}.d4-expense-split fieldset{border:0;padding:0;margin:0;min-width:0}
+.d4-expense-split-output{display:block;margin:9px 0 3px;font-size:13px;color:#a3fae8}
+.d4-expense-advanced{margin:10px 0}.d4-expense-advanced summary{cursor:pointer;padding:8px 0}
+.d4-expense-saved{margin-top:5px;font-size:12px}.d4-expense-saved summary{cursor:pointer;color:#a3fae8;padding:5px 0}
+.d4-expense-saved ul{padding-left:18px;margin:4px 0}
+</style>
 <link rel="stylesheet" href="./night.css" media="screen">
 <link rel="stylesheet" href="./intro.css" media="screen">
 <link rel="stylesheet" href="./premium-production.css?build=45" media="screen">
@@ -868,7 +878,67 @@ function tripPlan(t){
  </section>`;
 }
 
-function tripExpenses(t){const total=calculations(t).total;const sorted=t.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date));return `${sec('All expenses',isTripAdmin(t)?'quick-expense':'',isTripAdmin(t)?'＋ Add Expense':'')}<div class="card"><div class="space-between"><div><p style="margin:0">Overall spend</p><div class="amount" style="font-size:31px;color:var(--mint)">${money(total)}</div></div><span style="font-size:38px">💳</span></div><div class="row" style="margin-top:14px"><span class="pill">${t.expenses.length} bills</span><span class="pill">🧾 Receipts ${t.expenses.filter(e=>e.receipt).length}</span></div></div>${sec('Day-wise records')}<div class="item-list">${sorted.map(e=>`<div class="list-row"><div class="leading"><span class="category-icon">${catIcon[e.category]||'🧾'}</span><div><strong>${esc(e.note||e.category)}</strong><small>${fmtDate(e.date)} · Paid by ${esc(e.paidBy)} · ${esc(e.method||'')}</small></div></div><div style="text-align:right"><b class="amount">${money(e.amount)}</b>${e.receipt?`<button class="text-link" data-action="receipt" data-id="${e.id}" style="display:block;margin-left:auto">📎 Receipt</button>`:''}${isTripAdmin(t)?`<button class="text-link" style="color:#ffa7b1" data-action="delete-expense" data-id="${e.id}">Delete</button><button class="text-link" data-action="edit-expense" data-id="${esc(e.id)}">Edit</button>`:''}</div></div>`).join('')||'<div class="empty"><div class="emoji">🧾</div>No expenses yet. Admins can add expense notes.</div>'}</div>`}
+function expenseSplitDetails(e){
+ const shares=Object.entries(sharedPaise(e));
+ if(!shares.length)return '';
+ return '<details class="d4-expense-saved"><summary>Split · '+shares.length+' friends</summary><ul>'+shares.map(([name,paise])=>
+  '<li>'+esc(name)+(name===e.paidBy?' · own share':paise?' owes '+esc(e.paidBy):' · no share')+' · '+money(paise/100)+'</li>').join('')+'</ul></details>';
+}
+function expenseSplitFields(t){
+ return '<details class="d4-expense-split"><summary>Split Calculator</summary>'+
+  selectField('splitMode','Split method','<option value="note">No split</option><option value="equal">Equal split</option><option value="custom">Custom amounts</option>')+
+  '<fieldset data-expense-people hidden disabled><legend>Choose friends</legend><div class="checks">'+t.members.map((name,index)=>
+   '<label class="check"><input type="checkbox" name="participant" value="'+esc(name)+'" data-share-index="'+index+'" checked> '+esc(name)+'</label>').join('')+'</div>'+
+   '<div data-expense-custom hidden>'+t.members.map((name,index)=>field('expenseShare'+index,name,'','number','min="0" step="0.01"')).join('')+'</div></fieldset>'+
+  '<output class="d4-expense-split-output" aria-live="polite"></output></details>';
+}
+function readExpenseSplit(fd,t,amount){
+ const mode=String(fd.get('splitMode')||'note');
+ if(mode==='note')return {mode,participants:[],shares:null};
+ if(!['equal','custom'].includes(mode))throw Error('Choose a valid split method');
+ const participants=fd.getAll('participant').map(String);
+ if(!participants.length)throw Error('Choose at least one friend');
+ if(new Set(participants).size!==participants.length||participants.some(name=>!t.members.includes(name)))throw Error('Choose valid trip members');
+ if(mode==='equal')return {mode,participants,shares:null};
+ const shares=Object.fromEntries(participants.map(name=>{
+  const raw=fd.get('expenseShare'+t.members.indexOf(name)), value=Number(raw);
+  if(raw===null||raw===''||!Number.isFinite(value)||value<0||Math.abs(value*100-Math.round(value*100))>0.00001)throw Error('Enter a valid share for '+name);
+  return [name,value];
+ }));
+ if(Object.values(shares).reduce((total,value)=>total+Math.round(value*100),0)!==Math.round(amount*100))throw Error('Custom shares must total '+money(amount));
+ return {mode,participants,shares};
+}
+function mountExpenseSplit(form,t){
+ const picker=form.querySelector('[data-expense-people]');
+ if(!picker)return;
+ const custom=form.querySelector('[data-expense-custom]'), output=form.querySelector('output');
+ function refresh(){
+  const mode=form.elements.splitMode.value;
+  picker.hidden=picker.disabled=mode==='note';
+  custom.hidden=mode!=='custom';
+  for(const checkbox of picker.querySelectorAll('[data-share-index]')){
+   const input=form.elements['expenseShare'+checkbox.dataset.shareIndex];
+   input.disabled=mode!=='custom'||!checkbox.checked;
+   input.closest('.field').hidden=input.disabled;
+  }
+  if(mode==='note'){output.textContent='';return;}
+  const amount=Number(form.elements.amount.value);
+  if(!(amount>0)){output.textContent='Enter the expense amount to see each share.';return;}
+  try{
+   const split=readExpenseSplit(new FormData(form),t,amount);
+   const shares=Object.values(sharedPaise({amount,...split}));
+   const min=Math.min(...shares),max=Math.max(...shares);
+   const payer=form.elements.paidBy.value;
+   const ownShare=sharedPaise({amount,...split})[payer]||0;
+   output.textContent=(mode==='equal'?money(min/100)+(max===min?'':'–'+money(max/100))+' each · ':'')+
+    split.participants.length+' friends · '+payer+' gets back '+money((Math.round(amount*100)-ownShare)/100);
+  }catch(error){output.textContent=error.message;}
+ }
+ form.addEventListener('input',refresh);
+ form.addEventListener('change',refresh);
+ refresh();
+}
+function tripExpenses(t){const total=calculations(t).total;const sorted=t.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date));return `${sec('All expenses',isTripAdmin(t)?'quick-expense':'',isTripAdmin(t)?'＋ Add Expense':'')}<div class="card"><div class="space-between"><div><p style="margin:0">Overall spend</p><div class="amount" style="font-size:31px;color:var(--mint)">${money(total)}</div></div><span style="font-size:38px">💳</span></div><div class="row" style="margin-top:14px"><span class="pill">${t.expenses.length} bills</span><span class="pill">🧾 Receipts ${t.expenses.filter(e=>e.receipt).length}</span></div></div>${sec('Day-wise records')}<div class="item-list">${sorted.map(e=>`<div class="list-row"><div class="leading"><span class="category-icon">${catIcon[e.category]||'🧾'}</span><div><strong>${esc(e.note||e.category)}</strong><small>${fmtDate(e.date)} · Paid by ${esc(e.paidBy)} · ${esc(e.method||'')}</small>${expenseSplitDetails(e)}</div></div><div style="text-align:right"><b class="amount">${money(e.amount)}</b>${e.receipt?`<button class="text-link" data-action="receipt" data-id="${e.id}" style="display:block;margin-left:auto">📎 Receipt</button>`:''}${isTripAdmin(t)?`<button class="text-link" style="color:#ffa7b1" data-action="delete-expense" data-id="${e.id}">Delete</button><button class="text-link" data-action="edit-expense" data-id="${esc(e.id)}">Edit</button>`:''}</div></div>`).join('')||'<div class="empty"><div class="emoji">🧾</div>No expenses yet. Admins can add expense notes.</div>'}</div>`}
 function tripSettle(t){const c=calculations(t),m=t.members.length;return `${sec('Smart split & settle')}<div class="metric-grid">${metric('💰',money(c.total),'Trip spend')}${metric('👥',m,'Members')}${metric('📊',money(m?c.total/m:0),'Avg per member')}</div><div class="notice" style="margin-top:14px">Equal split is calculated per selected participants on each bill. Custom split is also supported; average per member is just an overview.</div>${sec('Paid vs share')}<div class="card">${Object.entries(c.memberBalances).map(([name,b])=>`<div class="settle-person"><div><strong>${esc(name)}</strong><div class="tiny">Paid ${money(b.paid/100)} · Share ${money(b.share/100)}</div></div><b class="${b.net>=0?'positive':'negative-text'}">${b.net>=0?'+':'−'}${money(Math.abs(b.net)/100)}</b></div>`).join('')}</div>${sec('Who pays whom?')}<div class="card">${c.settlements.map((s,i)=>`<div class="list-row" style="margin-bottom:9px"><div><strong>${esc(s.from)} ➜ ${esc(s.to)}</strong><small>Suggested outstanding</small></div><div style="text-align:right"><b style="color:var(--mint)">${money(s.amount)}</b>${isTripAdmin(t)?`<button class="text-link" style="display:block" data-action="settlement-paid" data-idx="${i}">✓ Mark paid</button>`:''}</div></div>`).join('')||'<div class="empty">✅ Everyone is settled!</div>'}</div>${(t.settlementsPaid||[]).length?`${sec('Recorded repayments')}<div class="card">${t.settlementsPaid.map(x=>`<div class="list-row"><div><strong>${esc(x.from)} paid ${esc(x.to)}</strong><small>${fmtDate(x.date)} · Recorded by ${esc(x.by||'Admin')}</small></div><div style="text-align:right"><b>${money(x.amount)}</b>${isTripAdmin(t)?`<button class="text-link negative-text" style="display:block" data-action="settlement-undo" data-id="${esc(x.id)}">Undo</button>`:''}</div></div>`).join('')}</div>`:''}<div class="row" style="margin-top:15px"><button class="btn" data-action="open-tab" data-ctx="report">📄 Include in PDF</button></div>`}
 
 function changeTripMember(t,oldName,newName,remove=false){
@@ -1010,16 +1080,18 @@ case 'expense':case 'expense-edit':{
  const catOptions=cats.map(n=>'<option '+(e?.category===n?'selected':'')+'>'+esc(n)+'</option>').join('');
  const methods=['UPI','Cash','Card','Bank transfer','Other'];
  const methodOptions=methods.map(m=>'<option '+(e?.method===m?'selected':'')+'>'+m+'</option>').join('');
- body='<p class="muted">Expense note and amount tracking only. No expense splitting.</p>'+
-  selectField('category','Category',catOptions)+
-  field('amount','Amount (₹)',e?.amount??'','number','required min="0.01" max="100000000" step="0.01"')+
-  selectField('paidBy','Recorded by',selectOptions(editing&&e?.paidBy&&!t.members.includes(e.paidBy)?[...t.members,e.paidBy]:t.members,e?.paidBy||profile))+
-  selectField('date','Trip date',dateOptions(t,e?.date||daySelected))+
-  selectField('method','Payment method',methodOptions)+
-  field('note','Expense note',e?.note||'','text','required maxlength="150"')+
+ const canSetSplit=!e||e.mode==='note';
+ const tripDate=e?.date||([today(),daySelected].find(date=>datesInTrip(t).includes(date))??t.start);
+ body='<div class="d4-expense-amount">'+field('amount','Amount (₹)',e?.amount??'','number','required min="0.01" max="100000000" step="0.01" inputmode="decimal" placeholder="0"')+'</div>'+
+  '<div class="field-row">'+selectField('category','Category',catOptions)+
+  selectField('paidBy','Paid by',selectOptions(editing&&e?.paidBy&&!t.members.includes(e.paidBy)?[...t.members,e.paidBy]:t.members,e?.paidBy||profile))+'</div>'+
+  field('note','Expense note',e?.note||'','text','required maxlength="150" placeholder="Lunch / Cab / Stay"')+
+  (canSetSplit?expenseSplitFields(t):expenseSplitDetails(e))+
+  '<details class="d4-expense-advanced"><summary>Trip date, payment & receipt</summary><div class="field-row">'+
+  selectField('date','Trip date',dateOptions(t,tripDate))+selectField('method','Payment method',methodOptions)+'</div>'+
   '<div class="field"><label for="f_receipt">Receipt (optional image / PDF)</label>'+
   '<input class="input" id="f_receipt" name="receipt" type="file" accept="image/*,.pdf,application/pdf"></div>'+
-  (e?.receipt?'<p class="notice">Current receipt is kept unless replaced.</p>':'');
+  (e?.receipt?'<p class="notice">Current receipt is kept unless replaced.</p>':'')+'</details>';
  break;
 }
 case 'plan':if(!ensurePermission(isTripAdmin(t)))return;title='🌈 Add an Activity';button='Save Activity';body=`<div class="notice">You can move an activity to any day in this trip. The next time is suggested from this day's latest stop. Adjust it before saving; the inline ＋ Add below button keeps the journey order.</div>${selectField('date','Trip day',dateOptions(t,daySelected))}<div class="field-row">${field('time','Activity time',window.D4GoaMilestones?.suggestDayTime?.(t,daySelected)||'','time','required')}${selectField('category','Category',planCategories.map(c=>`<option value="${c}">${planPalette[c].emoji} ${planPalette[c].label}</option>`).join(''))}</div>${field('title','Activity name','','text','required maxlength="100" placeholder="Breakfast / Beach / Check-in"')}${field('place','Location / details','','text','maxlength="120" placeholder="Hotel / Fort Aguada"')}`;break;
@@ -1050,6 +1122,7 @@ case 'd4-ticket-editor':{
 case 'file':if(!ensurePermission(isTripAdmin(t)))return;title='📎 Upload Trip File';button='Save File';body=`<div class="notice" style="margin-bottom:14px">Local storage demo supports image/PDF up to 350 KB per file.</div><div class="field"><label>Choose photo or PDF</label><input class="input" type="file" name="file" accept="image/*,.pdf,application/pdf" required></div>`;break;
 default:return}
 $('#modalRoot').innerHTML=`<div class="modal-backdrop"><div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
+ if(name==='expense'||name==='expense-edit')mountExpenseSplit($('#activeForm'),t);
  if(name==='d4-ticket-editor')renderTicketQueue();
 }
 function renderTicketQueue(){
@@ -1183,7 +1256,7 @@ case 'assign-admin':{if(!isMain())throw Error('Main Admin only');const target=tr
 case 'expense':case 'expense-edit':{
  if(!isTripAdmin(t))throw Error('Admins only');
  const amount=Number(fd.get('amount')),date=String(fd.get('date')||''),note=String(fd.get('note')||'').trim();
- if(!Number.isFinite(amount)||amount<=0||amount>100000000)throw Error('Enter a valid positive amount');
+ if(!Number.isFinite(amount)||amount<=0||amount>100000000||Math.abs(amount*100-Math.round(amount*100))>0.00001)throw Error('Enter a valid positive amount');
  if(!datesInTrip(t).includes(date))throw Error('Choose a trip date');
  if(!note||note.length>150)throw Error('Enter an expense note');
  const paidBy=String(fd.get('paidBy')||'');
@@ -1192,11 +1265,12 @@ case 'expense':case 'expense-edit':{
  if(name==='expense-edit'&&!old)throw Error('Expense no longer exists');
  if(old && old.mode!=='note' && Math.round(amount*100)!==Math.round(Number(old.amount)*100))
    throw Error('Legacy split expense amount is locked to preserve historic allocations. Edit notes or add a separate adjustment.');
+ const split=old&&old.mode!=='note'?{}:readExpenseSplit(fd,t,amount);
  const attachment=await readAttachment(fd.get('receipt'));
- const updated={category:String(fd.get('category')),date,amount:Math.round(amount*100)/100,
+ const updated={...split,category:String(fd.get('category')),date,amount:Math.round(amount*100)/100,
   paidBy,method:String(fd.get('method')||'Other'),note,receipt:attachment??old?.receipt??null};
  saveTripChange(t,()=>{if(old){Object.assign(old,updated)}
- else{t.expenses.push({id:uid(),...updated,participants:[],mode:'note',shares:null})}});
+ else{t.expenses.push({id:uid(),...updated})}});
  closeModal();tripTab='expenses';go('trip');toast(old?'Expense updated':'Expense saved');return;
 }
 case 'plan':case 'plan-edit':{
