@@ -19,8 +19,8 @@ dialog.d4-sync-dialog {
   box-sizing:border-box; position:fixed; inset:0; margin:auto;
   width:min(calc(100% - 28px), 420px); max-width:none;
   max-height:calc(100dvh - 36px); overflow:auto; overscroll-behavior:contain;
-  padding:clamp(18px, 5vw, 28px); border:1px solid #66518d; border-radius:24px;
-  background:radial-gradient(ellipse at top left,#30234c,transparent 65%),#151226;
+  padding:clamp(18px, 5vw, 28px); border:1px solid #8a65b7; border-radius:24px;
+  background:radial-gradient(ellipse at top left,#352250,transparent 65%),#171125;
   color:#faf7ff; color-scheme:dark; box-shadow:0 24px 90px #080511c9;
   font:500 15px/1.45 system-ui,sans-serif;
 }
@@ -28,9 +28,9 @@ dialog.d4-sync-dialog {
 .d4-sync-dialog *, .d4-sync-dialog *::before, .d4-sync-dialog *::after { box-sizing:border-box; }
 .d4-sync-dialog [hidden] { display:none!important; }
 .d4-sync-dialog form,.d4-sync-dialog fieldset { margin:0; padding:0; border:0; min-width:0; }
-.d4-sync-dialog header { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:0 0 12px; }
+.d4-sync-dialog .sync-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:0 0 8px; }
 .d4-sync-dialog h2 { color:#faf7ff!important; margin:0; font:750 clamp(21px, 6vw, 27px)/1.15 system-ui,sans-serif; letter-spacing:-.025em; }
-.d4-sync-dialog legend { padding:0; margin:0 0 14px; color:#e4dafa; font-size:14px; }
+.d4-sync-dialog legend { padding:0; margin:0 0 14px; color:#cfc0e5; font-size:14px; }
 .d4-sync-dialog p[data-status] { margin:0 0 14px; padding:10px 12px; border-radius:12px; background:#261e3c; color:#eadffa; font-size:14px; }
 .d4-sync-dialog p[data-status]:empty { display:none; }
 .d4-sync-dialog label { display:block; margin:0 0 6px; font-size:14px; color:#f4eeff; }
@@ -45,9 +45,9 @@ dialog.d4-sync-dialog {
 .d4-sync-dialog :is(button,input):focus-visible { outline:2px solid #d6b5ff; outline-offset:2px; }
 .d4-sync-dialog button[data-close] { min-width:44px; flex:none; padding:0; background:#34294c; font-size:23px; }
 .d4-sync-dialog button[data-show-password] { position:absolute; right:2px; top:2px; }
-.d4-sync-dialog button.sync-primary { display:block; width:100%; margin-top:15px; color:#1b0e30; background:linear-gradient(110deg,#dfc0ff,#b8a4ff); }
-.d4-sync-dialog .sync-links { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:7px; }
-.d4-sync-dialog .sync-links button { padding-inline:2px; }
+.d4-sync-dialog button.sync-primary { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; min-height:54px; margin-top:20px; color:#21103c; font-size:17px; background:linear-gradient(105deg,#e8ceff,#bf9bff); box-shadow:0 6px 20px #9b54ff33; }
+.d4-sync-dialog .sync-links { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.d4-sync-dialog .sync-links button { padding-inline:4px; min-height:46px; border-color:#685782; background:#231a36; }
 .d4-sync-dialog .sync-links button:hover { background:#34294c; }
 .d4-sync-dialog .sync-account-actions button:not(.sync-primary) { width:100%; margin-top:7px; border-color:#665681; }
 `;
@@ -56,33 +56,35 @@ export function setupFinanceSync(stores) {
   let session;
   const dialog = document.createElement('dialog');
   dialog.setAttribute('aria-label', 'Finance Auto-sync');
+  const host = document.createElement('div');
+  const root = host.attachShadow({ mode: 'open' });
   dialog.className = 'd4-sync-dialog';
   dialog.setAttribute('aria-labelledby', 'd4-sync-title');
   const styles = document.createElement('style');
   styles.textContent = dialogStyles;
-  document.head.append(styles);
+  root.append(styles, dialog);
   dialog.innerHTML = `<form>
-    <header>
+    <div class="sync-heading">
       <h2 id="d4-sync-title">Finance Auto-sync</h2>
       <button type="button" data-close aria-label="Close Finance Auto-sync">×</button>
-    </header>
+    </div>
     <p data-status role="status" aria-live="polite"></p>
     <fieldset><legend>Use the same account in DigUp and D47 Lona.</legend>
       <div class="sync-field">
         <label for="d4-sync-email">Email</label>
-        <input id="d4-sync-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <input id="d4-sync-email" name="email" placeholder="you@example.com" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
       </div>
       <div class="sync-field">
         <label for="d4-sync-password">Password</label>
         <div class="sync-password">
-          <input id="d4-sync-password" name="password" type="password" minlength="6" autocomplete="current-password" required>
+          <input id="d4-sync-password" name="password" placeholder="Enter password" type="password" minlength="6" autocomplete="current-password" required>
           <button type="button" data-show-password aria-controls="d4-sync-password">Show</button>
         </div>
       </div>
-      <button class="sync-primary" type="submit" value="signin">Sign in</button>
+      <button class="sync-primary" type="submit" value="signin">Sign in <span aria-hidden="true">→</span></button>
       <div class="sync-links">
-        <button type="submit" value="create">Create account</button>
         <button type="submit" value="reset" formnovalidate>Reset password</button>
+        <button type="submit" value="create">Create account</button>
       </div>
     </fieldset>
     <div class="sync-account-actions">
@@ -96,7 +98,7 @@ export function setupFinanceSync(stores) {
   const status = dialog.querySelector('[data-status]');
   const button = key => dialog.querySelector('[data-' + key + ']');
   const credentials = form.querySelector('fieldset');
-  document.body.append(dialog);
+  document.body.append(host);
   const passwordInput = form.elements.password;
   const showPassword = button('show-password');
 
