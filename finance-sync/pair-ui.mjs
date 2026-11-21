@@ -35,6 +35,7 @@ export function setupPairUI({mode,stores}){
     }else{
       dialog.querySelector('[data-pair-main]').textContent=paired()?'Already paired · Auto-sync on':'Pair Once · Enable Auto-sync';
       dialog.querySelector('[data-pair-main]').disabled=paired();
+      dialog.querySelector('[data-pair-helper]').textContent=paired()?'Retry Connection':'Paste from Clipboard';
     }
   }
   function show(){
@@ -79,6 +80,7 @@ export function setupPairUI({mode,stores}){
     }
   }
   async function helper(){
+    if(mode==='lona'&&paired())return connect();
     if(mode==='digup'){
       if(!paired())return mainAction();
       await copy(existingPairCode());return;
@@ -123,6 +125,7 @@ export function setupPairUI({mode,stores}){
   if(paired())void connect();
   window.addEventListener('storage',e=>{
     if(e.key==='d4-pair-link-v1'&&e.newValue&&e.newValue!==e.oldValue)void connect();
+    if(e.key==='d4-pair-link-v1'&&!e.newValue){session?.close();session=null;emit('Disconnected')}
   });
   return {open:show,status:()=>lastStatus};
 }
