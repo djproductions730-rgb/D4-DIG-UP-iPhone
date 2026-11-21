@@ -1104,7 +1104,7 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
 </script>
 <script src="./intro.js"></script><script src="./liquid-glass.js"></script><script>
 (() => {
-  if (digUpHost) { document.addEventListener('click', event => { if (event.target.closest('[data-finance-sync]')) digUpHost.dispatchEvent(new Event('open-finance-sync')); }); return; }
+  if (digUpHost) { window.addEventListener('open-finance-sync', () => digUpHost.dispatchEvent(new Event('open-finance-sync'))); document.addEventListener('click', event => { if (event.target.closest('[data-finance-sync]')) digUpHost.dispatchEvent(new Event('open-finance-sync')); }); return; }
   function applyLedger() { syncLocalBalances(); render(); }
   function applyLona() { state = load(); syncLocalBalances(); render(); }
   window.addEventListener('storage', event => { if (event.key === STORE) applyLona(); });
