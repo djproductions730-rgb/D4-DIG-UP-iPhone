@@ -60,3 +60,28 @@ html[data-theme] body.d47-model-a .main .kpi:not(.primary) :is(.stat,.tiny-title
 }
 html[data-theme] body.d47-model-a .main .kpi:not(.primary) :is(.tiny-title,.small){color:var(--contrast-sub)!important}
 html[data-theme] body.d47-model-a :is(button,input,select,textarea,a):focus-visible{outline:3px solid var(--contrast-action)!important;outline-offset:3px}
+
+/* v26 salary result tiles: ensure text and tile always share a contrast-safe palette.
+   Previous generic selectors missed bare spans and were overridden by glass styles. */
+html[data-theme] body.d47-model-a .main .salary-journal .salary-month-results > div{
+ background:var(--contrast-card)!important;
+ border:1px solid var(--contrast-card-border)!important;
+ color:var(--contrast-ink)!important;
+}
+html[data-theme] body.d47-model-a .main .salary-journal .salary-month-results > div > span{
+ color:var(--contrast-sub)!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+html[data-theme] body.d47-model-a .main .salary-journal .salary-month-results > div > strong{
+ color:var(--contrast-ink)!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+html[data-theme] body.d47-model-a .main .salary-journal .salary-use-track{
+ background:var(--contrast-card)!important;
+ border:1px solid var(--contrast-card-border)!important;
+}
+html[data-theme] body.d47-model-a .main .salary-journal .salary-use-track > span{
+ background:linear-gradient(90deg,#2e8bf5,#42d8bf)!important;
+}
