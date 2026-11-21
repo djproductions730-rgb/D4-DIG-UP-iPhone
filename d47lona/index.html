@@ -1136,7 +1136,7 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
   });
   window.addEventListener('open-finance-sync', open);
   try {
-    const openFromLink = new URLSearchParams(location.search).get('finance') === 'sync';
+    const openFromLink = new URLSearchParams(location.search).get('finance') === 'email-sync';
     if (openFromLink) {
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open, { once:true });
       else open();
