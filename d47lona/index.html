@@ -1105,9 +1105,7 @@ window.addEventListener('pageshow',()=>{if(syncLocalBalances())render()});
 window.addEventListener('storage',e=>{if(e.key===D4_LOCAL_KEY){syncLocalBalances();render()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncLocalBalances())render()});
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
-})();
-</script>
-<script src="./intro.js"></script><script src="./liquid-glass.js"></script><script>
+
 (() => {
   if (digUpHost) { window.addEventListener('open-finance-sync', () => digUpHost.dispatchEvent(new Event('open-finance-sync'))); document.addEventListener('click', event => { if (event.target.closest('[data-finance-sync]')) digUpHost.dispatchEvent(new Event('open-finance-sync')); }); return; }
   function applyLedger() { syncLocalBalances(); render(); }
@@ -1119,7 +1117,7 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
   ];
   let ready;
   function prepare() {
-    ready ??= import('../finance-sync/account.mjs').then(module => module.setupFinanceSync(stores)).catch(error => { ready = null; throw error; });
+    ready ??= import('../finance-sync/account.mjs?v=lona-actions-1').then(module => module.setupFinanceSync(stores)).catch(error => { ready = null; throw error; });
     return ready;
   }
   function open() {
@@ -1131,5 +1129,6 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
   window.addEventListener('open-finance-sync', open);
   try { if (localStorage.getItem('d4-finance-sync-enabled')) void prepare().catch(() => {}); } catch (_) {}
 })();
-</script></body>
+})();
+</script><script src="./intro.js"></script><script src="./liquid-glass.js"></script></body>
 </html>
