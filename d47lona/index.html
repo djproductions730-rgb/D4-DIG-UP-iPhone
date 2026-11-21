@@ -581,9 +581,18 @@ function syncLocalBalances(){
    const ref=String(db.id);if(!ref)continue;
    let existing=state.banks.find(x=>x.digupBankId!=null&&String(x.digupBankId)===ref);
    if(!existing){
+     const candidates=state.banks.filter(x=>x.digupBankId==null&&normalized(x.name)===normalized(db.name));
      const uniqueName=incoming.filter(x=>normalized(x.name)===normalized(db.name)).length===1;
-     // Reuse one legacy bank row only for an unambiguous name.
-     if(uniqueName)existing=state.banks.find(x=>x.digupBankId==null&&normalized(x.name)===normalized(db.name)&&!linked.has(String(x.id)));
+     if(uniqueName&&candidates.length===1)existing=candidates[0];
+     else{
+       // A brand-new, unused zero-balance bank placeholder can safely be
+       // attached to the first same-named DIG UP account. Never repurpose a
+       // bank referenced by a loan or payment, or with a manual balance.
+       existing=candidates.find(x=>Number(x.balance)===0
+         &&(!x.note||x.note==='Manual balance')
+         &&!state.loans.some(l=>String(l.bankId)===String(x.id))
+         &&!state.ledger.some(e=>String(e.bankId)===String(x.id)));
+     }
    }
    if(!existing){
      const base='digup-'+normalizeBankId(ref);
