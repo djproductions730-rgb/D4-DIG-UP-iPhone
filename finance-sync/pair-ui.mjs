@@ -48,6 +48,9 @@ export function setupPairUI({mode,stores}){
       field.value=existingPairCode();
       dialog.querySelector('[data-pair-main]').textContent=paired()?'Copy Pair Code':autoAttempted?'Retry Code Creation':'Preparing Pair Code…';
     }else{
+      // The code is an access secret; once saved, never display it again in a
+      // public screenshot just to show connection status.
+      if(paired())field.value='';
       dialog.querySelector('[data-pair-main]').textContent=paired()?'Code saved · check sync status':'Pair Once · Enable Auto-sync';
       dialog.querySelector('[data-pair-main]').disabled=paired();
       dialog.querySelector('[data-pair-helper]').textContent=paired()?'Retry Connection':'Paste from Clipboard';
