@@ -1,13 +1,15 @@
 # D4 DIG UP ↔ D47Lona: One-time Pair Code and Auto-sync
 
 ## User flow
-1. Open DIG UP → More → **Pair & Auto-sync** → **Create & Copy Pair Code**.
+1. Open DIG UP → More → **Pair & Auto-sync**. A strong code is **generated automatically** and retained on this device. Tap **Copy Pair Code** to copy it.
 2. Open D47Lona → top **Sync** → **Pair Once · Enable Auto-sync**. Paste the private code once.
 3. From then on, each app remembers the link and resumes cloud sync on open or when internet returns. No email, no password, and no repeating the code on each edit.
 4. If both apps are in the same Safari website storage, the link may already be present in both. Separate Safari / iPhone Home Screen contexts must be paired once each.
 
 ## Safety and capabilities
 - 256-bit random code; AES-GCM encrypts finance data on-device before upload. The pairing code IS the secret; never share it publicly.
+- Code generation is immediate and works offline. **Registration and actual auto-sync are separate**: they remain unavailable until Firebase Anonymous Auth and the Firestore rules have been enabled. The UI must show a real **Synced** status before you consider your data connected.
+- If cloud registration fails, the generated code stays the same. Retry after Firebase is configured; do not regenerate it for each attempt.
 - Cloud stores only a SHA-256-derived document ID, record revisions and encrypted payloads.
 - Cloud document lookup is unlistable. Anonymous Firebase Auth is used silently; it does not ask for email/password.
 - DIG UP updates (banks, income/transactions including Salary) flow to D47Lona's linked balance / monthly salary calculations.
