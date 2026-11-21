@@ -292,3 +292,41 @@ html body.d47-model-a .button:active{transform:scale(.98)}
 @media(prefers-reduced-motion:reduce){
  html body.d47-model-a :is(.glass,.loan-compact,.button,.d47-top-sync,.bank-row,.mobile-nav button){transition:none}
 }
+
+/* D47Lona accessibility contrast correction v21 — visual styles only.
+   Midnight iOS glass: opaque navy surfaces, readable white text, cyan actions. */
+html[data-theme="midnight"] body.d47-model-a{
+ color-scheme:dark;--accent:#46dfff;--accent-2:#6aa9ff;--ink:#f7fbff;--muted:#c3d5e9;
+ --ui-title:#ffffff;--ui-text:#eef7ff;--ui-muted:#c3d5e9;--ui-action:#69dfff;
+ --stroke:#426588;--paper:#153554;--frost:linear-gradient(145deg,#193c5e,#102b49);
+ --lg-base:#153554;--lg-top:#1b4568;--lg-bottom:#0d2946;--lg-ink:#ffffff;--lg-sub:#c3d5e9;
+ --lg-edge:#4b789e;--lg-inner:#6d9abd;--lg-nav:#112f50;
+ background:radial-gradient(ellipse at 70% 0%,#12477a,transparent 55%),linear-gradient(150deg,#06162b,#0a2440 62%,#071a30)!important;
+ color:#f7fbff!important;
+}
+html[data-theme="midnight"] body.d47-model-a :is(.main,.header h1,h1,h2,h3,.brand-text b,.loan-title,.bank-name strong,.cycle-main strong,.cycle-right strong,.list-tile strong,.detail-progress h2,.modal-title h2,.salary-history-row strong){color:#ffffff!important}
+html[data-theme="midnight"] body.d47-model-a :is(.sub,.small,.eyebrow,.brand-text small,.rail-label,.footnote,.cycle-main .small,.list-tile .small,.detail-grid .mini-panel .small){color:#c3d5e9!important}
+html[data-theme="midnight"] body.d47-model-a :is(.glass,.form-card,.modal,.detail-top,.loan-card,.loan-compact,.cycle-row,.list-tile,.bank-row,.detail-grid .mini-panel,.digup-legacy-loans,.digup-legacy-loan-row,.notice,.calendar){
+ background:linear-gradient(145deg,#1b4264,#102d4b)!important;
+ color:#f7fbff!important;border-color:#4b789e!important;
+ box-shadow:inset 0 1px 0 #7298b944,0 12px 28px #020c2070!important;
+}
+html[data-theme="midnight"] body.d47-model-a :is(.mobile-brand,.rail,.mobile-nav,.tabbar){
+ background:#102c4b!important;border-color:#426588!important;color:#f7fbff!important;
+}
+html[data-theme="midnight"] body.d47-model-a :is(.mobile-nav button,.rail .nav-link,.tabbar button){color:#d8eaff!important}
+html[data-theme="midnight"] body.d47-model-a :is(.mobile-nav button.current,.rail .nav-link.current,.tabbar button.selected){
+ background:#215c91!important;color:#ffffff!important;border-color:#60cfff!important;
+}
+html[data-theme="midnight"] body.d47-model-a :is(.icon-btn,.d47-top-sync,.button,.btn){
+ color:#ffffff!important;background:linear-gradient(145deg,#1764aa,#124779)!important;
+ border-color:#59bfff!important;
+}
+html[data-theme="midnight"] body.d47-model-a .d47-top-sync.d47-sync-linked{background:#105a52!important;color:#baffeb!important;border-color:#40d9bd!important}
+html[data-theme="midnight"] body.d47-model-a :is(input,select,textarea,.field input,.field select){
+ background:#0c2946!important;color:#ffffff!important;border-color:#6086a9!important;
+}
+html[data-theme="midnight"] body.d47-model-a :is(input,textarea)::placeholder{color:#c0d0df!important;opacity:1}
+html[data-theme="midnight"] body.d47-model-a :is(.bank-amount,.detail-grid .mini-panel .val,.loan-compact strong,.cycle-num){color:#ffffff!important}
+html[data-theme="midnight"] body.d47-model-a :is(.notice.warn,.badge){color:#ffffff!important}
+html[data-theme="midnight"] body.d47-model-a :is(button,a,input,select,textarea):focus-visible{outline:3px solid #64e6ff!important;outline-offset:3px}
