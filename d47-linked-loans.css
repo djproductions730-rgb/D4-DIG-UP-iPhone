@@ -1,0 +1,45 @@
+/* DIG UP: Live D47Lona loan summary. Legacy finance records remain separate. */
+.d47-linked-loans{display:grid;gap:14px;margin:12px 0 22px}
+.d47-linked-loans .section-head{margin:4px 0 1px}
+.d47-linked-loans .section-head h2{font-size:clamp(18px,4.8vw,22px)}
+.d47-linked-hero{display:grid;grid-template-columns:1fr 1.2fr;gap:12px;border-radius:24px;
+ padding:18px 19px;color:#effdff;
+ background:radial-gradient(ellipse at 10% 0%,#245a73b8,transparent 68%),linear-gradient(115deg,#143557,#1b1743 75%,#35204f);
+ border:1px solid #76aeff9e;box-shadow:0 12px 27px #080c2370,inset 0 1px #ffffff32}
+.d47-linked-hero>div{display:grid;gap:8px;min-width:0}
+.d47-linked-hero>div+div{padding-left:13px;border-left:1px solid #ddeeff44}
+.d47-linked-hero span{font-size:10px;font-weight:850;letter-spacing:1.35px;color:#bbddf1}
+.d47-linked-hero strong{font-size:clamp(19px,5.4vw,26px);line-height:1.2;overflow-wrap:anywhere;letter-spacing:-.5px}
+.d47-linked-hero>div+div strong{color:#7effd1}
+.d47-linked-hint{margin:0;font-size:12px;line-height:1.6;color:var(--muted,#bec5dc)}
+.d47-linked-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:14px}
+.d47-linked-card{--link-color:#2bc6fa;display:grid;gap:15px;padding:18px;border-radius:24px;
+ background:radial-gradient(ellipse at 100% 0%,#44edfb12,transparent 55%),linear-gradient(140deg,#0a3953eb,#121a36f5);
+ border:1px solid var(--link-color);box-shadow:0 0 20px color-mix(in srgb,var(--link-color) 17%,transparent),0 10px 20px #010a2861;
+ color:#f7fdff}
+.d47-linked-home{--link-color:#49e7b5;background:radial-gradient(ellipse at 100% 0%,#44ffdb1c,transparent 55%),linear-gradient(140deg,#0c594fff,#0c2636f5)}
+.d47-linked-personal{--link-color:#c68cff;background:radial-gradient(ellipse at 100% 0%,#cb88ff30,transparent 55%),linear-gradient(140deg,#392055fa,#15172ff7)}
+.d47-linked-card-head{display:flex;gap:12px;align-items:center}
+.d47-linked-art{width:61px;height:61px;flex:0 0 61px;display:grid;place-items:center;border-radius:17px;
+ font-size:35px;background:linear-gradient(145deg,#a2fff733,#2c72b343);border:1px solid #ccffff60;
+ box-shadow:inset 0 1px #ffffff66,0 5px 12px #0005}
+.d47-linked-art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 3px #0004)}
+.d47-linked-name{display:grid;gap:4px;flex:1;min-width:0}
+.d47-linked-name strong{font-size:17px;line-height:1.3;color:#fff;overflow-wrap:anywhere}
+.d47-linked-name small{font-size:12px;color:#c7d9ee}
+.d47-linked-state{border:1px solid #57f1c38e;background:#065e5077;color:#a0ffdf;padding:5px 8px;border-radius:999px;font-size:10px;font-weight:850}
+.d47-linked-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.d47-linked-stats>div{display:grid;gap:5px;padding:13px 12px;background:#ffffff12;border:1px solid #ffffff32;border-radius:14px;min-width:0}
+.d47-linked-stats small{color:#c4d6ec;font-size:11px}
+.d47-linked-stats strong{color:#fff;font-size:20px;overflow-wrap:anywhere}
+.d47-linked-progress{height:9px;border-radius:999px;background:#ffffff2b;overflow:hidden}
+.d47-linked-progress span{height:100%;display:block;background:linear-gradient(90deg,var(--link-color),#caffff);box-shadow:0 0 12px var(--link-color)}
+.d47-linked-card-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;font-size:12px;color:#d9e6fa}
+.d47-linked-principal{display:block;margin-top:5px;color:#b6cee8;font-size:11px}
+.d47-linked-open{color:#eaffff;background:#ffffff1a;border:1px solid var(--link-color);border-radius:12px;text-decoration:none;font-weight:800;padding:10px 12px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+.d47-legacy-details{margin:16px 0 20px;border:1px solid #b794e670;border-radius:22px;padding:14px;background:linear-gradient(130deg,#36224644,#141d3c88)}
+.d47-legacy-details>summary{cursor:pointer;list-style-position:inside;font-weight:800;min-height:48px;display:flex;align-items:center;gap:7px;color:var(--ink,#f3f4ff)}
+.d47-legacy-details>summary::before{content:'▸';color:#d5aaff;font-size:17px}
+.d47-legacy-details[open]>summary::before{content:'▾'}
+.d47-legacy-details>.muted{margin:2px 0 15px;font-size:12px;line-height:1.6}
+@media(max-width:370px){.d47-linked-card-head{flex-wrap:wrap}.d47-linked-art{width:52px;height:52px;flex-basis:52px}.d47-linked-hero{padding:14px}}
