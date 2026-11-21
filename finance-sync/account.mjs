@@ -31,6 +31,10 @@ dialog.d4-sync-dialog {
 .d4-sync-dialog .sync-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:0 0 8px; }
 .d4-sync-dialog h2 { color:#faf7ff!important; margin:0; font:750 clamp(21px, 6vw, 27px)/1.15 system-ui,sans-serif; letter-spacing:-.025em; }
 .d4-sync-dialog legend { padding:0; margin:0 0 14px; color:#cfc0e5; font-size:14px; }
+.d4-sync-dialog .sync-guidance { margin:0 0 16px; padding:11px 12px; background:#242035; color:#eee4ff; border:1px solid #64587b; border-radius:12px; font-size:13px; line-height:1.5; }
+.d4-sync-dialog .sync-guidance strong { color:#fff5da; }
+.d4-sync-dialog .sync-status-tip { margin-top:9px; font-size:12px; color:#c4b7d6; }
+
 .d4-sync-dialog p[data-status] { margin:0 0 14px; padding:10px 12px; border-radius:12px; background:#261e3c; color:#eadffa; font-size:14px; }
 .d4-sync-dialog p[data-status]:empty { display:none; }
 .d4-sync-dialog label { display:block; margin:0 0 6px; font-size:14px; color:#f4eeff; }
@@ -69,7 +73,8 @@ export function setupFinanceSync(stores) {
       <button type="button" data-close aria-label="Close Finance Auto-sync">×</button>
     </div>
     <p data-status role="status" aria-live="polite"></p>
-    <fieldset><legend>Use the same account in DigUp and D47 Lona.</legend>
+    <fieldset><legend>Use one verified email account for DIG UP and D47Lona.</legend>
+      <p class="sync-guidance">First time? Choose <strong>Create account</strong>. Already registered but password incorrect? Choose <strong>Reset password</strong>. Your records are kept on your device until sync is enabled.</p>
       <div class="sync-field">
         <label for="d4-sync-email">Email</label>
         <input id="d4-sync-email" name="email" placeholder="you@example.com" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" required>
@@ -101,6 +106,11 @@ export function setupFinanceSync(stores) {
   document.body.append(host);
   const passwordInput = form.elements.password;
   const showPassword = button('show-password');
+  const emailInput = form.elements.email;
+  const requestedEmail = new URLSearchParams(location.search).get('email');
+  const rememberedEmail = (() => { try { return localStorage.getItem('d4-finance-last-email') || ''; } catch (_) { return ''; } })();
+  if (requestedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail) && requestedEmail.length < 255) emailInput.value = requestedEmail;
+  else if (rememberedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rememberedEmail)) emailInput.value = rememberedEmail;
 
   function setPasswordVisible(visible) {
     passwordInput.type = visible ? 'text' : 'password';
@@ -151,7 +161,10 @@ export function setupFinanceSync(stores) {
     try { await action(); }
     catch (error) {
       const messages = {
-        'auth/invalid-credential': 'Email or password is incorrect.',
+        'auth/invalid-credential': 'Cannot sign in. If this is your first time, tap Create account. Otherwise tap Reset password and set a new one.',
+        'auth/wrong-password': 'Password does not match this account. Tap Reset password to choose a new one.',
+        'auth/user-not-found': 'No account was found. Tap Create account to register this email.',
+        'auth/invalid-login-credentials': 'Account not found or password does not match. Try Create account or Reset password.',
         'auth/email-already-in-use': 'This email already has an account. Sign in or reset your password.',
         'auth/weak-password': 'Choose a stronger password.',
         'auth/password-does-not-meet-requirements': 'Choose a stronger password.',
@@ -169,10 +182,10 @@ export function setupFinanceSync(stores) {
     event.preventDefault();
     if (submitting) return;
     const action = event.submitter?.value || 'signin';
-    const emailInput = form.elements.email;
-    emailInput.value = emailInput.value.trim();
+    emailInput.value = emailInput.value.trim().toLowerCase();
     const email = emailInput.value;
     const password = passwordInput.value;
+    if (emailInput.validity.valid) { try { localStorage.setItem('d4-finance-last-email', email); } catch (_) {} }
     if (!emailInput.validity.valid) {
       status.textContent = 'Enter a valid email address to continue.';
       emailInput.focus();
@@ -198,7 +211,7 @@ export function setupFinanceSync(stores) {
         setPasswordVisible(false);
         try {
           await accounts.sendEmailVerification(result.user);
-          status.textContent = 'Account created. Open the verification email, then tap Check email verification.';
+          status.textContent = 'Account created. Verify the link in your email, return here, then tap Check email verification. Your password is never saved in the public app code.';
         } catch (_) {
           status.textContent = 'Account created. Tap Send verification email to try sending the link again.';
         }
@@ -239,5 +252,7 @@ export function setupFinanceSync(stores) {
 
   return () => {
     if (!dialog.open) dialog.showModal();
+    if (!auth.currentUser && emailInput.value) passwordInput.focus();
+    else if (!auth.currentUser) emailInput.focus();
   };
 }
