@@ -390,3 +390,49 @@ html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d4
 html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(input,textarea)::placeholder{color:#d4e0ec!important;opacity:1}
 html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.badge,.notice.warn){color:#ffffff!important}
 html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--theme-accent)!important;outline-offset:3px}
+
+/* v23 screenshot fix: Settings text, swatches and bottom navigation in EVERY theme.
+   The light theme keeps dark lettering; dark themes keep white lettering. */
+html[data-theme="crystal"] body.d47-model-a{--settings-title:#172b48;--settings-sub:#4c5d75;--settings-card:#f2f7ff;--settings-border:#c5d6e9;--settings-nav:#e9f3ff;--settings-selected:#d8eaff;--settings-action:#1557a0}
+html[data-theme="midnight"] body.d47-model-a{--settings-title:#ffffff;--settings-sub:#d5e5f5;--settings-card:#183b5e;--settings-border:#5684aa;--settings-nav:#102d4d;--settings-selected:#245b8b;--settings-action:#7be6ff}
+html[data-theme="emerald"] body.d47-model-a{--settings-title:#ffffff;--settings-sub:#e0f5ed;--settings-card:#15483e;--settings-border:#4e9d86;--settings-nav:#0b3029;--settings-selected:#236955;--settings-action:#9cf7d6}
+html[data-theme="royal"] body.d47-model-a{--settings-title:#ffffff;--settings-sub:#eee4fa;--settings-card:#44315f;--settings-border:#9273bb;--settings-nav:#2b1c47;--settings-selected:#624485;--settings-action:#e0c5ff}
+html[data-theme="gold"] body.d47-model-a{--settings-title:#ffffff;--settings-sub:#f7ebd7;--settings-card:#564128;--settings-border:#ac8b55;--settings-nav:#342715;--settings-selected:#725631;--settings-action:#ffe7ac}
+html[data-theme] body.d47-model-a[data-d47-section="settings"] :is(.glass.form-card,.salary-journal,.salary-journal-head){
+ color:var(--settings-title)!important;
+}
+html[data-theme] body.d47-model-a[data-d47-section="settings"] .glass.form-card :is(h2,h3,label,strong,.field label,.salary-journal-head h2){
+ color:var(--settings-title)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a[data-d47-section="settings"] .glass.form-card :is(.sub,.small,p,.salary-from-digup,.salary-difference-note){
+ color:var(--settings-sub)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .theme-swatches .swatch{
+ background:var(--settings-card)!important;border:2px solid var(--settings-border)!important;
+ box-shadow:inset 0 1px 0 #ffffff2b,0 4px 12px #00000024!important;
+ color:var(--settings-title)!important;min-height:80px;
+}
+html[data-theme] body.d47-model-a .theme-swatches .swatch small{
+ color:var(--settings-title)!important;opacity:1!important;font-weight:800!important;
+ text-shadow:none!important;
+}
+html[data-theme] body.d47-model-a .theme-swatches .swatch.on{
+ background:var(--settings-selected)!important;border:3px solid var(--settings-action)!important;
+ box-shadow:0 0 0 2px var(--settings-nav),0 5px 14px #0000003b!important;
+}
+html[data-theme] body.d47-model-a .theme-swatches .swatch-chip{border:1px solid #ffffff60}
+html[data-theme] body.d47-model-a .mobile-nav{
+ background:var(--settings-nav)!important;border-top:1px solid var(--settings-border)!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button{
+ color:var(--settings-sub)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button.active{
+ background:var(--settings-selected)!important;color:var(--settings-title)!important;
+ border:1px solid var(--settings-border)!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button.active :is(svg,span){color:var(--settings-title)!important;opacity:1!important}
+html[data-theme] body.d47-model-a[data-d47-section="settings"] .glass.form-card .button.secondary{
+ color:var(--settings-title)!important;background:var(--settings-selected)!important;
+ border:1px solid var(--settings-border)!important;
+}
