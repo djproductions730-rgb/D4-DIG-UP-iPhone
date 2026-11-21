@@ -530,11 +530,16 @@ const D4_CLOUD_COPY_KEY='d47lona-digup-cloud-copy';
 const digUpHost=window.parent!==window&&new URLSearchParams(location.search).get('embedded')==='1'
  ? window.parent : null;
 const digUpStorage=digUpHost?.localStorage||localStorage;
-function d4CloudCopyEnabled(){return !digUpHost&&!!localStorage.getItem('d4-finance-sync-enabled')}
+function d4CloudCopyEnabled(){return !digUpHost&&(!!localStorage.getItem('d4-pair-link-v1')||!!localStorage.getItem('d4-finance-sync-enabled'))}
 function d4Store(){try{const cloud=d4CloudCopyEnabled()?localStorage.getItem(D4_CLOUD_COPY_KEY):null;const d=JSON.parse(cloud||digUpStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
 function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
 function d4BrowserLinked(){return !!d4Store()}
 function d47SyncState(){
+ if(localStorage.getItem('d4-pair-link-v1')){
+   const x=window.__d47PairState;
+   if(x&&!x.error&&/Synced/i.test(x.status))return {state:'linked',label:'Auto-sync on',description:x.status,color:'linked'};
+   return {state:'local',label:'Paired · connecting',description:x?.status||'Waiting for encrypted cloud sync',color:'backup'};
+ }
  if(d4CloudCopyEnabled())return {state:'local',label:'Cloud sync',description:'Tap Sync to check the DigUp cloud connection.',color:'local'};
  const d=d4Store();
  if(d)return {state:'linked',label:'Local link',description:'Same-browser records. Tap Sync for Finance Auto-sync status.',color:'local'};
@@ -960,7 +965,7 @@ function introSettings(){
   +'</div><div class="d47-intro-actions"><button type="button" class="button secondary" data-action="intro-replay">▶ Replay my intro</button></div></div>';
 }
 
-function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack">${introSettings()}<div class="glass form-card"><button type="button" class="button secondary" data-finance-sync>Finance Auto-sync</button></div><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
+function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack">${introSettings()}<div class="glass form-card"><button type="button" class="button secondary" data-pair-sync>🔗 One-Time Pair Code · Auto-sync</button></div><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
  ${salaryJournalSection()}
  <div class="glass form-card"><h2>Install on your phone</h2><p class="sub" style="margin:7px 0 14px">Android: open the secure hosted link in Chrome and choose Install App. iPhone: open it in Safari, tap Share, then Add to Home Screen. This file must be hosted on HTTPS to install as a PWA.</p><button class="button secondary" data-action="install-help">${ico('download')} Install instructions</button></div><div class="glass form-card"><h2>Data and backups</h2><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="export">${ico('download')} Export backup</button><button class="button secondary" data-action="import">${ico('upload')} Restore backup</button><button class="button secondary" data-action="export-digup">${ico('download')} DIG UP entries</button></div><p class="footnote" style="margin-top:12px">Local-first storage. Browser data deletion will remove it unless backed up. Never share backup files publicly.</p></div>
  <div class="glass form-card"><h2>D4 DIG UP Auto Sync</h2><div class="strip" style="margin:14px 0">${ico('shield')} ${d4BrowserLinked()?'Connected · Same browser':'Not connected in this browser'}</div><p class="sub">${d4BrowserLinked()?'Bank accounts: '+d4SyncStats().banks+' · Linked: '+d4SyncStats().linked+' · Recorded transactions: '+d4SyncStats().transactions+'. Same Safari/browser changes appear automatically after opening or switching back.':'Not connected live. '+(state.digupBackupMeta?'Last DIG UP snapshot: '+new Date(state.digupBackupMeta.importedAt).toLocaleDateString('en-IN')+'. Import a newer backup to update.':'Open DIG UP in this same Safari browser or import its backup manually.')}</p><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="sync-now">${ico('refresh')} Sync Now</button><button class="button secondary" data-action="import-digup">${ico('upload')} Import DIG UP Backup</button><button class="button secondary" data-action="open-digup">Open D4 DIG UP</button></div><p class="footnote" style="margin-top:12px">Same-origin Safari tabs: automatic bank balance & Salary income refresh. Backup imports: snapshots, not live. No automatic cross-browser, Home Screen app, or device sync without an authenticated cloud service. DIG UP loan payments are not automatically marked Paid here.</p><div style="margin-top:12px"><button class="text-btn" data-action="sync-info">How sync works ${ico('right')}</button></div></div>
@@ -1023,7 +1028,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'toggle-overdue':state.reminderAfterDue=!state.reminderAfterDue;save();render();break;
  case 'pay-next':{let dues=dueSoon();if(dues.length)markPayment(dues[0].loan.id,dues[0].cycle.num);else notify('No upcoming dated EMI. Set missing first due dates.');break}
  case 'sync-info':modal=infoModal('D4 DIG UP Sync',`<div class="notice">${ico('shield')} ${d4BrowserLinked()?'Same-browser local sync is connected.':'No DIG UP data in this browser yet.'}</div><p class="sub" style="margin-top:14px">Use D4 DIG UP and D47Lona under djproductions730-rgb.github.io in the same Safari browser. Bank balances refresh whenever you open, return to or refresh D47Lona.</p><p class="sub" style="margin-top:12px">Paid EMI with deduction makes ONE linked Expense in DIG UP; Undo reverses it. Ordinary expenses change balances only, not EMI Paid status.</p><p class="sub" style="margin-top:12px">Different browsers, iPhone installed-app storage and other devices may be isolated. Import your DIG UP backup to migrate local data. Cross-device auto-sync needs a shared authenticated cloud backend.</p>`);render();break;
- case 'finance-sync-status':window.dispatchEvent(new Event('open-finance-sync'));break;
+ case 'finance-sync-status':window.dispatchEvent(new Event('open-pair-sync'));break;
  case 'sync-now':{const live=d4Store();if(live){syncLocalBalances();render();notify('Local DIG UP copy refreshed · '+d4SyncStats().linked+' bank(s), '+d4SyncStats().transactions+' transaction(s) available');}else{modal=infoModal('Connect D4 DIG UP',`<p class="sub">Open DIG UP and D47 Lona in the same browser window to share balances and transactions. If your records are in a separate app, export a DIG UP backup there and import it here to view a snapshot.</p><div class="button-group"><button class="button primary" data-action="open-digup">Open DIG UP</button><button class="button secondary" data-action="import-digup">Import DIG UP Backup</button></div>`);render()}break}
  case 'import-digup':d4ImportBackup();break;
  case 'open-digup':if(digUpHost)digUpHost.closeEmbeddedLona();else location.assign(new URL('../',location.href).href);break;
@@ -1097,6 +1102,9 @@ function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)r
 function datePlusDays(ds,n){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
 function setupNotifications(){const early=state.reminderDays;let now=today(),due=[];for(let l of state.loans)for(let c of cycles(l)){if(c.paid)continue;let delta=diffDays(c.date,now);if((early&&delta===early)||(state.reminderOnDue&&delta===0)||(state.reminderAfterDue&&delta<0&&delta>=-1))due.push(`${l.name}: ${money(c.amount)} on ${fmtDate(c.date)}`)}if(due.length&&'Notification'in window&&Notification.permission==='granted'){const key=`notification:${now}:${due.join('|')}`;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');new Notification('D47Lona · EMI reminder',{body:due.slice(0,2).join(' · '),icon:'icons/icon-192.png'})}}
 document.addEventListener('error',e=>{const img=e.target;if(img&&img.matches?.('.bank-icon img')){img.hidden=true;if(img.nextElementSibling)img.nextElementSibling.hidden=false}},true);
+window.__d47PairReload=()=>{state=load();syncLocalBalances();render()};
+window.addEventListener('d4-pair-status',e=>{window.__d47PairState=e.detail;render()});
+document.addEventListener('d4-pair-ledger-refresh',()=>{syncLocalBalances();render()});
 document.addEventListener('change',e=>{if(e.target?.id==='salary-month'&&validSalaryMonth(e.target.value)){salarySelectedMonth=e.target.value;render()}});
 document.addEventListener('click',handleClick);document.addEventListener('submit',handleSubmit);document.addEventListener('click',e=>{if(e.target.classList.contains('modal-shade'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal)closeModal()});
 syncLocalBalances();render();setTimeout(setupNotifications,1300);
@@ -1132,11 +1140,19 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
     if (openFromLink) {
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open, { once:true });
       else open();
-    } else if (localStorage.getItem('d4-finance-sync-enabled')) {
+    } else if (localStorage.getItem('d4-finance-sync-enabled') && !localStorage.getItem('d4-pair-link-v1')) {
       void prepare().catch(() => {});
     }
   } catch (_) {}
 })();
 })();
+</script><script type="module">
+import { setupPairUI } from '../finance-sync/pair-ui.mjs';
+window.addEventListener('d4-pair-ledger-applied',()=>document.dispatchEvent(new Event('d4-pair-ledger-refresh')));
+window.addEventListener('d4-pair-loan-applied',()=>{window.__d47PairReload?.()});
+setupPairUI({mode:'lona',stores:[
+ {name:'digup',key:'d47lona-digup-cloud-copy',readOnly:true,apply:()=>window.dispatchEvent(new Event('d4-pair-ledger-applied'))},
+ {name:'lona',key:'d47lona-crystal-v1',apply:()=>window.dispatchEvent(new Event('d4-pair-loan-applied'))}
+]});
 </script><script src="./intro.js"></script><script src="./liquid-glass.js"></script></body>
 </html>
