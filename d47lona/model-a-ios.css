@@ -330,3 +330,63 @@ html[data-theme="midnight"] body.d47-model-a :is(input,textarea)::placeholder{co
 html[data-theme="midnight"] body.d47-model-a :is(.bank-amount,.detail-grid .mini-panel .val,.loan-compact strong,.cycle-num){color:#ffffff!important}
 html[data-theme="midnight"] body.d47-model-a :is(.notice.warn,.badge){color:#ffffff!important}
 html[data-theme="midnight"] body.d47-model-a :is(button,a,input,select,textarea):focus-visible{outline:3px solid #64e6ff!important;outline-offset:3px}
+
+/* v22 — Consistent accessible text in ALL five appearance themes.
+   Presentation-only; loan data, EMI calculations and sync are unchanged. */
+html[data-theme="crystal"] body.d47-model-a{
+ color-scheme:light;--ink:#172b48;--muted:#50627b;--ui-title:#142b49;--ui-text:#233b58;--ui-muted:#52657e;
+}
+html[data-theme="crystal"] body.d47-model-a :is(.sub,.small,.eyebrow,.footnote,.brand-text small,.rail-label,.cycle-main .small,.list-tile .small,.detail-grid .mini-panel .small){color:#52627a!important}
+html[data-theme="crystal"] body.d47-model-a :is(.header h1,.loan-title,.bank-name strong,.cycle-main strong,.cycle-right strong,.list-tile strong,.modal-title h2,.detail-grid .mini-panel .val){color:#172b48!important}
+html[data-theme="crystal"] body.d47-model-a :is(input,select,textarea){color:#172b48!important}
+html[data-theme="crystal"] body.d47-model-a :is(input,textarea)::placeholder{color:#64758a!important;opacity:1}
+html[data-theme="crystal"] body.d47-model-a :is(.mobile-nav button.current,.mobile-nav button.active,.rail .nav-link.current){color:#154e95!important}
+html[data-theme="crystal"] body.d47-model-a :is(.button.primary,.btn.primary){color:#ffffff!important}
+
+/* Emerald, Royal and Gold use dark glass: never put dark lettering on dark cards. */
+html[data-theme="emerald"] body.d47-model-a{
+ --theme-surface:#123c35;--theme-surface-deep:#092c27;--theme-edge:#3b8c78;--theme-accent:#62e7c0;--theme-button:#176b57;
+ --theme-background:#041d1b;--theme-background-2:#0b3730;
+}
+html[data-theme="royal"] body.d47-model-a{
+ --theme-surface:#382653;--theme-surface-deep:#25173e;--theme-edge:#8662b0;--theme-accent:#d9b5ff;--theme-button:#6945a0;
+ --theme-background:#170e2b;--theme-background-2:#32204f;
+}
+html[data-theme="gold"] body.d47-model-a{
+ --theme-surface:#493820;--theme-surface-deep:#302415;--theme-edge:#9c7944;--theme-accent:#ffe0a0;--theme-button:#80602b;
+ --theme-background:#20170c;--theme-background-2:#42301b;
+}
+html[data-theme="emerald"] body.d47-model-a,
+html[data-theme="royal"] body.d47-model-a,
+html[data-theme="gold"] body.d47-model-a{
+ color-scheme:dark;--ink:#ffffff;--muted:#e1e8ef;--ui-title:#ffffff;--ui-text:#f6f9ff;--ui-muted:#d5dfeb;
+ --stroke:var(--theme-edge);--paper:var(--theme-surface);
+ --frost:linear-gradient(145deg,var(--theme-surface),var(--theme-surface-deep));
+ --lg-top:var(--theme-surface);--lg-base:var(--theme-surface);--lg-bottom:var(--theme-surface-deep);
+ --lg-ink:#ffffff;--lg-sub:#dce6ef;--lg-edge:var(--theme-edge);--lg-nav:var(--theme-surface-deep);
+ background:radial-gradient(ellipse at 80% 0%,var(--theme-background-2),transparent 60%),var(--theme-background)!important;
+ color:#ffffff!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.main,.header h1,h1,h2,h3,.brand-text b,.loan-title,.bank-name strong,.cycle-main strong,.cycle-right strong,.list-tile strong,.detail-progress h2,.modal-title h2,.salary-history-row strong,.bank-amount,.detail-grid .mini-panel .val,.loan-compact strong){color:#ffffff!important}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.sub,.small,.eyebrow,.brand-text small,.rail-label,.footnote,.cycle-main .small,.list-tile .small,.detail-grid .mini-panel .small){color:#dce6ef!important}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.glass,.form-card,.modal,.detail-top,.loan-card,.loan-compact,.cycle-row,.list-tile,.bank-row,.detail-grid .mini-panel,.digup-legacy-loans,.digup-legacy-loan-row,.notice,.calendar,.mini-panel){
+ background:linear-gradient(145deg,var(--theme-surface),var(--theme-surface-deep))!important;
+ border-color:var(--theme-edge)!important;color:#ffffff!important;
+ box-shadow:inset 0 1px 0 #ffffff20,0 10px 26px #00000055!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.mobile-brand,.rail,.mobile-nav,.tabbar,.rail-footer){
+ background:var(--theme-surface-deep)!important;border-color:var(--theme-edge)!important;color:#ffffff!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.mobile-nav button,.rail .nav-link,.tabbar button){color:#e2e9f3!important}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.mobile-nav button.active,.mobile-nav button.current,.rail .nav-link.current,.tabbar button.selected){
+ background:var(--theme-button)!important;color:#ffffff!important;border-color:var(--theme-edge)!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.icon-btn,.d47-top-sync,.button,.btn){
+ background:var(--theme-button)!important;color:#ffffff!important;border-color:var(--theme-edge)!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(input,select,textarea,.field input,.field select){
+ background:var(--theme-surface-deep)!important;color:#ffffff!important;border-color:var(--theme-edge)!important;
+}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(input,textarea)::placeholder{color:#d4e0ec!important;opacity:1}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(.badge,.notice.warn){color:#ffffff!important}
+html:is([data-theme="emerald"],[data-theme="royal"],[data-theme="gold"]) body.d47-model-a :is(button,a,input,select,textarea):focus-visible{outline:3px solid var(--theme-accent)!important;outline-offset:3px}
