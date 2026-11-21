@@ -32,7 +32,6 @@ const b64ToBytes=str=>{
 const hex=bytes=>[...bytes].map(n=>n.toString(16).padStart(2,'0')).join('');
 async function sha(buffer){return new Uint8Array(await crypto.subtle.digest('SHA-256',buffer))}
 function parseCode(code){
-  const raw=String(code||'').trim().replace(/\s/g,'').replace(/-/g,'_');
   // Replace only accidental spacing. URL-safe '-' is valid and must not be rewritten.
   const actual=String(code||'').replace(/\s/g,'');
   if(!actual.startsWith(PREFIX))throw Error('Use the code from DIG UP → Copy Pair Code.');
@@ -177,12 +176,18 @@ export async function startPairSync(stores,onStatus=()=>{}){
     const setStatus=value=>{if(channel.status!==value){channel.status=value;report()}};
     const onRemote=async snapshot=>{
       if(stopped||closed||snapshot.metadata.hasPendingWrites||snapshot.metadata.fromCache)return;
-      if(!snapshot.exists()){observed={revision:0,value:null};}
-      else{
+      if(!snapshot.exists()){
+        if(observed&&observed.revision>0)return;
+        observed={revision:0,value:null};
+      }else{
         const raw=snapshot.data();
         if(!Number.isSafeInteger(raw.revision)||raw.revision<1||typeof raw.packet!=='string'){setStatus('Invalid cloud record. Local data safe.');return}
-        try{observed={revision:raw.revision,value:await decrypt(ident,name,raw.packet)}}
-        catch(e){setStatus(readableError(e));return}
+        if(observed&&raw.revision<observed.revision)return;
+        try{
+          const value=await decrypt(ident,name,raw.packet);
+          if(observed&&raw.revision<observed.revision)return;
+          observed={revision:raw.revision,value};
+        }catch(e){setStatus(readableError(e));return}
       }
       await channel.reconcile();
     };
