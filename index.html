@@ -226,11 +226,26 @@ html.d4-launch #d4-intro{position:fixed;inset:0;z-index:9999;display:grid;place-
 @media(prefers-reduced-motion:reduce){html.d4-launch #d4-intro{display:none}}
 </style><script>
 (function(){
- const key='d4-intro-seen-v2';
- if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
- try{if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1')}catch(_){}
- document.documentElement.classList.add('d4-launch');
- window.setTimeout(()=>document.documentElement.classList.remove('d4-launch'),3850);
+ const key='d4-intro-seen-v3';let timeout=null;
+ const colorMap={original:'#c58bff',crystal:'#66f5dc',racing:'#ff6077',midnight:'#69caff',gold:'#e8bf77'};
+ function selected(){try{return localStorage.getItem('d4-digup-icon-v1')||'original'}catch(_){return 'original'}}
+ function syncIcon(){
+   const id=selected(),icon=document.getElementById('d4-reveal-icon');
+   if(icon)icon.src=id==='original'?'./icon.svg':'./icons/'+id+'.svg';
+   document.documentElement.style.setProperty('--d4-reveal-accent',colorMap[id]||colorMap.original);
+ }
+ function play(){
+   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+   syncIcon();
+   document.documentElement.classList.remove('d4-launch');
+   void document.documentElement.offsetWidth;
+   document.documentElement.classList.add('d4-launch');
+   clearTimeout(timeout);
+   timeout=window.setTimeout(()=>document.documentElement.classList.remove('d4-launch'),3850);
+ }
+ window.D4LogoReveal={play,syncIcon};
+ document.addEventListener('DOMContentLoaded',syncIcon);
+ try{if(!sessionStorage.getItem(key)){sessionStorage.setItem(key,'1');play()}}catch(_){play()}
 })();
 </script><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&amp;display=swap" media="print" onload="this.media='all'"><style>.pxwallet{background:#f7f6fc;color:#28243a;padding:18px;border-radius:20px;font:15px system-ui}.pxwallet .pxhero{background:linear-gradient(120deg,#302675,#6250ba);color:white;padding:20px;border-radius:16px}.pxwallet h2{margin:6px 0 0;font:700 32px system-ui;color:inherit}.pxwallet small{letter-spacing:.08em}.pxstats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.pxstats div{background:#ffffff;color:#494457;border-radius:14px;padding:13px}.pxstats b{color:#167147;display:block;font:700 24px system-ui;overflow-wrap:anywhere}.pxperiod{margin:10px 0}.pxperiod>div{display:flex;align-items:center;justify-content:space-between;gap:5px}.pxperiod>div:first-child button{flex:1}.pxperiod button{min-height:44px}.pxperiod button[aria-pressed=true]{background:#503ea1;color:white}.pxperiod button:disabled{opacity:.45}.pxperiod>div+div{margin-top:6px}.px-week button{min-width:0;flex:1;padding:4px 0!important}.px-week small{display:block}.px-office{display:flex;gap:4px}.px-office button{flex:1;min-height:44px;padding:6px}.px-office button[aria-pressed=true]{background:#503ea1;color:white}.px-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:end;margin:14px 0}.px-place{display:grid;grid-row:1;justify-items:center;text-align:center;overflow-wrap:anywhere;min-width:0}.px-place:first-child{grid-column:2}.px-place:nth-child(2){grid-column:1}.px-place:nth-child(3){grid-column:3}.px-place strong{width:100%;display:grid;place-items:center;height:40px;border-radius:8px 8px 0 0;background:#ddd7f1}.px-place:first-child strong{height:64px;background:#5947a1;color:white}.px-place:nth-child(2) strong{height:52px}.pxactions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.pxactions button{min-width:0;min-height:44px}.pxwallet button{background:white;border:1px solid #bdb5da;color:#45368b;border-radius:12px;padding:11px;font-weight:650}.pxrow{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #dedbe7;padding:12px 0;gap:10px}.pxrow span{overflow-wrap:anywhere}.pxrow b{white-space:nowrap}.pxwallet .pxout{color:#b42336}.px-merchant-logo{width:38px;height:32px;object-fit:contain;vertical-align:middle;margin-inline-end:6px;background:#fff;border-radius:7px;padding:3px;box-sizing:border-box}.pxwallet .px-available{display:block;font-size:26px;margin-top:2px}.px-home-balances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.px-home-balances button{background:transparent;color:inherit;text-align:left;border:0;border-left:1px solid #ffffff66;padding:0 0 0 12px;font:inherit}.px-home-balances strong{display:block;font-size:clamp(17px,4.5vw,27px);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;margin:5px 0}.px-home-balances span{font-size:12px}.pxwallet .pxin{color:#167147}.px-history>summary{font-size:18px;font-weight:800;padding:14px 0;cursor:pointer}.pxwallet,body:has(.pxwallet) #sheet{--px-font:"Nunito",ui-rounded,"Avenir Next","Trebuchet MS",sans-serif;font-family:var(--px-font)}.pxwallet :is(h2,h3,button,input,select,summary,b,strong),body:has(.pxwallet) #sheet :is(h2,button,input,select,textarea){font-family:var(--px-font)}.pxwallet h2,.pxwallet h3{font-weight:800;letter-spacing:-.025em}.pxwallet :is(b,strong,input){font-variant-numeric:tabular-nums}</style><link rel="stylesheet" href="./navigation-ui.css?v=full-neon-20261109"><link rel="stylesheet" href="./pluxee-dashboard.css?v=neon-wallet-20261109"><meta name="d4-app-revision" content="1"><meta name="d4-app-build" content="development"><link rel="stylesheet" href="./app-update.css?v=update-manager-1"><style>
 #overlay.open:has(#txform){top:var(--tx-top,0px)!important;bottom:auto!important;height:var(--tx-height,100dvh)!important;z-index:10000!important}
@@ -298,7 +313,33 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 .tx-upi-icons button[aria-pressed=true]{border-color:#a764ff;box-shadow:0 0 0 1px #a764ff}
 #upi-settings-list{display:grid;gap:4px;max-height:42dvh;overflow:auto;margin:8px 0}
 #upi-settings-list label{display:flex;align-items:center;gap:9px;min-height:42px;padding:4px}
-</style><script src="./upi-apps.js"></script></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+</style><script src="./upi-apps.js"></script><style>
+/* D4 DIG UP Icon Studio and animated logo reveal (non-destructive) */
+.d4-icon-settings{background:linear-gradient(142deg,#221938,#191a34 72%,#1c2b3d);border:1px solid #7952b9;color:#f8f5ff;box-shadow:0 12px 24px #1e144a4a}
+.d4-icon-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.d4-icon-heading b{font-size:17px}.d4-icon-heading .muted,.d4-icon-settings>.muted{color:#d3c8e7}
+.d4-icon-heading .pill{color:#f8d7ff;background:#583472;border:1px solid #9e69be}
+.d4-icon-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.d4-icon-choice{display:flex;flex-direction:column;align-items:center;min-width:0;gap:6px;padding:11px 6px 10px;border:1px solid #685581;border-radius:15px;background:linear-gradient(155deg,#3a2d55,#241b40);color:#f9f5ff;text-align:center}
+.d4-icon-choice.selected{border:2px solid #8df7e5;background:linear-gradient(145deg,#21444d,#302a54);box-shadow:0 0 0 2px #5cddcb44,0 5px 15px #1b0e3d66}
+.d4-icon-choice img{width:62px;height:62px;object-fit:contain;border-radius:15px;box-shadow:0 7px 14px #0006}
+.d4-icon-choice span{font-weight:800;font-size:11px;line-height:1.35;min-height:29px;display:grid;place-items:center}
+.d4-icon-choice small{color:#dbcdeb;font-size:10px;font-weight:650}
+.d4-icon-choice.selected small{color:#9cffdf}
+.d4-icon-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}
+.d4-icon-actions .button{min-height:47px;font-size:12px;padding:11px 7px;line-height:1.4;white-space:normal}
+.d4-icon-actions .button.ghost{color:#f6e8ff;border-color:#836aa3;background:#49365c}
+html.d4-launch #d4-intro{background:radial-gradient(ellipse at 50% 45%,color-mix(in srgb,var(--d4-reveal-accent,#ba82ff) 25%,#1b1835),#0c1021 76%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0}
+html.d4-launch #d4-intro svg{width:min(62vw,260px)}
+#d4-intro .d4-reveal-lockup{display:none;text-align:center;color:#fff;align-items:center;flex-direction:column;gap:5px}
+html.d4-launch #d4-intro .d4-reveal-lockup{display:flex;animation:d4-lockup 3.8s ease both}
+.d4-reveal-lockup img{width:72px;height:72px;border-radius:18px;box-shadow:0 8px 24px #0007,0 0 25px var(--d4-reveal-accent,#b88aff)}
+.d4-reveal-lockup span{font-size:17px;font-weight:950;letter-spacing:2.5px}
+.d4-reveal-lockup small{font-size:10px;letter-spacing:2px;color:#c4f5ed;text-transform:uppercase}
+@keyframes d4-lockup{0%,62%{opacity:0;transform:translateY(16px) scale(.9)}72%,92%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0}}
+@media(max-width:480px){.d4-icon-options{grid-template-columns:repeat(2,minmax(0,1fr))}.d4-icon-actions{grid-template-columns:1fr}.d4-icon-choice{padding:10px 6px}.d4-icon-choice img{width:64px;height:64px}}
+@media(prefers-reduced-motion:reduce){html.d4-launch #d4-intro{display:none!important}}
+</style></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
 <linearGradient id="launch-gold" x2="1" y2=".5"><stop stop-color="#d59838"/><stop offset=".45" stop-color="#ffe4a5"/><stop offset="1" stop-color="#eeb855"/></linearGradient>
 <linearGradient id="launch-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141338"/><stop offset=".55" stop-color="#4d2395"/><stop offset="1" stop-color="#202884"/></linearGradient>
@@ -317,7 +358,7 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 <g class="savings-columns"><g class="coin-column" style="--delay:0.91s"><rect x="105" y="272" width="58" height="72" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M107 331h54"/><path d="M107 318h54"/><path d="M107 305h54"/><path d="M107 292h54"/></g></g><g class="coin-column" style="--delay:1.04s"><rect x="185" y="232" width="58" height="112" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M187 331h54"/><path d="M187 318h54"/><path d="M187 305h54"/><path d="M187 292h54"/><path d="M187 279h54"/><path d="M187 266h54"/><path d="M187 253h54"/><path d="M187 240h54"/></g></g><g class="coin-column" style="--delay:1.17s"><rect x="265" y="182" width="58" height="162" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M267 331h54"/><path d="M267 318h54"/><path d="M267 305h54"/><path d="M267 292h54"/><path d="M267 279h54"/><path d="M267 266h54"/><path d="M267 253h54"/><path d="M267 240h54"/><path d="M267 227h54"/><path d="M267 214h54"/><path d="M267 201h54"/></g></g><g class="coin-column" style="--delay:1.3s"><rect x="345" y="126" width="58" height="218" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M347 331h54"/><path d="M347 318h54"/><path d="M347 305h54"/><path d="M347 292h54"/><path d="M347 279h54"/><path d="M347 266h54"/><path d="M347 253h54"/><path d="M347 240h54"/><path d="M347 227h54"/><path d="M347 214h54"/><path d="M347 201h54"/><path d="M347 188h54"/><path d="M347 175h54"/><path d="M347 162h54"/><path d="M347 149h54"/><path d="M347 136h54"/></g></g></g><g class="trend-wrap"><path class="trend" d="M96 302 L161 249 L202 257 L259 196 L293 207 L416 94" pathLength="1" fill="none" stroke="#8fffe6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><text class="launch-d4" x="256" y="287" font-family="Arial,Helvetica,sans-serif" font-size="215" font-weight="900" text-anchor="middle" fill="url(#launch-ink)" letter-spacing="-14">D4</text>
 <rect class="launch-rule" x="93" y="329" width="326" height="7" rx="3.5" fill="#ac85ff"/>
 <text class="launch-name" x="256" y="407" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="800" text-anchor="middle" letter-spacing="4" fill="#fff">DIG UP</text>
-</svg></div><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"><section id="d4-startup-help" class="card" style="padding:20px;margin:18px 0;border-radius:18px;background:#fff;color:#1b2b43;box-shadow:0 6px 22px #23345a12">
+</svg><div class="d4-reveal-lockup"><img id="d4-reveal-icon" alt="" src="./icon.svg"><span>D4 DIG UP</span><small>Track · Plan · Grow</small></div></div><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"><section id="d4-startup-help" class="card" style="padding:20px;margin:18px 0;border-radius:18px;background:#fff;color:#1b2b43;box-shadow:0 6px 22px #23345a12">
   <h2 id="d4-startup-title" style="font-size:20px;margin:0 0 9px">D4 DIG UP</h2>
   <p id="d4-startup-text" style="font-size:13px;line-height:1.7;margin:0 0 12px">Opening your saved finance records…</p>
   <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -847,7 +888,34 @@ function plans(){
  if(!ps.length)return html+'<div class="card empty">No future plans yet.</div>';
  return html+ps.map(p=>{const target=Math.max(0,Number(p.target)||0),saved=Math.max(0,Number(p.saved)||0),pct=target?Math.min(100,Math.round(saved/target*100)):0;return '<div class="card d4-plan-card"><div class="row"><strong>🎯 '+tidy(p.name||'Unnamed Plan')+'</strong><span class="d4-plan-percent">'+pct+'%</span></div><p class="muted">Saved '+fmt(saved)+' of '+fmt(target)+'</p><div class="d4-progress" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" aria-label="Plan saved progress"><span style="width:'+pct+'%"></span></div>'+(p.actualSpent?'<p>Spent: '+fmt(p.actualSpent)+'</p>':'')+(p.dueDate?'<div class="muted">Target date: '+tidy(String(p.dueDate).slice(0,10))+'</div>':'')+'</div>'}).join('');
 }
-function settings(){return '<h2>⚙ Settings & Backup</h2><div class="card"><b>🔗 Link your original D4 DIG UP account</b><p class="muted">For Android APK users moving to Brave: first verify your own old Gmail by OTP in the secure account migration bridge, download your full account JSON, then import it below. This is a <b>one-time local copy</b>, not automatic sync.</p><button class="button" onclick="startNativeMigration()">🔐 Verify old Gmail &amp; get backup</button><button class="button ghost" style="margin:8px 0 0 8px" onclick="document.getElementById(\'nativeRestore\').click()">📂 Import verified Android backup</button><input type="file" id="nativeRestore" accept=".json,application/json" class="hidden" onchange="importNativeAccount(this)"><p class="muted">The original Android APK and Google Sheets data remain unchanged. Import is blocked if this Brave browser already has records. Never share a Gmail OTP or your private backup file.</p>'+(data.linkedName?'<div class="pill">Local snapshot: '+tidy(data.linkedName)+'</div>':'')+'</div><div class="notice"><strong>🔒 Account separation</strong>This Brave/Safari web app is currently local to this browser. A verified Android backup can be imported once, but there is no live account login or automatic Android sync. Each person must use their own verified login in the original D4 app. Never import or share another user’s private backup.</div><div class="card"><b>Your data stays on this device</b><p class="muted">This public GitHub Pages site stores bank balances and transactions locally in this browser, not in your Google Sheet. Clearing Safari site data can erase local entries.</p><div class="row"><button class="button" onclick="exportBackup()">↓ Download Backup</button><button class="button ghost" onclick="document.getElementById(\'restore\').click()">↑ Import Old D4 Data</button></div><input type="file" id="restore" accept=".json,application/json" class="hidden" onchange="importBackup(this)"><p class="muted">Choose D4_Old_Data_3_Banks_7_Transactions.json from iPhone Files → Downloads. A file showing 0 banks and 0 transactions is the wrong backup. This imports a local snapshot only; it does not live sync.</p></div><div class="notice"><strong>Original D4 finance account</strong>Your older balances and history are on a separate Google Sheets-backed app. Use your previous D4 DIG UP login to access them; this iPhone quick-start is not a replacement database.</div>'}
+
+const d4IconList=[
+ {id:'original',label:'Neon Purple',img:'./icon.svg'},
+ {id:'crystal',label:'Crystal Mint',img:'./icons/crystal.svg'},
+ {id:'racing',label:'Racing Red',img:'./icons/racing.svg'},
+ {id:'midnight',label:'Midnight Blue',img:'./icons/midnight.svg'},
+ {id:'gold',label:'Luxury Gold',img:'./icons/gold.svg'}
+];
+function d4IconSelected(){try{const id=localStorage.getItem('d4-digup-icon-v1')||'original';return d4IconList.some(item=>item.id===id)?id:'original'}catch(_){return 'original'}}
+function d4SelectIcon(id){
+ const icon=d4IconList.find(x=>x.id===id);if(!icon)return;
+ try{localStorage.setItem('d4-digup-icon-v1',id)}catch(_){}
+ const favicon=document.querySelector('link[rel="icon"]');
+ if(favicon)favicon.href=icon.img;
+ window.D4LogoReveal?.syncIcon();
+ render();
+}
+function d4ReplayLogo(){if(window.D4LogoReveal)window.D4LogoReveal.play()}
+function d4InstallChosenIcon(){window.location.assign('./install/'+d4IconSelected()+'/')}
+function d4IconSettings(){
+ const current=d4IconSelected();
+ return '<section class="card d4-icon-settings"><div class="d4-icon-heading"><div><b>✨ App Logo & Icon Studio</b><p class="muted">Pick your style and preview the reveal.</p></div><span class="pill">5 Styles</span></div>'+
+ '<div class="d4-icon-options">'+d4IconList.map(item=>'<button type="button" class="d4-icon-choice'+(current===item.id?' selected':'')+'" aria-pressed="'+(current===item.id)+'" onclick="d4SelectIcon(\''+item.id+'\')"><img src="'+item.img+'" alt=""><span>'+item.label+'</span><small>'+(current===item.id?'✓ Selected':'Choose')+'</small></button>').join('')+'</div>'+
+ '<div class="d4-icon-actions"><button type="button" class="button" onclick="d4ReplayLogo()">▶ Replay Logo Reveal</button><button type="button" class="button ghost" onclick="d4InstallChosenIcon()">↗ Use Icon on Home Screen</button></div>'+
+ '<p class="muted" style="font-size:12px;line-height:1.6;margin:12px 0 0">Changing the preview does not replace an existing iPhone Home Screen icon. Use the install button and Safari → Share → Add to Home Screen. Export your finance backup before removing any old app.</p></section>';
+}
+
+function settings(){return '<h2>⚙ Settings & Backup</h2>'+d4IconSettings()+'<div class="card"><b>🔗 Link your original D4 DIG UP account</b><p class="muted">For Android APK users moving to Brave: first verify your own old Gmail by OTP in the secure account migration bridge, download your full account JSON, then import it below. This is a <b>one-time local copy</b>, not automatic sync.</p><button class="button" onclick="startNativeMigration()">🔐 Verify old Gmail &amp; get backup</button><button class="button ghost" style="margin:8px 0 0 8px" onclick="document.getElementById(\'nativeRestore\').click()">📂 Import verified Android backup</button><input type="file" id="nativeRestore" accept=".json,application/json" class="hidden" onchange="importNativeAccount(this)"><p class="muted">The original Android APK and Google Sheets data remain unchanged. Import is blocked if this Brave browser already has records. Never share a Gmail OTP or your private backup file.</p>'+(data.linkedName?'<div class="pill">Local snapshot: '+tidy(data.linkedName)+'</div>':'')+'</div><div class="notice"><strong>🔒 Account separation</strong>This Brave/Safari web app is currently local to this browser. A verified Android backup can be imported once, but there is no live account login or automatic Android sync. Each person must use their own verified login in the original D4 app. Never import or share another user’s private backup.</div><div class="card"><b>Your data stays on this device</b><p class="muted">This public GitHub Pages site stores bank balances and transactions locally in this browser, not in your Google Sheet. Clearing Safari site data can erase local entries.</p><div class="row"><button class="button" onclick="exportBackup()">↓ Download Backup</button><button class="button ghost" onclick="document.getElementById(\'restore\').click()">↑ Import Old D4 Data</button></div><input type="file" id="restore" accept=".json,application/json" class="hidden" onchange="importBackup(this)"><p class="muted">Choose D4_Old_Data_3_Banks_7_Transactions.json from iPhone Files → Downloads. A file showing 0 banks and 0 transactions is the wrong backup. This imports a local snapshot only; it does not live sync.</p></div><div class="notice"><strong>Original D4 finance account</strong>Your older balances and history are on a separate Google Sheets-backed app. Use your previous D4 DIG UP login to access them; this iPhone quick-start is not a replacement database.</div>'}
 function openLogout(){showSheet('Logout','<p>Log out of DIG UP on this device?</p><p class="muted">Your banks, transactions, loans and plans stay saved in this browser. This closes the local app; it does not sign out of the separate Android or Gmail verification service.</p><div class="row"><button type="button" class="button ghost" onclick="closeSheet()">Cancel</button><button type="button" class="button" onclick="logoutLocalApp()">Logout</button></div>')}
 function logoutLocalApp(){try{localStorage.setItem(LOGOUT_KEY,'1')}catch(_){alert('Could not save logout. Please try again.');return;}loggedOut=true;selectedBank=null;tab='home';document.getElementById('sheet').innerHTML='';closeSheet();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#view button').focus()}
 function resumeLocalApp(){try{localStorage.removeItem(LOGOUT_KEY)}catch(_){alert('Could not reopen the app. Please try again.');return;}loggedOut=false;tab=openingTab();render()}
