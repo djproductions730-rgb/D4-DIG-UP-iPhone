@@ -555,8 +555,12 @@ function d47SyncState(){
  // updates locally even when Firebase Anonymous sign-in is unavailable.
  const local=d4Store();
  if(local&&digUpStorage.getItem(D4_LOCAL_KEY)){
-   const detail=localStorage.getItem('d4-pair-link-v1')?'Local auto-sync · Cloud pending':'Local auto-sync on';
-   return {state:'linked',label:detail,description:'Bank balances and Salary reflect DIG UP in this browser; cross-device cloud pairing is separate.',color:'linked'};
+   const incoming=local.banks.filter(b=>b&&typeof b.name==='string'&&!/pluxee/i.test(b.name)&&Number.isFinite(Number(b.balance)));
+   const matched=incoming.filter(db=>state.banks.some(b=>b.digupBankId!=null&&String(b.digupBankId)===String(db.id)&&Math.abs(Number(b.balance)-Number(db.balance))<0.005)).length;
+   const complete=matched===incoming.length;
+   return {state:complete?'linked':'local',label:complete?'Bank sync '+matched+'/'+incoming.length:'Sync needed '+matched+'/'+incoming.length,
+     description:complete?'DIG UP bank balances match this browser. D47Lona loans are separate from earlier DIG UP loans. Cloud pairing is not connected.':'Some DIG UP bank balances have not yet been matched. Tap Sync Now in Settings.',
+     color:complete?'linked':'backup'};
  }
  if(localStorage.getItem('d4-pair-link-v1')){
    const x=window.__d47PairState;
