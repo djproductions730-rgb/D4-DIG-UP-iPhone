@@ -63,7 +63,7 @@ export function setupFinanceSync(stores) {
   const styles = document.createElement('style');
   styles.textContent = dialogStyles;
   root.append(styles, dialog);
-  dialog.innerHTML = `<form>
+  dialog.innerHTML = `<form novalidate>
     <div class="sync-heading">
       <h2 id="d4-sync-title">Finance Auto-sync</h2>
       <button type="button" data-close aria-label="Close Finance Auto-sync">×</button>
@@ -150,30 +150,64 @@ export function setupFinanceSync(stores) {
   const safely = async action => {
     try { await action(); }
     catch (error) {
-      status.textContent = error?.code === 'auth/invalid-credential'
-        ? 'Email or password is incorrect.' : 'Could not complete this action. Check your login or internet connection.';
+      const messages = {
+        'auth/invalid-credential': 'Email or password is incorrect.',
+        'auth/email-already-in-use': 'This email already has an account. Sign in or reset your password.',
+        'auth/weak-password': 'Choose a stronger password.',
+        'auth/password-does-not-meet-requirements': 'Choose a stronger password.',
+        'auth/invalid-email': 'Enter a valid email address.',
+        'auth/network-request-failed': 'Could not reach the sign-in service. Check your connection and try again.',
+        'auth/too-many-requests': 'Too many attempts. Wait a moment and try again.',
+        'auth/operation-not-allowed': 'Email account creation is unavailable right now.'
+      };
+      status.textContent = messages[error?.code] || 'Could not complete this action. Please try again.';
     }
   };
   accounts.onAuthStateChanged(auth, user => void safely(() => refresh(user)));
+  let submitting = false;
   form.addEventListener('submit', event => {
     event.preventDefault();
-    const email = form.elements.email.value.trim();
-    if (event.submitter?.value === 'reset' && !form.elements.email.reportValidity()) return;
+    if (submitting) return;
+    const action = event.submitter?.value || 'signin';
+    const emailInput = form.elements.email;
+    emailInput.value = emailInput.value.trim();
+    const email = emailInput.value;
     const password = passwordInput.value;
-    passwordInput.value = '';
-    setPasswordVisible(false);
+    if (!emailInput.validity.valid) {
+      status.textContent = 'Enter a valid email address to continue.';
+      emailInput.focus();
+      return;
+    }
+    if (action !== 'reset' && password.length < 6) {
+      status.textContent = 'Enter at least 6 characters for your password.';
+      passwordInput.focus();
+      return;
+    }
+    submitting = true;
+    status.textContent = action === 'create' ? 'Creating account…'
+      : action === 'reset' ? 'Requesting password reset…' : 'Signing in…';
     void safely(async () => {
-      if (event.submitter?.value === 'reset') {
+      if (action === 'reset') {
         await accounts.sendPasswordResetEmail(auth, email);
         status.textContent = 'If this account exists, check your email for a password reset link.';
-      } else if (event.submitter?.value === 'create') {
-        const result = await accounts.createUserWithEmailAndPassword(auth, email, password);
-        await accounts.sendEmailVerification(result.user);
-        status.textContent = 'Verification sent. Open the link, then check verification here.';
-      } else {
-        await accounts.signInWithEmailAndPassword(auth, email, password);
+        return;
       }
-    });
+      if (action === 'create') {
+        const result = await accounts.createUserWithEmailAndPassword(auth, email, password);
+        passwordInput.value = '';
+        setPasswordVisible(false);
+        try {
+          await accounts.sendEmailVerification(result.user);
+          status.textContent = 'Account created. Open the verification email, then tap Check email verification.';
+        } catch (_) {
+          status.textContent = 'Account created. Tap Send verification email to try sending the link again.';
+        }
+        return;
+      }
+      await accounts.signInWithEmailAndPassword(auth, email, password);
+      passwordInput.value = '';
+      setPasswordVisible(false);
+    }).finally(() => { submitting = false; });
   });
   button('verify').onclick = () => void safely(async () => {
     const user = auth.currentUser;
