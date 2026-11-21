@@ -52,6 +52,8 @@ jobs:
               await new Promise(resolve => setTimeout(resolve, 3000));
             }
             core.setFailed(`Pages artifact ${artifactName} did not appear in the Actions API.`);
+      - name: Allow the Pages deployment service to see the artifact
+        run: sleep 20
       - id: deployment
         uses: actions/deploy-pages@v4
         with:
