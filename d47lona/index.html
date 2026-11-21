@@ -542,8 +542,8 @@ function d4Match(d,b){
  // Multiple accounts at the same bank can have different balances.
  // A stable DigUp account ID wins; a name is safe only when unique.
  if(b.digupBankId!=null){
-   const exact=d.banks.find(x=>String(x.id)===String(b.digupBankId));
-   if(exact)return exact;
+   // Never substitute a different same-named account if the linked ID vanished.
+   return d.banks.find(x=>String(x.id)===String(b.digupBankId))||null;
  }
  const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
  const matches=d.banks.filter(x=>norm(x.name)===norm(b.name)&&!/pluxee/i.test(x.name||''));
