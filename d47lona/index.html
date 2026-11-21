@@ -99,6 +99,185 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;ba
 @media(max-width:530px){.main{padding:14px 14px 114px}.mobile-brand{margin:2px 0 23px}.header{margin-bottom:19px}.header h1{font-size:28px}.header .eyebrow{font-size:10px}.hero{min-height:224px;padding:23px 20px}.hero-money{font-size:35px;max-width:80%}.hero-art{width:160px!important;height:138px!important;right:-13px!important;bottom:-7px!important;opacity:.70!important}.hero .hero-bottom{max-width:82%}.hero .sub{font-size:11px}.sync-pill{font-size:10px;padding:8px 10px}.kpis{gap:9px}.kpi{padding:13px 11px;min-height:127px;gap:9px}.kpi .tiny-title{font-size:10px}.kpi .stat{font-size:17px}.kpi .icon-wrap{width:34px;height:34px;border-radius:12px}.kpi .icon-wrap svg{height:18px;width:18px}.loan-card{padding:17px;gap:13px}.loan-icon{height:63px;width:63px}.loan-title{font-size:17px}.loan-stats{grid-template-columns:1fr 1fr 1fr}.loan-stat{padding:0 9px}.loan-stat strong{font-size:14px}.loan-stat .small{font-size:10px}.loan-bottom{align-items:start;gap:8px}.loan-bottom span:last-child{text-align:right}.quick-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.quick{min-height:93px;padding:10px 4px;font-size:10px}.quick svg{width:23px;height:23px}.bank-row{padding:14px}.bank-brand{width:42px;height:42px}.bank-amount{font-size:14px}.section-title h2{font-size:19px}.cycle-row{padding:12px 13px}.cycle-num{height:40px;width:40px}.cycle-main strong{font-size:12px}.cycle-right strong{font-size:12px}.list-tile{padding:12px 13px}.mobile-nav{border-radius:23px 23px 0 0;min-height:calc(73px + env(safe-area-inset-bottom));padding:8px 4px calc(9px + env(safe-area-inset-bottom))}.mobile-nav button{min-width:0;width:20%;font-size:9px;gap:3px;padding:5px 1px}.mobile-nav button svg{width:21px;height:21px}}
 @media(max-width:360px){.mobile-brand .sync-indicator{display:none}.loan-stats{gap:1px}.loan-stat{padding:0 6px}.kpi .stat{font-size:16px}.hero-money{font-size:32px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* D47Lona v1.1: THEME ENGINE — written last so Crystal PRO doesn't override user selections.
+   The premium Crystal theme remains untouched. Other palettes fully recolor the layout. */
+
+html[data-theme="midnight"]{
+  color-scheme:dark;--accent:#4db5ff;--accent-2:#65d7f8;
+  --ink:#F4FAFF;--muted:#B2CBE1;--success:#4db5ff;
+  --paper:#132E4C;--frost:linear-gradient(140deg,#1D4264,#132E4C);
+  --stroke:#365F80;--nav:#132E4C;--chrome-border:#365F80;
+  --premium-shadow:0 16px 38px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.12);
+  --theme-bg:#07172D;--theme-surface:#132E4C;--theme-panel:#1D4264;
+  --theme-border:#365F80;--theme-hero:#0D3F63;--theme-primary:#2468C2;
+  --theme-muted:#B2CBE1;background:#07172D;color:var(--ink);
+}
+
+html[data-theme="emerald"]{
+  color-scheme:dark;--accent:#33E9AE;--accent-2:#8BF5D3;
+  --ink:#F4FAFF;--muted:#B9DAD1;--success:#33E9AE;
+  --paper:#10352F;--frost:linear-gradient(140deg,#1A4941,#10352F);
+  --stroke:#31685D;--nav:#10352F;--chrome-border:#31685D;
+  --premium-shadow:0 16px 38px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.12);
+  --theme-bg:#051F1B;--theme-surface:#10352F;--theme-panel:#1A4941;
+  --theme-border:#31685D;--theme-hero:#0C4F44;--theme-primary:#087E65;
+  --theme-muted:#B9DAD1;background:#051F1B;color:var(--ink);
+}
+
+html[data-theme="royal"]{
+  color-scheme:dark;--accent:#C198FF;--accent-2:#E1B7FF;
+  --ink:#F4FAFF;--muted:#D8C7E8;--success:#C198FF;
+  --paper:#30204A;--frost:linear-gradient(140deg,#473066,#30204A);
+  --stroke:#6B5291;--nav:#30204A;--chrome-border:#6B5291;
+  --premium-shadow:0 16px 38px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.12);
+  --theme-bg:#1A0B2E;--theme-surface:#30204A;--theme-panel:#473066;
+  --theme-border:#6B5291;--theme-hero:#3A1A69;--theme-primary:#7444BF;
+  --theme-muted:#D8C7E8;background:#1A0B2E;color:var(--ink);
+}
+
+html[data-theme="gold"]{
+  color-scheme:dark;--accent:#F6D58B;--accent-2:#F0B758;
+  --ink:#F4FAFF;--muted:#E4D3AF;--success:#F6D58B;
+  --paper:#372C1A;--frost:linear-gradient(140deg,#4B3A23,#372C1A);
+  --stroke:#826943;--nav:#372C1A;--chrome-border:#826943;
+  --premium-shadow:0 16px 38px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.12);
+  --theme-bg:#201809;--theme-surface:#372C1A;--theme-panel:#4B3A23;
+  --theme-border:#826943;--theme-hero:#60461B;--theme-primary:#A27429;
+  --theme-muted:#E4D3AF;background:#201809;color:var(--ink);
+}
+
+html[data-theme]:not([data-theme="crystal"]) body{
+  background:radial-gradient(ellipse at 3% -9%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 46%),
+    radial-gradient(ellipse at 100% 106%,color-mix(in srgb,var(--accent-2) 15%,transparent),transparent 50%),var(--theme-bg);
+  color:var(--ink);
+}
+html[data-theme]:not([data-theme="crystal"]) body::before{
+  background:linear-gradient(135deg,rgba(255,255,255,.035),transparent 42%,rgba(0,0,0,.11));
+}
+html[data-theme]:not([data-theme="crystal"]) .glass,
+html[data-theme]:not([data-theme="crystal"]) .modal,
+html[data-theme]:not([data-theme="crystal"]) .loan-card,
+html[data-theme]:not([data-theme="crystal"]) .form-card,
+html[data-theme]:not([data-theme="crystal"]) .calendar{
+  background:linear-gradient(143deg,var(--theme-panel),var(--theme-surface));
+  border-color:var(--theme-border);
+  box-shadow:var(--premium-shadow);
+  color:var(--ink);
+}
+html[data-theme]:not([data-theme="crystal"]) .glass::before{background:linear-gradient(165deg,rgba(255,255,255,.075),transparent 88%)}
+html[data-theme]:not([data-theme="crystal"]) .hero{
+  background:linear-gradient(115deg,var(--theme-hero),var(--theme-surface) 81%);
+  color:var(--ink);border-color:var(--theme-border);
+}
+html[data-theme]:not([data-theme="crystal"]) .hero::before{background:linear-gradient(130deg,rgba(255,255,255,.085),transparent 75%)}
+html[data-theme]:not([data-theme="crystal"]) .hero::after{border-color:color-mix(in srgb,var(--accent) 16%,transparent)}
+html[data-theme]:not([data-theme="crystal"]) .hero-money,
+html[data-theme]:not([data-theme="crystal"]) .loan-title,
+html[data-theme]:not([data-theme="crystal"]) .loan-stat strong,
+html[data-theme]:not([data-theme="crystal"]) .cycle-main strong,
+html[data-theme]:not([data-theme="crystal"]) .mini-panel .val,
+html[data-theme]:not([data-theme="crystal"]) .brand-text b,
+html[data-theme]:not([data-theme="crystal"]) .header h1,
+html[data-theme]:not([data-theme="crystal"]) .section-title h2{
+  color:var(--ink);text-shadow:none;
+}
+html[data-theme]:not([data-theme="crystal"]) .eyebrow,
+html[data-theme]:not([data-theme="crystal"]) .hero-top .eyebrow,
+html[data-theme]:not([data-theme="crystal"]) .sub,
+html[data-theme]:not([data-theme="crystal"]) .small,
+html[data-theme]:not([data-theme="crystal"]) .loan-bottom,
+html[data-theme]:not([data-theme="crystal"]) .hero .sub,
+html[data-theme]:not([data-theme="crystal"]) .field label,
+html[data-theme]:not([data-theme="crystal"]) .footnote{
+  color:var(--theme-muted);
+}
+html[data-theme]:not([data-theme="crystal"]) .kpi{
+  background:linear-gradient(140deg,var(--theme-panel),var(--theme-surface));
+  border-color:var(--theme-border);color:var(--ink);
+}
+html[data-theme]:not([data-theme="crystal"]) .kpi.primary{
+  background:linear-gradient(130deg,var(--theme-primary),var(--theme-hero));
+  color:white;box-shadow:var(--premium-shadow);
+}
+html[data-theme]:not([data-theme="crystal"]) .mini-panel,
+html[data-theme]:not([data-theme="crystal"]) .list-tile,
+html[data-theme]:not([data-theme="crystal"]) .modal-summary,
+html[data-theme]:not([data-theme="crystal"]) .tabbar,
+html[data-theme]:not([data-theme="crystal"]) .sync-pill,
+html[data-theme]:not([data-theme="crystal"]) .bank-brand,
+html[data-theme]:not([data-theme="crystal"]) .icon-btn,
+html[data-theme]:not([data-theme="crystal"]) .quick,
+html[data-theme]:not([data-theme="crystal"]) .rail-footer,
+html[data-theme]:not([data-theme="crystal"]) .notice,
+html[data-theme]:not([data-theme="crystal"]) .toggle-row{
+  background:var(--theme-panel);border-color:var(--theme-border);
+  color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.075);
+}
+html[data-theme]:not([data-theme="crystal"]) .quick svg,
+html[data-theme]:not([data-theme="crystal"]) .kpi .icon-wrap{
+  background:var(--theme-hero);color:var(--accent);border-color:var(--theme-border);
+}
+html[data-theme]:not([data-theme="crystal"]) .track{background:var(--theme-border)}
+html[data-theme]:not([data-theme="crystal"]) .track span{background:linear-gradient(90deg,var(--accent),var(--accent-2));box-shadow:none}
+html[data-theme]:not([data-theme="crystal"]) .button:not(.secondary):not(.danger),
+html[data-theme]:not([data-theme="crystal"]) .tabbar button.selected{
+  background:linear-gradient(120deg,var(--theme-primary),var(--accent));
+  border-color:var(--theme-border);color:white;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+html[data-theme]:not([data-theme="crystal"]) .button.secondary,
+html[data-theme]:not([data-theme="crystal"]) .open-row{
+  background:var(--theme-panel);color:var(--accent);
+  border-color:var(--theme-border);box-shadow:none;
+}
+html[data-theme]:not([data-theme="crystal"]) .field input,
+html[data-theme]:not([data-theme="crystal"]) .field select,
+html[data-theme]:not([data-theme="crystal"]) .field textarea{
+  background:var(--theme-surface);border-color:var(--theme-border);
+  color:var(--ink);
+}
+html[data-theme]:not([data-theme="crystal"]) .field input::placeholder,
+html[data-theme]:not([data-theme="crystal"]) .field textarea::placeholder{color:var(--theme-muted)}
+html[data-theme]:not([data-theme="crystal"]) .rail{background:var(--theme-bg);border-color:var(--theme-border)}
+html[data-theme]:not([data-theme="crystal"]) .rail .nav-link{color:var(--theme-muted)}
+html[data-theme]:not([data-theme="crystal"]) .rail .nav-link.current{
+  color:var(--accent);background:var(--theme-panel);box-shadow:none;
+}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav{
+  background:var(--theme-surface);border-color:var(--theme-border);box-shadow:0 -9px 30px rgba(0,0,0,.28);
+}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav button{color:var(--theme-muted)}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav button.active{
+  background:var(--theme-panel);border-color:var(--theme-border);
+  color:var(--accent);box-shadow:none;
+}
+html[data-theme]:not([data-theme="crystal"]) .progress-ring:before{
+  background:var(--theme-surface);box-shadow:none;
+}
+html[data-theme]:not([data-theme="crystal"]) .progress-ring{
+  background:conic-gradient(var(--accent) var(--pct),var(--theme-border) var(--pct));
+}
+html[data-theme]:not([data-theme="crystal"]) .loan-icon{
+  background:var(--theme-panel);border-color:var(--theme-border);
+}
+html[data-theme]:not([data-theme="crystal"]) .loan-icon.purple{background:var(--theme-hero)}
+html[data-theme]:not([data-theme="crystal"]) .cycle-num{background:var(--theme-hero);color:var(--ink)}
+html[data-theme]:not([data-theme="crystal"]) .cycle-num.is-paid{background:var(--theme-primary);color:white}
+html[data-theme]:not([data-theme="crystal"]) .day{color:var(--ink)}
+html[data-theme]:not([data-theme="crystal"]) .day.due{background:var(--theme-primary);color:#fff}
+html[data-theme]:not([data-theme="crystal"]) .tabbar button{color:var(--theme-muted)}
+html[data-theme]:not([data-theme="crystal"]) .bank-amount{color:var(--ink)}
+html[data-theme]:not([data-theme="crystal"]) .swatch{
+  background:var(--theme-panel);border-color:var(--theme-border);color:var(--ink);
+}
+html[data-theme]:not([data-theme="crystal"]) .swatch.on{
+  border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 40%,transparent);
+}
+html[data-theme]:not([data-theme="crystal"]) .mobile-brand .sync-indicator{
+  background:var(--theme-panel);border-color:var(--theme-border);color:var(--accent);
+}
+
 </style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -245,7 +424,7 @@ function remindersView(){const dues=dueSoon();return `${header('PAYMENTS WITHOUT
  <div class="button-group" style="margin-top:13px"><button class="button secondary" data-action="notify-permission">${ico('bell')} Enable browser notifications</button><button class="button" data-action="calendar-export">${ico('calendar')} Add EMI dates to calendar</button></div></div>
  <div class="section-title"><h2>Upcoming loan payments</h2></div>${dues.length?dues.map(({loan,cycle})=>`<div class="glass list-tile">${loanIcon(loan)}<div class="body"><strong>${safe(loan.name)}</strong><div class="small">${fmtDate(cycle.date)} · ${Math.max(0,diffDays(cycle.date,today()))} days left</div></div><div style="text-align:right"><div class="money">${money(cycle.amount)}</div><button class="text-btn" data-pay="${loan.id}:${cycle.num}">Mark paid</button></div></div>`).join(''):`<div class="glass empty"><p class="sub">No upcoming dated payments.</p></div>`}
  <div class="notice warn">${ico('info')}iPhone closing date: 07 Sep 2029. Personal Loan closing date will appear after setting its first EMI date. No payments are initiated through this app.</div></div>`}
-function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack"><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
+function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack"><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
  <div class="glass form-card"><h2>Monthly salary</h2><p class="sub" style="margin:6px 0 14px">Used only to show salary after EMI. Stays on your device.</p><form data-form="salary"><div class="fields"><div class="field"><label for="salary">Monthly salary (₹)</label><input id="salary" name="salary" required type="number" min="0" step="1" value="${state.salary}" /></div><div class="field" style="justify-content:end"><button type="submit" class="button">Save salary</button></div></div></form></div>
  <div class="glass form-card"><h2>Install on your phone</h2><p class="sub" style="margin:7px 0 14px">Android: open the secure hosted link in Chrome and choose Install App. iPhone: open it in Safari, tap Share, then Add to Home Screen. This file must be hosted on HTTPS to install as a PWA.</p><button class="button secondary" data-action="install-help">${ico('download')} Install instructions</button></div><div class="glass form-card"><h2>Data and backups</h2><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="export">${ico('download')} Export backup</button><button class="button secondary" data-action="import">${ico('upload')} Restore backup</button><button class="button secondary" data-action="export-digup">${ico('download')} DIG UP entries</button></div><p class="footnote" style="margin-top:12px">Local-first storage. Browser data deletion will remove it unless backed up. Never share backup files publicly.</p></div>
  <div class="glass form-card"><h2>Bank connection</h2><div class="strip" style="margin:14px 0">${ico('shield')} D4 DIG UP · ${d4BrowserLinked()?'Same-browser linked':'Cloud sync not connected'}</div><p class="sub">When both apps run under the same GitHub Pages domain on this device, local EMI deductions are mirrored to DIG UP. Cloud and cross-device sync still require a shared backend.</p><div style="margin-top:12px"><button class="button secondary" data-action="sync-info">How two-way sync will work</button></div></div>
