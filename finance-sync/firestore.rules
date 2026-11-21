@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /financeAccounts/{uid}/ledgers/{ledger} {
+      function ownsLedger() {
+        return request.auth != null &&
+          request.auth.uid == uid &&
+          request.auth.token.email_verified == true &&
+          ledger in ['digup', 'lona'];
+      }
+      function validLedger() {
+        return request.resource.data.keys().hasOnly(['revision', 'payload']) &&
+          request.resource.data.revision is int &&
+          request.resource.data.payload is string &&
+          request.resource.data.payload.size() <= 240000;
+      }
+      allow get: if ownsLedger();
+      allow create: if ownsLedger() && validLedger() && request.resource.data.revision == 1;
+      allow update: if ownsLedger() && validLedger() &&
+        request.resource.data.revision == resource.data.revision + 1;
+    }
+  }
+}
