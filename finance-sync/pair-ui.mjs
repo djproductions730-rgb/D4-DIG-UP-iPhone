@@ -1,8 +1,8 @@
-import { createPair, joinPair, existingPairCode, forgetPair, startPairSync } from './pair-sync.mjs';
+import { generatePairCode, createPair, joinPair, existingPairCode, forgetPair, startPairSync } from './pair-sync.mjs';
 
 export function setupPairUI({mode,stores}){
   if(!['digup','lona'].includes(mode))throw Error('Unknown D4 finance app');
-  let session=null, connecting=null, dialog=null, lastStatus='Not paired',lastError='';
+  let session=null, connecting=null, provisioning=null, autoAttempted=false, dialog=null, lastStatus='Not paired',lastError='';
   const paired=()=>!!existingPairCode();
   const style=document.createElement('style');
   style.textContent=
@@ -25,13 +25,13 @@ export function setupPairUI({mode,stores}){
   }
   function updateStatus(){
     const box=dialog.querySelector('[data-pair-status]'),issue=dialog.querySelector('[data-pair-message]');
-    box.textContent=paired()?'Paired · '+lastStatus:'Not linked yet';
+    box.textContent=paired()?'Code saved · '+lastStatus:'Not linked yet · '+lastStatus;
     issue.textContent=lastError;issue.hidden=!lastError;issue.classList.toggle('error',!!lastError);
     dialog.querySelector('[data-pair-forget]').hidden=!paired();
     const field=dialog.querySelector('textarea');
     if(mode==='digup'){
       field.value=existingPairCode();
-      dialog.querySelector('[data-pair-main]').textContent=paired()?'Copy Pair Code':'Create & Copy Pair Code';
+      dialog.querySelector('[data-pair-main]').textContent=paired()?'Copy Pair Code':autoAttempted?'Retry Code Creation':'Preparing Pair Code…';
     }else{
       dialog.querySelector('[data-pair-main]').textContent=paired()?'Already paired · Auto-sync on':'Pair Once · Enable Auto-sync';
       dialog.querySelector('[data-pair-main]').disabled=paired();
@@ -46,14 +46,14 @@ export function setupPairUI({mode,stores}){
        '<button type="button" class="pair-close" data-pair-close aria-label="Close pairing">×</button>',
        '<div class="pair-kicker">D4 · PRIVATE LINK</div>',
        '<h2>One-Time Pairing · Auto-sync</h2>',
-       '<p>',mode==='digup'?'DIG UP-ல் ஒருமுறை code copy பண்ணு. D47Lona-வில் paste செய்த பிறகு auto-sync தொடரும்.':'DIG UP-ல் Copy Pair Code. அதை இங்கே ஒரே தடவை Paste பண்ணு. அதன் பிறகு code மீண்டும் போட தேவையில்லை.','</p>',
+       '<p>',mode==='digup'?'இந்த screen திறந்தவுடனே Pair Code தானாக உருவாகும். Copy பண்ணி D47Lona-வில் ஒருமுறை Paste செய்தால், backend இணைந்ததும் auto-sync தொடரும்.':'DIG UP-ல் தானாக உருவான Pair Code-ஐ இங்கே ஒரே தடவை Paste பண்ணு. அதன் பிறகு code மீண்டும் போட தேவையில்லை.','</p>',
        '<div class="pair-status" data-pair-status></div>',
        '<label for="d4-pair-code">',mode==='digup'?'Your private Pair Code':'Paste DIG UP Pair Code','</label>',
        '<textarea id="d4-pair-code" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" ',
-       mode==='digup'?'readonly':'',' placeholder="',mode==='digup'?'Tap Create & Copy Pair Code':'Paste the code copied from DIG UP','"></textarea>',
+       mode==='digup'?'readonly':'',' placeholder="',mode==='digup'?'Your code is being created…':'Paste the code copied from DIG UP','"></textarea>',
        '<div class="pair-message" data-pair-message role="status" aria-live="polite" hidden></div>',
        '<div class="pair-buttons">',
-       '<button type="button" class="pair-primary" data-pair-main>',mode==='digup'?'Create & Copy Pair Code':'Pair Once · Enable Auto-sync','</button>',
+       '<button type="button" class="pair-primary" data-pair-main>',mode==='digup'?'Copy Pair Code':'Pair Once · Enable Auto-sync','</button>',
        '<button type="button" class="pair-secondary" data-pair-helper>',mode==='digup'?'Copy Again':'Paste from Clipboard','</button>',
        '<a class="pair-secondary" href="',mode==='digup'?'./d47lona/':'../','">',mode==='digup'?'Open D47Lona':'Open DIG UP','</a></div>',
        '<button type="button" class="pair-disconnect" data-pair-forget hidden>Disconnect on this device (data stays)</button>',
@@ -70,6 +70,14 @@ export function setupPairUI({mode,stores}){
       });
     }
     updateStatus();if(!dialog.open)dialog.showModal();
+    if(mode==='digup'&&!autoAttempted){
+      autoAttempted=true;
+      try{
+        generatePairCode();
+        emit('Code generated automatically · registering securely…');
+        void provision();
+      }catch(error){emit(String(error?.message||'Code generation failed'),true)}
+    }
   }
   async function copy(code){
     try{await navigator.clipboard.writeText(code);emit('Code copied · paste once in D47Lona')}
@@ -105,13 +113,31 @@ export function setupPairUI({mode,stores}){
     })();
     return connecting;
   }
+  // Generate locally immediately; cloud setup may still need Anonymous Auth or rules.
+  // Reuse the same code on every retry, never silently rotate a finance link.
+  async function provision(){
+    if(provisioning)return provisioning;
+    provisioning=(async()=>{
+      try{
+        emit('Registering Pair Code with encrypted cloud…');
+        await createPair();
+        emit('Code registered · connecting auto-sync…');
+        await connect();
+      }catch(error){emit('Code is ready, but cloud pairing is not active: '+String(error?.message||'Connection unavailable'),true)}
+      finally{provisioning=null}
+    })();
+    return provisioning;
+  }
   async function mainAction(){
     const primary=dialog.querySelector('[data-pair-main]');
     primary.disabled=true;
     try{
       if(mode==='digup'){
-        const code=await createPair();
-        await connect();await copy(code);
+        const code=generatePairCode();
+        // Clipboard writes happen directly from a user tap, not an asynchronous
+        // Firebase callback, which is especially important on iPhone Safari.
+        await copy(code);
+        if(!session)void provision();
       }else{
         await joinPair(dialog.querySelector('textarea').value.trim());
         dialog.querySelector('textarea').value='';
@@ -127,9 +153,16 @@ export function setupPairUI({mode,stores}){
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',show,{once:true});
     else show();
   }
-  if(paired())void connect();
+  // For DIG UP retry pending cloud registration on launch; for Lona reconnect.
+  if(paired()){
+    if(mode==='digup')void provision();
+    else void connect();
+  }
   window.addEventListener('storage',e=>{
-    if(e.key==='d4-pair-link-v1'&&e.newValue&&e.newValue!==e.oldValue)void connect();
+    if(e.key==='d4-pair-link-v1'&&e.newValue&&e.newValue!==e.oldValue){
+      if(mode==='digup')void provision();
+      else void connect();
+    }
     if(e.key==='d4-pair-link-v1'&&!e.newValue){session?.close();session=null;emit('Disconnected')}
   });
   return {open:show,status:()=>lastStatus};
