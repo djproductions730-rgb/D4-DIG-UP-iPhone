@@ -1,4 +1,4 @@
-import { generatePairCode, createPair, joinPair, existingPairCode, forgetPair, startPairSync } from './pair-sync.mjs';
+import { generatePairCode, rotatePairCode, createPair, joinPair, existingPairCode, forgetPair, startPairSync } from './pair-sync.mjs';
 
 export function setupPairUI({mode,stores}){
   if(!['digup','lona'].includes(mode))throw Error('Unknown D4 finance app');
@@ -43,6 +43,8 @@ export function setupPairUI({mode,stores}){
     box.textContent=(localDigupLink()?'Same-browser DIG UP linked · ':'')+(paired()?'Code saved · ':'No Pair Code · ')+lastStatus;
     issue.textContent=lastError;issue.hidden=!lastError;issue.classList.toggle('error',!!lastError);
     dialog.querySelector('[data-pair-forget]').hidden=!paired();
+    const rotateControl=dialog.querySelector('[data-pair-rotate]');
+    if(rotateControl)rotateControl.hidden=!paired();
     const field=dialog.querySelector('textarea');
     if(mode==='digup'){
       field.value=existingPairCode();
@@ -74,6 +76,7 @@ export function setupPairUI({mode,stores}){
        '<button type="button" class="pair-primary" data-pair-main>',mode==='digup'?'Copy Pair Code':'Pair Once · Enable Auto-sync','</button>',
        '<button type="button" class="pair-secondary" data-pair-helper>',mode==='digup'?'Copy Again':'Paste from Clipboard','</button>',
        '<a class="pair-secondary" href="',mode==='digup'?'./d47lona/':'../','">',mode==='digup'?'Open D47Lona':'Open DIG UP','</a></div>',
+       mode==='digup'?'<button type="button" class="pair-disconnect pair-rotate" data-pair-rotate hidden>🔄 Replace Exposed Pair Code</button>':'',
        '<button type="button" class="pair-disconnect" data-pair-forget hidden>Disconnect on this device (data stays)</button>',
        '<p class="pair-disclaimer">🔐 No email or password required. Bank and loan data is encrypted before cloud upload. This secret code grants access to your synced finances — do not share it publicly. Same-browser DIG UP balances and Salary work locally without Firebase; cross-device Cloud sync needs internet and Firebase Pairing enabled. Device records remain saved.</p>'
       ].join('');
@@ -81,6 +84,15 @@ export function setupPairUI({mode,stores}){
       dialog.querySelector('[data-pair-close]').addEventListener('click',()=>dialog.close());
       dialog.querySelector('[data-pair-main]').addEventListener('click',()=>void mainAction());
       dialog.querySelector('[data-pair-helper]').addEventListener('click',()=>void helper());
+      dialog.querySelector('[data-pair-rotate]')?.addEventListener('click',()=>{
+        if(!confirm('Replace the Pair Code shown in a screenshot? You will need to pair D47Lona and other devices with the NEW code. Loan, Salary, Bank and transaction data stays on this device. Old cloud records are NOT automatically deleted. Continue?'))return;
+        try{
+          session?.close();session=null;
+          rotatePairCode();
+          emit('New private Pair Code generated · copy it and pair D47Lona again. Cloud connection pending.');
+          void provision();
+        }catch(error){emit(String(error?.message||'Could not replace Pair Code'),true)}
+      });
       dialog.querySelector('[data-pair-forget]').addEventListener('click',()=>{
         if(!confirm('Disconnect sync on this device? Your local bank and loan records will stay here.'))return;
         session?.close();session=null;forgetPair();emit('Disconnected');dialog.querySelector('textarea').value='';
