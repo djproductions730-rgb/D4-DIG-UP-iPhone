@@ -515,9 +515,10 @@ const iso=(y,m,d)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0'
 const datePlusMonths=(base,i)=>{if(!base)return '';const [y,m,d]=base.split('-').map(Number);let total=y*12+(m-1)+i;let yy=Math.floor(total/12),mm=total%12+1;return iso(yy,mm,Math.min(d,new Date(Date.UTC(yy,mm,0)).getUTCDate()))};
 const today=()=>{let d=new Date();return iso(d.getFullYear(),d.getMonth()+1,d.getDate())};
 const diffDays=(a,b)=>Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T12:00:00Z'))/86400000);
-function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,salaries:{},reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
+function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,salaries:{},digupSalarySnapshots:{},digupBackupMeta:null,reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
 function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.version===1&&Array.isArray(v.loans)&&Array.isArray(v.banks)&&Array.isArray(v.ledger)){
  if(!v.salaries||typeof v.salaries!=='object'||Array.isArray(v.salaries))v.salaries={};
+ if(!v.digupSalarySnapshots||typeof v.digupSalarySnapshots!=='object'||Array.isArray(v.digupSalarySnapshots))v.digupSalarySnapshots={};
  // Keep the previous general salary estimate separate: it is not proof of income for this specific month.
  return v
  }}catch(e){}return fresh()}
@@ -528,6 +529,12 @@ const D4_LOCAL_KEY='d4webv15';
 function d4Store(){try{const d=JSON.parse(localStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
 function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
 function d4BrowserLinked(){return !!d4Store()}
+function d47SyncState(){
+ const d=d4Store();
+ if(d)return {state:'linked',label:'DIG UP linked',description:'Same-browser auto-sync',color:'linked'};
+ if(state.digupBackupMeta)return {state:'backup',label:'Backup copy',description:'Import a new DIG UP backup to update',color:'backup'};
+ return {state:'local',label:'Local only',description:'Open DIG UP in this Safari browser or import its backup',color:'local'};
+}
 
 function syncLocalBalances(){
  const d=d4Store();if(!d)return false;let changed=false;
@@ -550,9 +557,9 @@ function syncLocalBalances(){
  if(changed)save();return true
 }
 function d4SyncStats(){
- const d=d4Store();if(!d)return {connected:false,banks:0,linked:0};
+ const d=d4Store();if(!d)return {connected:false,banks:0,linked:0,transactions:state.digupBackupMeta?.entryCount||0,snapshot:!!state.digupBackupMeta};
  return {connected:true,banks:d.banks.filter(x=>!/pluxee/i.test(x.name||'')).length,
- linked:state.banks.filter(b=>!!d4Match(d,b)).length};
+ linked:state.banks.filter(b=>!!d4Match(d,b)).length,transactions:d.entries.length,snapshot:!!state.digupBackupMeta};
 }
 
 /* D47Lona restore v2: accepts exported app backups, earlier direct state snapshots,
@@ -637,25 +644,61 @@ function chooseRestoreJson(){
  input.click();
 }
 
+/* Import an updated DIG UP export into Lona only. Do NOT overwrite DIG UP's own
+   localStorage, since that could destroy newer transactions in its live browser. */
 function d4ImportBackup(){
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
  input.onchange=async()=>{
   const f=input.files?.[0];if(!f)return;
   try{
-   if(f.size>5*1024*1024)throw Error('File exceeds 5 MB');
-   const data=JSON.parse(await f.text());
-   if(data.format!=='d4webv15'||!Array.isArray(data.banks)||!Array.isArray(data.entries))throw Error('Choose a valid D4 DIG UP backup JSON');
-   if(data.banks.length>200||data.entries.length>150000)throw Error('Unexpectedly large DIG UP backup');
-   if(data.banks.some(x=>!x||typeof x.name!=='string'||!Number.isFinite(Number(x.balance))))throw Error('Invalid bank details');
-   const current=d4Store();if(current&&(current.banks.length||current.entries.length)){syncLocalBalances();render();notify('This browser already has DIG UP data. Export a backup before replacing it.');return}
-   if(!data.banks.length&&!data.entries.length)throw Error('This backup has no banks or transactions');
-   if(!confirm('Import this DIG UP backup to this Safari browser? It will not update a different browser or device.'))return;
-   localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(data));
-   syncLocalBalances();render();notify('DIG UP backup imported. Auto-sync ready on this browser.');
-  }catch(e){notify('Import failed: '+String(e.message||e))}
+   if(f.size>8*1024*1024)throw Error('File exceeds 8 MB');
+   const source=JSON.parse((await f.text()).replace(/^\uFEFF/,''));
+   if(source.format!=='d4webv15'||!Array.isArray(source.banks)||!Array.isArray(source.entries))
+     throw Error('Choose a D4 DIG UP exported backup JSON');
+   if(source.banks.length>200||source.entries.length>150000||(!source.banks.length&&!source.entries.length))
+     throw Error('Backup is empty or unexpectedly large');
+   if(source.banks.some(b=>!b||typeof b.id==='undefined'||typeof b.name!=='string'||!Number.isFinite(Number(b.balance))))
+     throw Error('Backup has invalid bank entries');
+   const live=d4Store();
+   const text='Update D47Lona with '+source.banks.length+' bank balance(s) and Salary income entries from this DIG UP backup? DIG UP itself will NOT be changed. Existing Lona loan payments are preserved.';
+   if(!confirm(text))return;
+   // Precompute before modifying state so invalid rows never cause partial imports.
+   const snapshots={};
+   for(const e of source.entries){
+    if(!e||String(e.type||'').trim().toLowerCase()!=='income'||String(e.category||'').trim().toLowerCase()!=='salary')continue;
+    const ym=String(e.created||e.date||e.when||'').slice(0,7);
+    const amount=Number(e.amount);
+    if(!validSalaryMonth(ym)||!Number.isFinite(amount)||amount<=0)continue;
+    (snapshots[ym]??={entries:[]}).entries.push({type:'Income',category:'Salary',created:ym+'-01',amount});
+   }
+   const copy=JSON.parse(JSON.stringify(state));
+   const norm=name=>String(name||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
+   for(const db of source.banks){
+    if(/pluxee/i.test(db.name)||!String(db.name).trim())continue;
+    const name=norm(db.name);
+    let existing=copy.banks.find(x=>norm(x.name)===name);
+    // If DIG UP is actually open in this browser, use its live balance, not a stale file.
+    const liveBank=live?.banks.find(x=>norm(x.name)===name);
+    const balance=Number(liveBank?liveBank.balance:db.balance);
+    if(existing)existing.balance=balance;
+    else{
+     const id='backup-'+String(db.id).replace(/[^a-z0-9_-]/gi,'').slice(0,65);
+     copy.banks.push({id,name:db.name,balance,reserved:false,note:'DIG UP backup · not live bank sync'});
+    }
+   }
+   copy.digupSalarySnapshots=snapshots;
+   copy.digupBackupMeta={importedAt:new Date().toISOString(),bankCount:source.banks.length,entryCount:source.entries.length};
+   const previous=localStorage.getItem(STORE);
+   if(previous!==null)localStorage.setItem(STORE+'-before-digup-import',previous);
+   localStorage.setItem(STORE,JSON.stringify(copy));
+   state=copy;
+   syncLocalBalances();render();
+   notify(live?'Bank balances linked · salary backup refreshed':'DIG UP backup refreshed · re-import after future changes');
+  }catch(error){notify('DIG UP import failed: '+String(error.message||error))}
  };
  input.click()
 }
+
 function recordD4Emi(loan,cycle,bank,amount,paidDate){
  const d=d4Store();if(!d)return {linked:false};
  const db=d4Match(d,bank);if(!db)return {linked:false};
@@ -956,7 +999,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'toggle-overdue':state.reminderAfterDue=!state.reminderAfterDue;save();render();break;
  case 'pay-next':{let dues=dueSoon();if(dues.length)markPayment(dues[0].loan.id,dues[0].cycle.num);else notify('No upcoming dated EMI. Set missing first due dates.');break}
  case 'sync-info':modal=infoModal('D4 DIG UP Sync',`<div class="notice">${ico('shield')} ${d4BrowserLinked()?'Same-browser local sync is connected.':'No DIG UP data in this browser yet.'}</div><p class="sub" style="margin-top:14px">Use D4 DIG UP and D47Lona under djproductions730-rgb.github.io in the same Safari browser. Bank balances refresh whenever you open, return to or refresh D47Lona.</p><p class="sub" style="margin-top:12px">Paid EMI with deduction makes ONE linked Expense in DIG UP; Undo reverses it. Ordinary expenses change balances only, not EMI Paid status.</p><p class="sub" style="margin-top:12px">Different browsers, iPhone installed-app storage and other devices may be isolated. Import your DIG UP backup to migrate local data. Cross-device auto-sync needs a shared authenticated cloud backend.</p>`);render();break;
- case 'sync-now':{const linked=syncLocalBalances();render();notify(linked?'DIG UP balances refreshed from this browser':'No DIG UP records here. Open DIG UP in Safari or import backup.');break}
+ case 'sync-now':{const live=d4Store();if(live){syncLocalBalances();render();notify('DIG UP synced · '+d4SyncStats().linked+' bank(s), '+d4SyncStats().transactions+' transaction(s) available');}else{notify('No live DIG UP in this browser · select an updated backup');d4ImportBackup()}break}
  case 'import-digup':d4ImportBackup();break;
  case 'open-digup':window.open(new URL('../',location.href).href,'_blank','noopener');break;
  case 'export':exportJson(`D47Lona-backup-${today()}.json`,JSON.stringify({app:'D47Lona',exportedAt:new Date().toISOString(),data:state},null,2));notify('Backup exported');break;
