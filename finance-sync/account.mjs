@@ -171,7 +171,11 @@ export function setupFinanceSync(stores) {
         'auth/invalid-email': 'Enter a valid email address.',
         'auth/network-request-failed': 'Could not reach the sign-in service. Check your connection and try again.',
         'auth/too-many-requests': 'Too many attempts. Wait a moment and try again.',
-        'auth/operation-not-allowed': 'Email account creation is unavailable right now.'
+        'auth/operation-not-allowed': 'Email account creation is unavailable right now.',
+        'auth/unauthorized-domain': 'This app website is not authorized in Firebase yet. Add djproductions730-rgb.github.io to Authentication → Settings → Authorized domains.',
+        'auth/invalid-api-key': 'Firebase project configuration is invalid. Contact the project owner.',
+        'auth/internal-error': 'Sign-in service returned an error. Try again, then use Reset password if needed.',
+        'permission-denied': 'Cloud access is not permitted for this account. Check verified email and Firestore rules.'
       };
       status.textContent = messages[error?.code] || 'Could not complete this action. Please try again.';
     }
