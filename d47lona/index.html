@@ -531,10 +531,22 @@ const digUpHost=window.parent!==window&&new URLSearchParams(location.search).get
  ? window.parent : null;
 const digUpStorage=digUpHost?.localStorage||localStorage;
 function d4CloudCopyEnabled(){return !digUpHost&&(!!localStorage.getItem('d4-pair-link-v1')||!!localStorage.getItem('d4-finance-sync-enabled'))}
-function d4Store(){try{const cloud=d4CloudCopyEnabled()?localStorage.getItem(D4_CLOUD_COPY_KEY):null;const d=JSON.parse(cloud||digUpStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
+function d4Store(){try{
+ const live=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
+ if(live&&Array.isArray(live.banks)&&Array.isArray(live.entries))return live;
+ const cloud=d4CloudCopyEnabled()?JSON.parse(localStorage.getItem(D4_CLOUD_COPY_KEY)||'null'):null;
+ return cloud&&Array.isArray(cloud.banks)&&Array.isArray(cloud.entries)?cloud:null
+}catch(_){return null}}
 function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
 function d4BrowserLinked(){return !!d4Store()}
 function d47SyncState(){
+ // A valid DIG UP ledger in the same Safari origin is already connected and
+ // updates locally even when Firebase Anonymous sign-in is unavailable.
+ const local=d4Store();
+ if(local&&digUpStorage.getItem(D4_LOCAL_KEY)){
+   const detail=localStorage.getItem('d4-pair-link-v1')?'Local auto-sync · Cloud pending':'Local auto-sync on';
+   return {state:'linked',label:detail,description:'Bank balances and Salary reflect DIG UP in this browser; cross-device cloud pairing is separate.',color:'linked'};
+ }
  if(localStorage.getItem('d4-pair-link-v1')){
    const x=window.__d47PairState;
    if(x&&!x.error&&/Synced/i.test(x.status))return {state:'linked',label:'Auto-sync on',description:x.status,color:'linked'};
