@@ -30,6 +30,7 @@ jobs:
         run: |
           python -m pip install --quiet cairosvg
           python -c "import cairosvg; cairosvg.svg2png(url='icon.svg',write_to='apple-touch-icon.png',output_width=180,output_height=180)"
+          python -c "import cairosvg; from pathlib import Path; [(cairosvg.svg2png(url=str(Path('icons')/f'{name}.svg'),write_to=str(Path('icons')/f'{name}-{size}.png'),output_width=size,output_height=size)) for name in ['crystal','racing','midnight','gold'] for size in [180,512]]"
           python -c "import cairosvg; cairosvg.svg2png(url='d47lona/icon.svg',write_to='d47lona/icon-192.png',output_width=192,output_height=192)"
           python -c "import cairosvg; cairosvg.svg2png(url='d47lona/icon.svg',write_to='d47lona/icon-512.png',output_width=512,output_height=512)"
       - uses: actions/upload-pages-artifact@v3
