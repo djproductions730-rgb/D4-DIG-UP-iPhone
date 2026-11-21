@@ -301,7 +301,7 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 .tx-upi-icons button[aria-pressed=true]{border-color:#a764ff;box-shadow:0 0 0 1px #a764ff}
 #upi-settings-list{display:grid;gap:4px;max-height:42dvh;overflow:auto;margin:8px 0}
 #upi-settings-list label{display:flex;align-items:center;gap:9px;min-height:42px;padding:4px}
-</style><link rel="stylesheet" href="./d47-linked-loans.css"><script src="./upi-apps.js"></script></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+</style><script src="./upi-apps.js"></script></head><body><div id="d4-intro" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
 <linearGradient id="launch-gold" x2="1" y2=".5"><stop stop-color="#d59838"/><stop offset=".45" stop-color="#ffe4a5"/><stop offset="1" stop-color="#eeb855"/></linearGradient>
 <linearGradient id="launch-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141338"/><stop offset=".55" stop-color="#4d2395"/><stop offset="1" stop-color="#202884"/></linearGradient>
@@ -437,13 +437,8 @@ function refreshSharedLedger(){
  }catch(_){}
 }
 window.addEventListener('storage',event=>{if(event.key===KEY)refreshSharedLedger()});
-window.addEventListener('storage',event=>{
- // D47Lona writes its own loans independently. Re-render its linked summary
- // rather than copying monetary records or charging an EMI twice.
- if(event.key==='d47lona-crystal-v1'&&tab==='loans')render();
-});
-window.addEventListener('pageshow',refreshSharedLedger);window.addEventListener('pageshow',()=>{if(tab==='loans')render()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSharedLedger()});document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='loans')render()});
+window.addEventListener('pageshow',refreshSharedLedger);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSharedLedger()});
 
 document.addEventListener('click',event=>{
  const link=event.target.closest('a[href="./d47lona/"]');
@@ -1101,7 +1096,6 @@ if(target){e.preventDefault();openBankDetail(target.dataset.bankId)}
 document.getElementById('sheet').addEventListener('click',e=>{const more=e.target.closest('[data-d4-more-tab]');if(more){e.preventDefault();go(more.dataset.d4MoreTab);return}const loan=e.target.closest('[data-loan-action]');if(loan){e.preventDefault();handleLoanAction(loan.dataset.loanAction,loan.dataset.loanId,loan.dataset.paymentId);return;}const target=e.target.closest('[data-bank-choice]');if(target){e.preventDefault();chooseBank(target.dataset.bankChoice)}});
 document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')closeSheet()});render();
 if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}))}
-window.addEventListener('load',()=>{if(new URLSearchParams(location.search).get('section')==='loans'&&typeof loansPage==='function')go('loans')},{once:true});
 </script><script src="./loans.js"></script><script src="./migration.js?v=bankless-import-10"></script><script src="./settings.js"></script><script src="./transaction-edit.js?v=history-name-fix-20261109"></script><script src="./history-filters.js?v=date-range-pdf-20261115"></script><script src="./history-statement-pdf.js?v=date-range-pdf-20261115"></script><script>
 // The legacy Transactions screen is replaced by history-filters.js.
 // If its enhanced renderer fails to initialize, show a visible retry rather than silently showing the outdated screen.
