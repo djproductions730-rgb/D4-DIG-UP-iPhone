@@ -518,9 +518,7 @@ const diffDays=(a,b)=>Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T12:00:00
 function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,salaries:{},reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
 function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.version===1&&Array.isArray(v.loans)&&Array.isArray(v.banks)&&Array.isArray(v.ledger)){
  if(!v.salaries||typeof v.salaries!=='object'||Array.isArray(v.salaries))v.salaries={};
- if(!Object.keys(v.salaries).length&&Number(v.salary)>0&&Number.isFinite(Number(v.salary))){
-   v.salaries[today().slice(0,7)]={amount:Number(v.salary),note:'Moved from earlier single salary setting'};
- }
+ // Keep the previous general salary estimate separate: it is not proof of income for this specific month.
  return v
  }}catch(e){}return fresh()}
 let state=load();let salarySelectedMonth=today().slice(0,7);let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
@@ -699,8 +697,25 @@ function monthly(){return activeLoans().reduce((a,l)=>a+Number(l.emi),0)}
 function validSalaryMonth(month){return typeof month==='string'&&/^(19|20|21)\d{2}-(0[1-9]|1[0-2])$/.test(month)}
 function salaryMap(){return state.salaries&&typeof state.salaries==='object'&&!Array.isArray(state.salaries)?state.salaries:{}}
 function salaryRecord(month){return Object.prototype.hasOwnProperty.call(salaryMap(),month)?salaryMap()[month]:null}
+function digupIncomeForMonth(month){
+ if(!validSalaryMonth(month))return null;
+ const linked=d4Store();
+ const entries=linked?.entries||state.digupSalarySnapshots?.[month]?.entries||[];
+ let total=0,count=0;
+ for(const e of entries){
+  if(!e||String(e.type||'').toLowerCase()!=='income'||String(e.category||'').trim().toLowerCase()!=='salary')continue;
+  const time=String(e.created||e.date||e.when||'');
+  if(time.slice(0,7)!==month)continue;
+  const amount=Number(e.amount);
+  if(!Number.isFinite(amount)||amount<=0)continue;
+  total+=amount;count++;
+ }
+ if(!count)return null;
+ return Math.round(total*100)/100;
+}
 function salaryAmount(month){
- const row=salaryRecord(month);if(row===null)return null;
+ const row=salaryRecord(month);
+ if(row===null)return digupIncomeForMonth(month);
  const raw=typeof row==='number'?row:row?.amount;
  const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null;
 }
@@ -720,7 +735,7 @@ function salaryMonthlyStats(ym){
 function salaryJournalSection(){
  const ym=validSalaryMonth(salarySelectedMonth)?salarySelectedMonth:today().slice(0,7);
  const selected=salaryRecord(ym),stats=salaryMonthlyStats(ym);
- const value=salaryAmount(ym);
+ const value=salaryAmount(ym),fromDigup=selected===null&&value!==null;
  const rows=Object.entries(salaryMap()).filter(([k])=>validSalaryMonth(k))
    .sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);
  const percentLabel=stats.percent===null?'—':stats.percent.toFixed(1)+'%';
@@ -730,7 +745,7 @@ function salaryJournalSection(){
   +'<form data-form="salary"><div class="salary-month-grid">'
   +'<div class="field"><label for="salary-month">Salary month</label><input id="salary-month" name="month" type="month" min="2020-01" max="2120-12" required value="'+safe(ym)+'"></div>'
   +'<div class="field"><label for="salary-amount">Salary received (₹)</label><input id="salary-amount" name="salary" type="number" min="0" max="1000000000" step="0.01" required placeholder="Enter actual salary" value="'+(value===null?'':value)+'"></div>'
-  +'</div><div class="field"><label for="salary-note">Note (optional)</label><input id="salary-note" name="note" maxlength="100" placeholder="Salary, bonus or adjustment" value="'+safe(typeof selected==='object'&&selected?.note?selected.note:'')+'"></div>'
+  +'</div>'+(fromDigup?'<p class="salary-from-digup">Salary income from DIG UP · '+monthName(ym)+'. You can override it here.</p>':'')+'<div class="field"><label for="salary-note">Note (optional)</label><input id="salary-note" name="note" maxlength="100" placeholder="Salary, bonus or adjustment" value="'+safe(typeof selected==='object'&&selected?.note?selected.note:'')+'"></div>'
   +'<div class="salary-journal-actions"><button class="button" type="submit">'+ico('check')+' '+(selected!==null?'Update':'Add')+' Salary</button>'
   +(selected!==null?'<button type="button" class="button secondary" data-salary-delete="'+safe(ym)+'">Delete this month</button>':'')+'</div></form>'
   +'<div class="salary-month-results"><div><span>EMIs scheduled · '+monthName(ym)+'</span><strong>'+money(stats.emi)+'</strong></div>'
