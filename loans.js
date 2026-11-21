@@ -121,7 +121,46 @@ function openEmiCalculator(){
    '<div class="loan-summary-stat"><span>Total repayment</span><strong>'+rupees.format(total)+'</strong></div></div>';
  });
 }
+// D47Lona owns the detailed EMI schedule; DIG UP mirrors it read-only on the
+// shared website origin. Legacy DIG UP loans remain untouched and accessible.
+function d47LinkedLoans(){
+ try{
+  const raw=JSON.parse(localStorage.getItem('d47lona-crystal-v1')||'null');
+  if(raw?.version!==1||!Array.isArray(raw.loans)||!raw.loans.length)return null;
+  return raw.loans.filter(l=>l&&typeof l.id==='string'&&typeof l.name==='string'
+    &&Number.isFinite(Number(l.emi))&&Number(l.emi)>=0
+    &&Number.isInteger(Number(l.tenure))&&Number(l.tenure)>0);
+ }catch(_){return null}
+}
+function d47LinkedLoansPanel(loans){
+ const totalEmi=loans.filter(l=>(l.paid||[]).length<Number(l.tenure))
+   .reduce((a,l)=>a+Number(l.emi),0);
+ const count=loans.filter(l=>(l.paid||[]).length<Number(l.tenure)).length;
+ const cards=loans.map(l=>{
+  const total=Number(l.tenure),paid=Array.isArray(l.paid)?l.paid.filter(p=>p&&Number.isInteger(Number(p.cycle))&&Number(p.cycle)>=1&&Number(p.cycle)<=total).length:0;
+  const pct=Math.round(Math.min(100,paid/total*100)),closed=paid>=total;
+  const kind=l.kind==='home'?'home':l.kind==='gadget'?'gadget':'personal';
+  const art=kind==='home'?'<img src="./d47lona/art/home-crystal-3d.svg" loading="lazy" alt="">':kind==='gadget'?'📱':'💎';
+  const principal=Number(l.principal);
+  const original=Number.isFinite(principal)&&principal>0?'<span class="d47-linked-principal">Original loan · '+fmt(principal)+'</span>':'';
+  return '<article class="d47-linked-card d47-linked-'+kind+'"><div class="d47-linked-card-head"><span class="d47-linked-art" aria-hidden="true">'+art+'</span><div class="d47-linked-name"><strong>'+tidy(l.name)+'</strong><small>'+tidy(l.lender||'Loan')+'</small></div><span class="d47-linked-state">'+(closed?'Closed':'Active')+'</span></div>'
+   +'<div class="d47-linked-stats"><div><small>Monthly EMI</small><strong>'+fmt(l.emi)+'</strong></div><div><small>EMIs paid</small><strong>'+paid+'/'+total+'</strong></div></div>'
+   +'<div class="d47-linked-progress"><span style="width:'+pct+'%"></span></div>'
+   +'<div class="d47-linked-card-foot"><span>'+pct+'% of cycles recorded'+original+'</span><a href="./d47lona/" class="d47-linked-open">Open Loan Details ›</a></div></article>'
+ }).join('');
+ return '<div class="d47-linked-loans"><div class="section-head"><h2>🔗 D47Lona · Linked Loans</h2><span class="pill">Same-browser</span></div>'
+ +'<div class="d47-linked-hero"><div><span>ACTIVE LOANS</span><strong>'+count+' of '+loans.length+'</strong></div><div><span>TOTAL MONTHLY EMI</span><strong>'+fmt(totalEmi)+'</strong></div></div>'
+ +'<p class="d47-linked-hint">These are your actual D47Lona loan records. Updated automatically when you edit them in D47Lona on this same browser. DIG UP earlier loan records are kept separately below; totals are not combined.</p>'
+ +'<div class="d47-linked-grid">'+cards+'</div></div>'
+}
 function loansPage(){
+ const linked=d47LinkedLoans();
+ if(!linked)return legacyLoansPage();
+ return d47LinkedLoansPanel(linked)
+   +'<details class="d47-legacy-details"><summary>Earlier DIG UP loan records ('+(Array.isArray(data.loans)?data.loans.length:0)+') · View separately</summary><p class="muted">Preserved as independent historical entries, not included in the linked D47Lona monthly EMI total. Edit only if they are different loans.</p>'+legacyLoansPage()+'</details>';
+}
+
+function legacyLoansPage(){
  const list=Array.isArray(data.loans)?data.loans:[];
  const all=list.map(l=>({loan:l,...loanDueSummary(l)}));
  const isClosed=x=>Number(x.loan.principal)>0 && x.st.outstanding===0;
