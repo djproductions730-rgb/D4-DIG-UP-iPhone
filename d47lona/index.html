@@ -1202,7 +1202,23 @@ window.addEventListener('focus',()=>{if(syncLocalBalances())render()});
 window.addEventListener('pageshow',()=>{if(syncLocalBalances())render()});
 window.addEventListener('storage',e=>{if(e.key===D4_LOCAL_KEY){syncLocalBalances();render()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncLocalBalances())render()});
-if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+    // iOS Home Screen PWAs may stay open for days without navigating.
+    // Check for new assets on every app resume, without clearing local loan data.
+    const checkUpdate=()=>reg.update().catch(()=>{});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkUpdate()});
+    window.addEventListener('pageshow',checkUpdate);
+    checkUpdate();
+  }).catch(()=>{});
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    // Reload only when a new worker takes control; avoid repeated refreshes.
+    const stamp='d47lona-sw-reload-v27';
+    if(sessionStorage.getItem(stamp)==='1')return;
+    sessionStorage.setItem(stamp,'1');
+    location.reload();
+  });
+}
 
 (() => {
   if (digUpHost) { window.addEventListener('open-finance-sync', () => digUpHost.dispatchEvent(new Event('open-finance-sync'))); document.addEventListener('click', event => { if (event.target.closest('[data-finance-sync]')) digUpHost.dispatchEvent(new Event('open-finance-sync')); }); return; }
