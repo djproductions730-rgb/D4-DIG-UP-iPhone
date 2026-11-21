@@ -259,3 +259,25 @@ html[data-theme] body.d47-neon-mode .loan-clean-empty .sub{color:#bbd0e4}
  html[data-theme] body.d47-neon-mode .loan-compact-head>.loan-icon,
  html[data-theme] body.d47-neon-mode .detail-top .loan-icon{width:54px;height:54px;flex-basis:54px}
 }
+
+/* User's Home Loan display: green liquid-glass house artwork and calm emerald glow */
+html[data-theme] body.d47-neon-mode .loan-compact.loan-tone-home{
+ --loan-c1:#20DBAB;--loan-c2:#72F3D0;
+ background:linear-gradient(135deg,rgba(9,90,81,.91),rgba(9,30,53,.96))!important;
+ border-color:rgba(45,232,171,.76)!important;
+ box-shadow:0 7px 25px rgba(0,9,20,.35),0 0 23px rgba(28,221,165,.19),inset 0 1px 1px rgba(255,255,255,.22)!important;
+}
+html[data-theme] body.d47-neon-mode .loan-compact.loan-tone-home .loan-icon.house-3d,
+html[data-theme] body.d47-neon-mode .detail-top.loan-detail-kind-home .loan-icon.house-3d{
+ background:radial-gradient(circle at 25% 12%,rgba(208,255,240,.39),transparent 57%),linear-gradient(140deg,rgba(18,142,125,.88),rgba(7,55,72,.94));
+ border:1px solid rgba(91,255,212,.62);
+ box-shadow:0 0 22px rgba(11,225,173,.25),inset 0 1px 1px rgba(255,255,255,.3);
+}
+html[data-theme] body.d47-neon-mode .detail-top.loan-detail-kind-home{
+ border-color:rgba(54,231,168,.69);
+ box-shadow:0 0 25px rgba(15,224,159,.13),inset 0 1px 1px rgba(255,255,255,.23);
+}
+html[data-theme] body.d47-neon-mode .loan-compact.loan-tone-home .loan-compact-progress span{
+ background:linear-gradient(90deg,#0bb78b,#8afce0);
+ box-shadow:0 0 14px rgba(16,224,174,.4);
+}
