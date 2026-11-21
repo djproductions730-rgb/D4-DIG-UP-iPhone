@@ -4,6 +4,21 @@ export function setupPairUI({mode,stores}){
   if(!['digup','lona'].includes(mode))throw Error('Unknown D4 finance app');
   let session=null, connecting=null, provisioning=null, autoAttempted=false, dialog=null, lastStatus='Not paired',lastError='';
   const paired=()=>!!existingPairCode();
+  // This app shares the same GitHub Pages origin as DIG UP. When DIG UP
+  // records exist in that browser, D47Lona already follows its bank balances
+  // and monthly Salary directly via same-origin storage (without Firebase).
+  const localDigupLink=()=>{
+    if(mode!=='lona')return false;
+    try{
+      const storage=window.parent!==window ? window.parent.localStorage : localStorage;
+      const data=JSON.parse(storage.getItem('d4webv15')||'null');
+      return !!data&&Array.isArray(data.banks)&&Array.isArray(data.entries);
+    }catch(_){return false}
+  };
+  const inDigupFrame=()=>{
+    try{return mode==='lona'&&window.parent!==window&&new URLSearchParams(location.search).get('embedded')==='1'&&window.parent.location.origin===location.origin}
+    catch(_){return false}
+  };
   const style=document.createElement('style');
   style.textContent=
     'dialog.d4-pair-dialog{box-sizing:border-box;position:fixed;inset:0;margin:auto;width:min(calc(100vw - 24px),440px);max-width:none;max-height:calc(100dvh - 26px);overflow:auto;border:1px solid #698fc9;border-radius:25px;padding:24px 20px 20px;background:radial-gradient(ellipse at 5% 5%,#22526f,#111f41 52%,#0d1837);box-shadow:0 29px 90px #071020c0;color:#effbff;font:500 14px/1.5 system-ui,-apple-system,sans-serif;color-scheme:dark}'+
@@ -25,7 +40,7 @@ export function setupPairUI({mode,stores}){
   }
   function updateStatus(){
     const box=dialog.querySelector('[data-pair-status]'),issue=dialog.querySelector('[data-pair-message]');
-    box.textContent=paired()?'Code saved · '+lastStatus:'Not linked yet · '+lastStatus;
+    box.textContent=(localDigupLink()?'Same-browser DIG UP linked · ':'')+(paired()?'Code saved · ':'No Pair Code · ')+lastStatus;
     issue.textContent=lastError;issue.hidden=!lastError;issue.classList.toggle('error',!!lastError);
     dialog.querySelector('[data-pair-forget]').hidden=!paired();
     const field=dialog.querySelector('textarea');
@@ -57,7 +72,7 @@ export function setupPairUI({mode,stores}){
        '<button type="button" class="pair-secondary" data-pair-helper>',mode==='digup'?'Copy Again':'Paste from Clipboard','</button>',
        '<a class="pair-secondary" href="',mode==='digup'?'./d47lona/':'../','">',mode==='digup'?'Open D47Lona':'Open DIG UP','</a></div>',
        '<button type="button" class="pair-disconnect" data-pair-forget hidden>Disconnect on this device (data stays)</button>',
-       '<p class="pair-disclaimer">🔐 No email or password required. Bank and loan data is encrypted before cloud upload. This secret code grants access to your synced finances — do not share it publicly. Auto-sync needs internet and Firebase Pairing to be enabled; offline records remain saved on this device.</p>'
+       '<p class="pair-disclaimer">🔐 No email or password required. Bank and loan data is encrypted before cloud upload. This secret code grants access to your synced finances — do not share it publicly. Same-browser DIG UP balances and Salary work locally without Firebase; cross-device Cloud sync needs internet and Firebase Pairing enabled. Device records remain saved.</p>'
       ].join('');
       document.body.appendChild(dialog);
       dialog.querySelector('[data-pair-close]').addEventListener('click',()=>dialog.close());
@@ -100,6 +115,14 @@ export function setupPairUI({mode,stores}){
   }
   async function connect(){
     if(connecting)return connecting;
+    // The embedded Lona is already linked to its parent DIG UP by
+    // same-origin storage. Avoid a second Firebase login and the misleading
+    // red error screen while preserving parent DIG UP's cloud connection.
+    if(inDigupFrame()&&localDigupLink()){
+      session?.close();session=null;
+      emit('Local Auto-sync active · Bank balances and Salary update from DIG UP. Cross-device Cloud sync is separate.');
+      return;
+    }
     connecting=(async()=>{
       session?.close();session=null;emit('Connecting securely…');
       try{
@@ -108,7 +131,12 @@ export function setupPairUI({mode,stores}){
           emit(msg,statuses.some(x=>/invalid|conflict|unavailable|denied|exceeded|failed|wrong|missing|too large/i.test(x)));
         });
         if(!session)emit('Not paired');
-      }catch(e){emit(String(e?.message||'Connection unavailable'),true)}
+      }catch(e){
+        const explanation=String(e?.message||'Connection unavailable');
+        if(localDigupLink()){
+          emit('Local Auto-sync active · Bank balances and Salary reflect DIG UP. Cloud not connected: '+explanation);
+        }else emit('Cloud not connected: '+explanation,true);
+      }
       finally{connecting=null}
     })();
     return connecting;
@@ -143,7 +171,11 @@ export function setupPairUI({mode,stores}){
         dialog.querySelector('textarea').value='';
         await connect();
       }
-    }catch(e){emit(String(e?.message||'Could not pair devices'),true)}
+    }catch(e){
+      const message=String(e?.message||'Could not pair devices');
+      if(localDigupLink())emit('Local DIG UP sync active · Cloud pairing unavailable: '+message);
+      else emit(message,true);
+    }
     finally{primary.disabled=false;updateStatus()}
   }
   window.addEventListener('open-pair-sync',show);
