@@ -550,6 +550,89 @@ function d4SyncStats(){
  return {connected:true,banks:d.banks.filter(x=>!/pluxee/i.test(x.name||'')).length,
  linked:state.banks.filter(b=>!!d4Match(d,b)).length};
 }
+
+/* D47Lona restore v2: accepts exported app backups, earlier direct state snapshots,
+   and routes a DIG UP backup to its own safe import path. Never commits data on parse failure. */
+function restoreFromJson(parsed){
+ if(!parsed||typeof parsed!=='object'||Array.isArray(parsed))throw Error('JSON file must contain a backup object');
+ // Distinguish DIG UP from D47Lona before validating the loan schema.
+ if(parsed.format==='d4webv15'){
+   if(!Array.isArray(parsed.banks)||!Array.isArray(parsed.entries))throw Error('DIG UP backup needs banks and entries arrays');
+   if(parsed.banks.length>200||parsed.entries.length>150000)throw Error('DIG UP backup is too large');
+   if(!parsed.banks.length&&!parsed.entries.length)throw Error('DIG UP backup is empty');
+   if(parsed.banks.some(x=>!x||typeof x.name!=='string'||!Number.isFinite(Number(x.balance))))throw Error('DIG UP backup contains invalid bank values');
+   const linked=d4Store();
+   if(linked&&(linked.banks.length||linked.entries.length)){
+     syncLocalBalances();render();
+     return 'DIG UP records already exist in this browser. Nothing overwritten. Open Settings → Sync Now.';
+   }
+   if(!confirm('This is a DIG UP backup, not a D47Lona loan backup. Import '+parsed.banks.length+' banks and '+parsed.entries.length+' transactions for same-browser bank sync?'))return 'Import cancelled';
+   localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(parsed));
+   syncLocalBalances();render();
+   return 'DIG UP backup imported. Check bank details.';
+ }
+ // Some previous D47Lona exports wrap state in data; some snapshots are direct.
+ const inner=parsed.app==='D47Lona'&&parsed.data?parsed.data:
+   parsed.data&&Array.isArray(parsed.data.loans)?parsed.data:parsed;
+ if(!inner||!Array.isArray(inner.loans)||!Array.isArray(inner.banks))
+   throw Error('This is not a D47Lona loan backup. Choose D47Lona-PRIVATE-Loan-Data.json or an exported D47Lona backup.');
+ if(inner.loans.length>500||inner.banks.length>200)throw Error('Backup contains too many loans or banks');
+ const seenBank=new Set();
+ const banks=inner.banks.map((b,i)=>{
+   if(!b||typeof b!=='object'||typeof b.id!=='string'||!String(b.id).trim()||typeof b.name!=='string'||!b.name.trim())throw Error('Bank '+(i+1)+' has missing ID or name');
+   if(seenBank.has(b.id))throw Error('Duplicate bank ID in backup');seenBank.add(b.id);
+   if(!Number.isFinite(Number(b.balance)))throw Error('Bank '+(i+1)+' has invalid balance');
+   return {...b,balance:Number(b.balance),reserved:!!b.reserved}
+ });
+ const seenLoan=new Set();
+ const loans=inner.loans.map((loan,i)=>{
+   if(!loan||typeof loan!=='object'||!String(loan.id||'').trim()||typeof loan.name!=='string')throw Error('Loan '+(i+1)+' has missing ID or name');
+   if(seenLoan.has(loan.id))throw Error('Duplicate loan ID in backup');seenLoan.add(loan.id);
+   const tenure=Number(loan.tenure),emi=Number(loan.emi);
+   if(!Number.isInteger(tenure)||tenure<1||tenure>480||!Number.isFinite(emi)||emi<0)throw Error('Loan '+(i+1)+' has invalid EMI or tenure');
+   const paid=Array.isArray(loan.paid)?loan.paid:[];
+   if(paid.length>tenure||paid.some(p=>!p||!Number.isInteger(Number(p.cycle))||Number(p.cycle)<1||Number(p.cycle)>tenure))throw Error('Loan '+(i+1)+' has an invalid paid-EMI history');
+   if(loan.schedule!==undefined&&(!Array.isArray(loan.schedule)||loan.schedule.length>tenure))throw Error('Loan '+(i+1)+' has an invalid EMI schedule');
+   return {...loan,tenure,emi,paid};
+ });
+ if(inner.ledger!==undefined&&!Array.isArray(inner.ledger))throw Error('Payment ledger must be a list');
+ const ledger=inner.ledger||[];
+ if(ledger.length>100000)throw Error('Payment history is too large');
+ const candidate={
+   ...fresh(),
+   ...inner,
+   version:1,
+   theme:['crystal','midnight','emerald','royal','gold'].includes(inner.theme)?inner.theme:'crystal',
+   introStyle:['crystal','emi','vault'].includes(inner.introStyle)?inner.introStyle:'crystal',
+   banks,loans,ledger
+ };
+ if(!confirm('Valid D47Lona backup found: '+loans.length+' loan(s), '+banks.length+' bank(s), '+ledger.length+' ledger entries. Restore it? A local recovery copy of your current data will be kept first.'))return 'Restore cancelled';
+ const old=localStorage.getItem(STORE);
+ // Atomic checks: verify and save before changing the in-memory application.
+ if(old!==null)localStorage.setItem(STORE+'-before-restore',old);
+ localStorage.setItem(STORE,JSON.stringify(candidate));
+ state=candidate;
+ syncLocalBalances();
+ modal=null;goto('home');
+ return 'D47Lona backup restored: '+loans.length+' loan(s), '+banks.length+' bank(s).';
+}
+function chooseRestoreJson(){
+ const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
+ input.onchange=async()=>{
+   const file=input.files?.[0];if(!file)return;
+   try{
+     if(file.size>8*1024*1024)throw Error('File exceeds 8 MB. Choose the original JSON backup');
+     const raw=(await file.text()).replace(/^\uFEFF/,'').trim();
+     if(!raw)throw Error('Selected file is empty');
+     let parsed;
+     try{parsed=JSON.parse(raw)}
+     catch(e){throw Error('File is not valid JSON. Download a complete .json backup (not a screenshot or PDF).')}
+     notify(restoreFromJson(parsed))
+   }catch(e){notify('Restore failed: '+String(e.message||e));console.warn('D47Lona backup validation:',String(e.message||e))}
+ };
+ input.click();
+}
+
 function d4ImportBackup(){
  const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
  input.onchange=async()=>{
@@ -762,7 +845,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'open-digup':window.open(new URL('../',location.href).href,'_blank','noopener');break;
  case 'export':exportJson(`D47Lona-backup-${today()}.json`,JSON.stringify({app:'D47Lona',exportedAt:new Date().toISOString(),data:state},null,2));notify('Backup exported');break;
  case 'export-digup':{let data=state.ledger.filter(x=>x.type==='emi').map(x=>({externalId:x.id,source:'D47Lona',transactionType:'Expense',category:'Loan EMI',loanId:x.loanId,amount:x.amount,bankId:x.bankId,date:x.date,description:x.label}));exportJson(`D47Lona-DIGUP-entries-${today()}.json`,JSON.stringify({note:'For manual integration; not imported into DIG UP automatically',entries:data},null,2));notify('DIG UP-compatible local entries exported');break}
- case 'import':{let input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.onchange=async()=>{let f=input.files?.[0];if(!f)return;try{let p=JSON.parse(await f.text()),d=p.data;if(!d||d.version!==1||!Array.isArray(d.loans)||!Array.isArray(d.banks)||!Array.isArray(d.ledger))throw Error('Invalid backup');if(!confirm('Restore this backup? Current app data will be replaced.'))return;state=d;syncLocalBalances();save();modal=null;goto('home');notify('Backup restored')}catch(err){notify('Invalid backup: '+err.message)}};input.click();break}
+ case 'import':chooseRestoreJson();break;
  case 'reset':if(confirm('Reset all local loans and payments to the initial loan data? This cannot be undone without a backup.')){state=fresh();save();goto('home');notify('Initial data restored')}break;
  case 'delete-loan':{const l=selectedLoan();if(!l)return;if(l.paid.some(x=>x.deducted)){notify('Undo locally recorded payments before deleting this loan.');return}if(confirm(`Delete ${l.name}? This will remove its schedule and payment history.`)){state.loans=state.loans.filter(x=>x.id!==l.id);save();goto('loans');notify('Loan deleted')}break}
  case 'calendar-export':{
