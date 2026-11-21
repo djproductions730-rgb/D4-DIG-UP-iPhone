@@ -414,6 +414,22 @@ html[data-theme="emerald"] .tabbar button.selected{color:#F3FFF9}
   html[data-theme] .theme-swatches .swatch small{font-size:13px}
 }
 
+
+/* Accessible selected controls: avoid white text over bright neon gradients. */
+html[data-theme="midnight"]{--ui-button-a:#164673;--ui-button-b:#205B93}
+html[data-theme="emerald"]{--ui-button-a:#075847;--ui-button-b:#09765E}
+html[data-theme="royal"]{--ui-button-a:#4B2D7D;--ui-button-b:#6540A3}
+html[data-theme="gold"]{--ui-button-a:#513719;--ui-button-b:#735322}
+html[data-theme]:not([data-theme="crystal"]) .button:not(.secondary):not(.danger),
+html[data-theme]:not([data-theme="crystal"]) .tabbar button.selected{
+  background:linear-gradient(135deg,var(--ui-button-a),var(--ui-button-b));
+  color:#FFFDF9;
+}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav button.active{
+  background:var(--theme-panel);
+  color:var(--ui-action);
+}
+
 </style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
