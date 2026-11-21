@@ -1147,12 +1147,19 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
 })();
 })();
 </script><script type="module">
-import { setupPairUI } from '../finance-sync/pair-ui.mjs';
+try {
+ const { setupPairUI } = await import('../finance-sync/pair-ui.mjs');
 window.addEventListener('d4-pair-ledger-applied',()=>document.dispatchEvent(new Event('d4-pair-ledger-refresh')));
 window.addEventListener('d4-pair-loan-applied',()=>{window.__d47PairReload?.()});
 setupPairUI({mode:'lona',stores:[
  {name:'digup',key:'d47lona-digup-cloud-copy',readOnly:true,apply:()=>window.dispatchEvent(new Event('d4-pair-ledger-applied'))},
  {name:'lona',key:'d47lona-crystal-v1',apply:()=>window.dispatchEvent(new Event('d4-pair-loan-applied'))}
 ]});
+} catch (error) {
+ console.warn('D4 encrypted pairing module unavailable:', String(error?.message || error));
+ const warn=()=>alert('Pairing needs internet the first time. Check your connection and reopen this app.');
+ document.addEventListener('click',event=>{if(event.target.closest('[data-pair-sync]')){event.preventDefault();warn()}});
+ window.addEventListener('open-pair-sync',warn);
+}
 </script><script src="./intro.js"></script><script src="./liquid-glass.js"></script></body>
 </html>
