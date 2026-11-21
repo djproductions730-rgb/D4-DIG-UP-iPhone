@@ -128,6 +128,20 @@ export function generatePairCode(){
   saveCode(code);
   return code;
 }
+// Explicitly rotate a disclosed pairing secret. This only changes this
+// browser's link; it cannot delete or revoke a remote cloud document. Existing
+// banks, transactions, salary records and loan payments remain untouched.
+export function rotatePairCode(){
+  if(!globalThis.crypto?.getRandomValues)throw Error('Open DIG UP using its secure HTTPS link.');
+  const old=getStored();
+  if(!old)return generatePairCode();
+  parseCode(old);
+  let next=PREFIX+bytesToB64(crypto.getRandomValues(new Uint8Array(32)));
+  // Extremely defensive: never reuse the same capability.
+  while(next===old)next=PREFIX+bytesToB64(crypto.getRandomValues(new Uint8Array(32)));
+  saveCode(next);
+  return next;
+}
 export async function createPair(){
   const code=generatePairCode();
   const current=await identity(code);
