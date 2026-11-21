@@ -122,6 +122,11 @@ export function setupPairUI({mode,stores}){
   }
   window.addEventListener('open-pair-sync',show);
   document.addEventListener('click',e=>{if(e.target.closest('[data-pair-sync]')){e.preventDefault();show()}});
+  const financeLink=new URLSearchParams(location.search).get('finance');
+  if(financeLink==='sync'||financeLink==='pair'){
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',show,{once:true});
+    else show();
+  }
   if(paired())void connect();
   window.addEventListener('storage',e=>{
     if(e.key==='d4-pair-link-v1'&&e.newValue&&e.newValue!==e.oldValue)void connect();
