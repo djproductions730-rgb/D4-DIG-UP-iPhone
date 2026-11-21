@@ -844,6 +844,8 @@ function salaryJournalSection(){
  const ym=validSalaryMonth(salarySelectedMonth)?salarySelectedMonth:today().slice(0,7);
  const selected=salaryRecord(ym),stats=salaryMonthlyStats(ym);
  const value=salaryAmount(ym),fromDigup=selected===null&&value!==null;
+ const linkedSalary=digupIncomeForMonth(ym);
+ const differs=selected!==null&&linkedSalary!==null&&Math.abs(Number(value)-linkedSalary)>0.009;
  const rows=Object.entries(salaryMap()).filter(([k])=>validSalaryMonth(k))
    .sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);
  const percentLabel=stats.percent===null?'—':stats.percent.toFixed(1)+'%';
@@ -853,7 +855,9 @@ function salaryJournalSection(){
   +'<form data-form="salary"><div class="salary-month-grid">'
   +'<div class="field"><label for="salary-month">Salary month</label><input id="salary-month" name="month" type="month" min="2020-01" max="2120-12" required value="'+safe(ym)+'"></div>'
   +'<div class="field"><label for="salary-amount">Salary received (₹)</label><input id="salary-amount" name="salary" type="number" min="0" max="1000000000" step="0.01" required placeholder="Enter actual salary" value="'+(value===null?'':value)+'"></div>'
-  +'</div>'+(fromDigup?'<p class="salary-from-digup">Salary income from DIG UP · '+monthName(ym)+'. You can override it here.</p>':'')+'<div class="field"><label for="salary-note">Note (optional)</label><input id="salary-note" name="note" maxlength="100" placeholder="Salary, bonus or adjustment" value="'+safe(typeof selected==='object'&&selected?.note?selected.note:'')+'"></div>'
+  +'</div>'+(fromDigup?'<p class="salary-from-digup">Salary income from DIG UP · '+monthName(ym)+'. You can override it here.</p>':'')
+  +(differs?'<p class="salary-from-digup salary-difference-note">Different salaries detected: DIG UP '+money(linkedSalary)+' · D47Lona manual '+money(value)+'. This month currently uses your manually edited amount. To follow DIG UP again, use Delete this month below (the manual entry will be removed).</p>':'')
+  +'<div class="field"><label for="salary-note">Note (optional)</label><input id="salary-note" name="note" maxlength="100" placeholder="Salary, bonus or adjustment" value="'+safe(typeof selected==='object'&&selected?.note?selected.note:'')+'"></div>'
   +'<div class="salary-journal-actions"><button class="button" type="submit">'+ico('check')+' '+(selected!==null?'Update':'Add')+' Salary</button>'
   +(selected!==null?'<button type="button" class="button secondary" data-salary-delete="'+safe(ym)+'">Delete this month</button>':'')+'</div></form>'
   +'<div class="salary-month-results"><div><span>EMIs scheduled · '+monthName(ym)+'</span><strong>'+money(stats.emi)+'</strong></div>'
