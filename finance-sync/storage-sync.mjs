@@ -2,7 +2,7 @@ import { openLedger } from './ledger.mjs';
 import { mergeLedger } from './merge.mjs';
 
 export function syncStorage({ db, sdk, user, stores, onStatus }) {
-  const channels = stores.map(({ name, key, validate, apply }) => {
+  const channels = stores.map(({ name, key, validate, apply, readOnly = false }) => {
     const checkpoint = 'finance-sync:' + user.uid + ':' + key;
     let base = read(checkpoint);
     let observed;
@@ -36,6 +36,19 @@ export function syncStorage({ db, sdk, user, stores, onStatus }) {
         const snapshot = observed;
         const local = read(key);
         const remote = snapshot.value;
+        if (readOnly) {
+          if (remote === null) {
+            setStatus('Waiting for DigUp to upload its records.');
+            return;
+          }
+          if (!validate(remote)) throw new Error('Ledger format was invalid.');
+          if (JSON.stringify(local) !== JSON.stringify(remote)) {
+            localStorage.setItem(key, JSON.stringify(remote));
+            apply();
+          }
+          setStatus('Synced');
+          return;
+        }
         if ((local !== null && !validate(local)) || (remote !== null && !validate(remote))) {
           throw new Error('Ledger format was invalid. Both copies were kept.');
         }
