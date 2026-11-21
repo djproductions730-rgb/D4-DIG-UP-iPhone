@@ -107,15 +107,30 @@ function saveCode(code){
   try{localStorage.setItem(LINK_KEY,code)}catch(_){throw Error('Browser storage is blocked. Enable it before pairing.')}
 }
 export function forgetPair(){localStorage.removeItem(LINK_KEY)}
-export async function createPair(){
-  if(getStored())return getStored();
+// Show the user's code immediately on the device, even if the internet is offline.
+// Registration and actual cloud sync are separate and must never be marked successful
+// until Firestore acknowledges the created pairing document.
+export function generatePairCode(){
+  const previous=getStored();
+  if(previous){parseCode(previous);return previous}
+  if(!globalThis.crypto?.getRandomValues)throw Error('Open DIG UP using its secure HTTPS link.');
   const code=PREFIX+bytesToB64(crypto.getRandomValues(new Uint8Array(32)));
+  saveCode(code);
+  return code;
+}
+export async function createPair(){
+  const code=generatePairCode();
   const current=await identity(code);
   await ensureAnonymous();
   try{
-    await fire.setDoc(pairDoc(current.id),{version:1,createdAt:fire.serverTimestamp()});
+    const ref=pairDoc(current.id);
+    const existing=await fire.getDocFromServer(ref);
+    if(existing.exists()){
+      if(existing.data()?.version!==1)throw Error('This Pair Code has an unsupported cloud record.');
+    }else{
+      await fire.setDoc(ref,{version:1,createdAt:fire.serverTimestamp()});
+    }
   }catch(e){throw Error(readableError(e))}
-  saveCode(code);
   return code;
 }
 export async function joinPair(code){
