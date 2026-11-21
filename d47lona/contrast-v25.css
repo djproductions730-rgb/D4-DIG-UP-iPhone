@@ -1,0 +1,62 @@
+/* D47Lona v25 — accessible foreground/background pairs for every appearance.
+   Loaded LAST with cache-busted URL. CSS ONLY; no finance or sync state changes. */
+html[data-theme="crystal"] body.d47-model-a{--contrast-ink:#142b47;--contrast-sub:#4b5e76;--contrast-card:#f0f6ff;--contrast-card-border:#bacfe7;--contrast-action:#15508c;--contrast-nav:#e9f2ff;--contrast-selected:#d9e9ff}
+html[data-theme="midnight"] body.d47-model-a{--contrast-ink:#fff;--contrast-sub:#d7e8f7;--contrast-card:#153957;--contrast-card-border:#5985ab;--contrast-action:#9beaff;--contrast-nav:#102d4a;--contrast-selected:#26577e}
+html[data-theme="emerald"] body.d47-model-a{--contrast-ink:#fff;--contrast-sub:#d9f5e9;--contrast-card:#17483e;--contrast-card-border:#64a591;--contrast-action:#a8f9db;--contrast-nav:#0b3028;--contrast-selected:#236a57}
+html[data-theme="royal"] body.d47-model-a{--contrast-ink:#fff;--contrast-sub:#efe4ff;--contrast-card:#45315f;--contrast-card-border:#9b7dc2;--contrast-action:#e4caff;--contrast-nav:#2c1d46;--contrast-selected:#614585}
+html[data-theme="gold"] body.d47-model-a{--contrast-ink:#fff;--contrast-sub:#f8ebd6;--contrast-card:#544029;--contrast-card-border:#b59767;--contrast-action:#ffe7b1;--contrast-nav:#352817;--contrast-selected:#725733}
+/* Override pale text inherited from generic light model-A rules on dark themes. */
+html[data-theme] body.d47-model-a .main :is(.glass,.form-card,.salary-journal,.loan-card,.loan-compact,.bank-row,.cycle-row,.list-tile,.detail-top,.modal,.mini-panel,.kpi:not(.primary)){
+ color:var(--contrast-ink)!important;
+}
+html[data-theme] body.d47-model-a .main :is(.glass,.form-card,.salary-journal,.loan-card,.loan-compact,.bank-row,.cycle-row,.list-tile,.detail-top,.modal,.mini-panel,.kpi:not(.primary)) :is(h1,h2,h3,h4,label,strong,b,.val,.stat,.money,.amount,.loan-title,.bank-amount,.salary-month-pill,.salary-month-results strong){
+ color:var(--contrast-ink)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .main :is(.glass,.form-card,.salary-journal,.loan-card,.loan-compact,.bank-row,.cycle-row,.list-tile,.detail-top,.modal,.mini-panel,.kpi:not(.primary)) :is(.sub,.small,.eyebrow,.tiny-title,.loan-bottom,.footnote,.muted-line,.date-note,.salary-from-digup,.salary-difference-note){
+ color:var(--contrast-sub)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .main :is(.salary-journal,.form-card) :is(h2,p,label,.field label){color:var(--contrast-ink)!important}
+html[data-theme] body.d47-model-a .main :is(.salary-journal,.form-card) :is(p.sub,.sub){color:var(--contrast-sub)!important}
+html[data-theme] body.d47-model-a .main .theme-swatches .swatch,
+html[data-theme] body.d47-model-a .main .theme-swatches .swatch.on{
+ background:var(--contrast-card)!important;border:2px solid var(--contrast-card-border)!important;
+ box-shadow:0 4px 12px #0003,inset 0 1px 0 #fff2!important;
+}
+html[data-theme] body.d47-model-a .main .theme-swatches .swatch small{
+ color:var(--contrast-ink)!important;font-weight:800!important;text-shadow:none!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .main .theme-swatches .swatch.on{
+ background:var(--contrast-selected)!important;outline:2px solid var(--contrast-action)!important;outline-offset:1px!important;
+}
+html[data-theme] body.d47-model-a .main :is(.button.secondary,.d47-top-sync,.icon-btn){
+ color:var(--contrast-ink)!important;background:var(--contrast-selected)!important;border-color:var(--contrast-card-border)!important;
+}
+html[data-theme] body.d47-model-a .main :is(.button.secondary,.d47-top-sync,.icon-btn) :is(span,svg){color:inherit!important}
+html[data-theme] body.d47-model-a .mobile-nav{
+ background:var(--contrast-nav)!important;border-top:1px solid var(--contrast-card-border)!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button{
+ color:var(--contrast-sub)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button.active{
+ background:var(--contrast-selected)!important;color:var(--contrast-ink)!important;
+ border:1px solid var(--contrast-card-border)!important;
+}
+html[data-theme] body.d47-model-a .mobile-nav button :is(svg,span,small){color:inherit!important;opacity:1!important}
+html[data-theme] body.d47-model-a .main :is(input,select,textarea){
+ color:var(--contrast-ink)!important;border-color:var(--contrast-card-border)!important;
+}
+html[data-theme]:not([data-theme="crystal"]) body.d47-model-a .main :is(input,select,textarea){background:var(--contrast-card)!important}
+html[data-theme] body.d47-model-a .main :is(input,textarea)::placeholder{color:var(--contrast-sub)!important;opacity:1!important}
+/* Fix the nearly invisible salary comparison on a pale surface in midnight. */
+html[data-theme] body.d47-model-a .main :is(.salary-quick-line,.salary-month-results>div,.salary-use-summary){
+ background:var(--contrast-card)!important;color:var(--contrast-ink)!important;
+}
+html[data-theme] body.d47-model-a .main :is(.salary-quick-line,.salary-month-results>div,.salary-use-summary) :is(strong,b,span,.small){
+ color:var(--contrast-ink)!important;
+}
+html[data-theme] body.d47-model-a .main .kpi:not(.primary) :is(.stat,.tiny-title,.small){
+ color:var(--contrast-ink)!important;
+}
+html[data-theme] body.d47-model-a .main .kpi:not(.primary) :is(.tiny-title,.small){color:var(--contrast-sub)!important}
+html[data-theme] body.d47-model-a :is(button,input,select,textarea,a):focus-visible{outline:3px solid var(--contrast-action)!important;outline-offset:3px}
