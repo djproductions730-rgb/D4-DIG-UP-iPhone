@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "D47Lona – Crystal Glossy Loan Manager",
+  "short_name": "D47Lona",
+  "description": "Personal offline-first EMI tracker. No live bank or D4 DIG UP connection.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eaf6f4",
+  "theme_color": "#0bbd91",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
