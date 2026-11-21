@@ -51,9 +51,19 @@ async function ensureAnonymous(){
   if(auth.currentUser)return auth.currentUser;
   try{return (await authSdk.signInAnonymously(auth)).user}
   catch(error){
-    if(error.code==='auth/operation-not-allowed')throw Error('Firebase Anonymous sign-in is disabled. Enable Anonymous in Firebase Authentication.');
-    if(error.code==='auth/unauthorized-domain')throw Error('Add this GitHub Pages domain to Firebase Authentication authorized domains.');
-    throw Error('Could not connect to Firebase. Check the internet and Anonymous sign-in setup.');
+    const code=String(error?.code||'');
+    if(code==='auth/operation-not-allowed'||code==='auth/admin-restricted-operation')
+      throw Error('Firebase Anonymous sign-in is disabled. Enable Anonymous in Firebase Authentication → Sign-in method.');
+    if(code==='auth/unauthorized-domain')
+      throw Error('GitHub Pages domain not authorized. Add djproductions730-rgb.github.io under Firebase Authentication → Settings → Authorized domains.');
+    if(code==='auth/network-request-failed')
+      throw Error('Firebase Auth network request failed. Check internet, content blockers, or VPN.');
+    if(code==='auth/configuration-not-found'||code==='auth/invalid-api-key'||code==='auth/api-key-not-valid')
+      throw Error('Firebase project or API configuration is unavailable. Check project d4-finance-sync.');
+    // Error codes are diagnostic only; never include password, pairing code or
+    // request URL containing a token in an error message.
+    const diagnostic=/^[a-z0-9/-]{1,70}$/i.test(code)?' ('+code+')':'';
+    throw Error('Firebase sign-in was rejected'+diagnostic+'. Check Firebase project d4-finance-sync.');
   }
 }
 const pairDoc=id=>fire.doc(db,'financePairs',id);
