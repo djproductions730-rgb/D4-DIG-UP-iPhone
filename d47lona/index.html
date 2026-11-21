@@ -534,7 +534,7 @@ function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|lt
 function d4BrowserLinked(){return !!d4Store()}
 function d47SyncState(){
  const d=d4Store();
- if(d)return {state:'linked',label:'DIG UP linked',description:'Same-browser auto-sync',color:'linked'};
+ if(d)return {state:'linked',label:'Local link',description:'Same-browser records. Tap Sync for Finance Auto-sync status.',color:'local'};
  if(state.digupBackupMeta)return {state:'backup',label:'Backup copy',description:'Import a new DIG UP backup to update',color:'backup'};
  return {state:'local',label:'Local only',description:'Open DIG UP in this window to link its ledger',color:'local'};
 }
@@ -821,7 +821,7 @@ function header(sub,title){
    <div class="d47-page-title"><p class="eyebrow">${safe(sub)}</p><h1>${safe(title)}</h1></div>
   </div>
   <div class="d47-header-actions">
-   <button type="button" class="d47-top-sync d47-sync-${link.color}" data-action="sync-now" title="${safe(link.description)}" aria-label="Sync with D4 DIG UP">
+   <button type="button" class="d47-top-sync d47-sync-${link.color}" data-action="finance-sync-status" title="${safe(link.description)}" aria-label="Sync with D4 DIG UP">
      ${ico('refresh')}<span>Sync</span><i aria-hidden="true"></i>
    </button>
    <button type="button" class="icon-btn d47-header-secondary" data-nav="${view==='settings'?'reminders':'settings'}" aria-label="${view==='settings'?'Reminders':'Settings'}">${ico(view==='settings'?'bell':'settings')}</button>
@@ -1018,7 +1018,8 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'toggle-overdue':state.reminderAfterDue=!state.reminderAfterDue;save();render();break;
  case 'pay-next':{let dues=dueSoon();if(dues.length)markPayment(dues[0].loan.id,dues[0].cycle.num);else notify('No upcoming dated EMI. Set missing first due dates.');break}
  case 'sync-info':modal=infoModal('D4 DIG UP Sync',`<div class="notice">${ico('shield')} ${d4BrowserLinked()?'Same-browser local sync is connected.':'No DIG UP data in this browser yet.'}</div><p class="sub" style="margin-top:14px">Use D4 DIG UP and D47Lona under djproductions730-rgb.github.io in the same Safari browser. Bank balances refresh whenever you open, return to or refresh D47Lona.</p><p class="sub" style="margin-top:12px">Paid EMI with deduction makes ONE linked Expense in DIG UP; Undo reverses it. Ordinary expenses change balances only, not EMI Paid status.</p><p class="sub" style="margin-top:12px">Different browsers, iPhone installed-app storage and other devices may be isolated. Import your DIG UP backup to migrate local data. Cross-device auto-sync needs a shared authenticated cloud backend.</p>`);render();break;
- case 'sync-now':{const live=d4Store();if(live){syncLocalBalances();render();notify('DIG UP synced · '+d4SyncStats().linked+' bank(s), '+d4SyncStats().transactions+' transaction(s) available');}else{modal=infoModal('Connect D4 DIG UP',`<p class="sub">Open DIG UP and D47 Lona in the same browser window to share balances and transactions. If your records are in a separate app, export a DIG UP backup there and import it here to view a snapshot.</p><div class="button-group"><button class="button primary" data-action="open-digup">Open DIG UP</button><button class="button secondary" data-action="import-digup">Import DIG UP Backup</button></div>`);render()}break}
+ case 'finance-sync-status':window.dispatchEvent(new Event('open-finance-sync'));break;
+ case 'sync-now':{const live=d4Store();if(live){syncLocalBalances();render();notify('Local DIG UP copy refreshed · '+d4SyncStats().linked+' bank(s), '+d4SyncStats().transactions+' transaction(s) available');}else{modal=infoModal('Connect D4 DIG UP',`<p class="sub">Open DIG UP and D47 Lona in the same browser window to share balances and transactions. If your records are in a separate app, export a DIG UP backup there and import it here to view a snapshot.</p><div class="button-group"><button class="button primary" data-action="open-digup">Open DIG UP</button><button class="button secondary" data-action="import-digup">Import DIG UP Backup</button></div>`);render()}break}
  case 'import-digup':d4ImportBackup();break;
  case 'open-digup':if(digUpHost)digUpHost.closeEmbeddedLona();else location.assign(new URL('../',location.href).href);break;
  case 'export':exportJson(`D47Lona-backup-${today()}.json`,JSON.stringify({app:'D47Lona',exportedAt:new Date().toISOString(),data:state},null,2));notify('Backup exported');break;
