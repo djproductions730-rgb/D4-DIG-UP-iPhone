@@ -526,7 +526,10 @@ let state=load();let salarySelectedMonth=today().slice(0,7);let view='home',deta
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
 
 const D4_LOCAL_KEY='d4webv15';
-function d4Store(){try{const d=JSON.parse(localStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
+const digUpHost=window.parent!==window&&new URLSearchParams(location.search).get('embedded')==='1'
+ ? window.parent : null;
+const digUpStorage=digUpHost?.localStorage||localStorage;
+function d4Store(){try{const d=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
 function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
 function d4BrowserLinked(){return !!d4Store()}
 function d47SyncState(){
@@ -578,7 +581,7 @@ function restoreFromJson(parsed){
      return 'DIG UP records already exist in this browser. Nothing overwritten. Open Settings → Sync Now.';
    }
    if(!confirm('This is a DIG UP backup, not a D47Lona loan backup. Import '+parsed.banks.length+' banks and '+parsed.entries.length+' transactions for same-browser bank sync?'))return 'Import cancelled';
-   localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(parsed));
+   digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(parsed));
    syncLocalBalances();render();
    return 'DIG UP backup imported. Check bank details.';
  }
@@ -709,7 +712,7 @@ function recordD4Emi(loan,cycle,bank,amount,paidDate){
  if(after<0&&!confirm('D4 DIG UP bank balance will become negative. Record this EMI anyway?'))return {cancelled:true};
  db.balance=after;
  d.entries.push({id,bankId:db.id,bank:db.name,type:'Expense',category:'Bills',amount,note:loan.name+' EMI · '+cycle+'/'+loan.tenure,created:paidDate+'T12:00:00+05:30',balanceBefore:before,balanceAfter:after,loanId:loan.id,emiCycle:cycle,source:'D47Lona'});
- try{localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(d))}catch(_){return {cancelled:true}}
+ try{digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(d))}catch(_){return {cancelled:true}}
  return {linked:true,id,balance:after}
 }
 function undoD4Emi(payment,bank){
@@ -720,7 +723,7 @@ function undoD4Emi(payment,bank){
  if(!db)return false;
  db.balance=Math.round((Number(db.balance)+Number(payment.amount))*100)/100;
  d.entries.splice(index,1);
- localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(d));
+ digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(d));
  if(bank)bank.balance=db.balance;
  return true
 }
@@ -1017,7 +1020,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'sync-info':modal=infoModal('D4 DIG UP Sync',`<div class="notice">${ico('shield')} ${d4BrowserLinked()?'Same-browser local sync is connected.':'No DIG UP data in this browser yet.'}</div><p class="sub" style="margin-top:14px">Use D4 DIG UP and D47Lona under djproductions730-rgb.github.io in the same Safari browser. Bank balances refresh whenever you open, return to or refresh D47Lona.</p><p class="sub" style="margin-top:12px">Paid EMI with deduction makes ONE linked Expense in DIG UP; Undo reverses it. Ordinary expenses change balances only, not EMI Paid status.</p><p class="sub" style="margin-top:12px">Different browsers, iPhone installed-app storage and other devices may be isolated. Import your DIG UP backup to migrate local data. Cross-device auto-sync needs a shared authenticated cloud backend.</p>`);render();break;
  case 'sync-now':{const live=d4Store();if(live){syncLocalBalances();render();notify('DIG UP synced · '+d4SyncStats().linked+' bank(s), '+d4SyncStats().transactions+' transaction(s) available');}else{modal=infoModal('Connect D4 DIG UP',`<p class="sub">Open DIG UP and D47 Lona in the same browser window to share balances and transactions. If your records are in a separate app, export a DIG UP backup there and import it here to view a snapshot.</p><div class="button-group"><button class="button primary" data-action="open-digup">Open DIG UP</button><button class="button secondary" data-action="import-digup">Import DIG UP Backup</button></div>`);render()}break}
  case 'import-digup':d4ImportBackup();break;
- case 'open-digup':location.assign(new URL('../',location.href).href);break;
+ case 'open-digup':if(digUpHost)digUpHost.closeEmbeddedLona();else location.assign(new URL('../',location.href).href);break;
  case 'export':exportJson(`D47Lona-backup-${today()}.json`,JSON.stringify({app:'D47Lona',exportedAt:new Date().toISOString(),data:state},null,2));notify('Backup exported');break;
  case 'export-digup':{let data=state.ledger.filter(x=>x.type==='emi').map(x=>({externalId:x.id,source:'D47Lona',transactionType:'Expense',category:'Loan EMI',loanId:x.loanId,amount:x.amount,bankId:x.bankId,date:x.date,description:x.label}));exportJson(`D47Lona-DIGUP-entries-${today()}.json`,JSON.stringify({note:'For manual integration; not imported into DIG UP automatically',entries:data},null,2));notify('DIG UP-compatible local entries exported');break}
  case 'import':chooseRestoreJson();break;
