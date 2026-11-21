@@ -278,6 +278,142 @@ html[data-theme]:not([data-theme="crystal"]) .mobile-brand .sync-indicator{
   background:var(--theme-panel);border-color:var(--theme-border);color:var(--accent);
 }
 
+
+/* D47Lona · v1.2 readable typography across every glossy theme */
+html[data-theme="crystal"]{
+  --ui-title:#123047;--ui-text:#203E50;--ui-muted:#496373;
+  --ui-action:#0B735E;--ui-swatch:#16384B;
+}
+html[data-theme="midnight"]{
+  --ui-title:#F7FBFF;--ui-text:#ECF6FF;--ui-muted:#C6DEEF;
+  --ui-action:#8ED7FF;--ui-swatch:#F2FAFF;
+}
+html[data-theme="emerald"]{
+  --ui-title:#F3FFF9;--ui-text:#E5FFF4;--ui-muted:#BCE9D8;
+  --ui-action:#A5FFE1;--ui-swatch:#F2FFF8;
+}
+html[data-theme="royal"]{
+  --ui-title:#FCF7FF;--ui-text:#F2E8FF;--ui-muted:#DFC9FA;
+  --ui-action:#E8C4FF;--ui-swatch:#FFF7FF;
+}
+html[data-theme="gold"]{
+  --ui-title:#FFF9E9;--ui-text:#FFF0D0;--ui-muted:#EAD6AF;
+  --ui-action:#FFE0A0;--ui-swatch:#FFF8E5;
+}
+/* Cards use explicit text color because .swatch small was fixed gray on iOS */
+html[data-theme] .swatch,
+html[data-theme] .swatch small{
+  color:var(--ui-swatch)!important;
+}
+html[data-theme] .swatch small{
+  font-size:13px;font-weight:800;line-height:1.35;
+}
+html[data-theme] .swatch.on small{color:var(--ui-swatch)!important}
+html[data-theme] .swatch.on{
+  border-width:2px;
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 33%,transparent);
+}
+/* Keep the original light Crystal appearance, but raise text contrast. */
+html[data-theme="crystal"] .swatch{background:#F8FDFE;border-color:#B5D6DD}
+/* Dark glossy themes: correct hard-coded supporting text throughout all screens */
+html[data-theme]:not([data-theme="crystal"]) body,
+html[data-theme]:not([data-theme="crystal"]) .main,
+html[data-theme]:not([data-theme="crystal"]) .modal,
+html[data-theme]:not([data-theme="crystal"]) .glass,
+html[data-theme]:not([data-theme="crystal"]) .form-card{
+  color:var(--ui-text);
+}
+html[data-theme]:not([data-theme="crystal"]) .header h1,
+html[data-theme]:not([data-theme="crystal"]) .section-title h2,
+html[data-theme]:not([data-theme="crystal"]) .header h2,
+html[data-theme]:not([data-theme="crystal"]) h2,
+html[data-theme]:not([data-theme="crystal"]) h3,
+html[data-theme]:not([data-theme="crystal"]) .loan-title,
+html[data-theme]:not([data-theme="crystal"]) .hero-money,
+html[data-theme]:not([data-theme="crystal"]) .mini-panel .val,
+html[data-theme]:not([data-theme="crystal"]) .bank-name strong,
+html[data-theme]:not([data-theme="crystal"]) .bank-amount,
+html[data-theme]:not([data-theme="crystal"]) .cycle-main strong,
+html[data-theme]:not([data-theme="crystal"]) .cycle-right strong,
+html[data-theme]:not([data-theme="crystal"]) .list-tile .money,
+html[data-theme]:not([data-theme="crystal"]) .loan-stat strong{
+  color:var(--ui-title);
+}
+html[data-theme]:not([data-theme="crystal"]) .sub,
+html[data-theme]:not([data-theme="crystal"]) .small,
+html[data-theme]:not([data-theme="crystal"]) .muted-line,
+html[data-theme]:not([data-theme="crystal"]) .footnote,
+html[data-theme]:not([data-theme="crystal"]) .footspace,
+html[data-theme]:not([data-theme="crystal"]) .date-note,
+html[data-theme]:not([data-theme="crystal"]) .pagination span,
+html[data-theme]:not([data-theme="crystal"]) .header .eyebrow,
+html[data-theme]:not([data-theme="crystal"]) .eyebrow,
+html[data-theme]:not([data-theme="crystal"]) .hero-top .eyebrow,
+html[data-theme]:not([data-theme="crystal"]) .hero .sub,
+html[data-theme]:not([data-theme="crystal"]) .kpi .tiny-title,
+html[data-theme]:not([data-theme="crystal"]) .loan-bottom,
+html[data-theme]:not([data-theme="crystal"]) .loan-stat .small,
+html[data-theme]:not([data-theme="crystal"]) .field label,
+html[data-theme]:not([data-theme="crystal"]) .rail-label,
+html[data-theme]:not([data-theme="crystal"]) .rail-footer,
+html[data-theme]:not([data-theme="crystal"]) .brand-text small,
+html[data-theme]:not([data-theme="crystal"]) .calendar-header span,
+html[data-theme]:not([data-theme="crystal"]) .cycle-main .small,
+html[data-theme]:not([data-theme="crystal"]) .cycle-right .small,
+html[data-theme]:not([data-theme="crystal"]) .bank-name .small{
+  color:var(--ui-muted);
+}
+html[data-theme]:not([data-theme="crystal"]) .notice,
+html[data-theme]:not([data-theme="crystal"]) .date-note,
+html[data-theme]:not([data-theme="crystal"]) .strip{
+  background:var(--theme-panel);border-color:var(--theme-border);color:var(--ui-text);
+}
+html[data-theme]:not([data-theme="crystal"]) .sync-pill,
+html[data-theme]:not([data-theme="crystal"]) .open-row,
+html[data-theme]:not([data-theme="crystal"]) .text-btn,
+html[data-theme]:not([data-theme="crystal"]) .button.secondary,
+html[data-theme]:not([data-theme="crystal"]) .tile-chevron,
+html[data-theme]:not([data-theme="crystal"]) a{
+  color:var(--ui-action);
+}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav button,
+html[data-theme]:not([data-theme="crystal"]) .rail .nav-link,
+html[data-theme]:not([data-theme="crystal"]) .tabbar button{color:var(--ui-muted)}
+html[data-theme]:not([data-theme="crystal"]) .mobile-nav button.active,
+html[data-theme]:not([data-theme="crystal"]) .rail .nav-link.current,
+html[data-theme]:not([data-theme="crystal"]) .tabbar button.selected{
+  color:var(--ui-action);
+}
+html[data-theme]:not([data-theme="crystal"]) .field input,
+html[data-theme]:not([data-theme="crystal"]) .field select,
+html[data-theme]:not([data-theme="crystal"]) .field textarea{color:var(--ui-title)}
+html[data-theme]:not([data-theme="crystal"]) .field input::placeholder,
+html[data-theme]:not([data-theme="crystal"]) .field textarea::placeholder{
+  color:var(--ui-muted);opacity:1;
+}
+/* Status colors are semantic: success, warning and unpaid must remain distinguishable. */
+html[data-theme]:not([data-theme="crystal"]) .badge.muted{
+  background:var(--theme-panel);border-color:var(--theme-border);color:var(--ui-muted);
+}
+html[data-theme]:not([data-theme="crystal"]) .badge.warn{
+  background:#593F23;border-color:#94714B;color:#FFEDC9;
+}
+html[data-theme]:not([data-theme="crystal"]) .kpi.primary .tiny-title,
+html[data-theme]:not([data-theme="crystal"]) .kpi.primary .small,
+html[data-theme]:not([data-theme="crystal"]) .kpi.primary .stat{
+  color:#FFFFFF;
+}
+/* Make sure tab selection is readable on brighter custom accents. */
+html[data-theme="gold"] .tabbar button.selected,
+html[data-theme="gold"] .mobile-nav button.active{color:#FFF6D8}
+html[data-theme="midnight"] .tabbar button.selected{color:#F6FCFF}
+html[data-theme="royal"] .tabbar button.selected{color:#FFF9FF}
+html[data-theme="emerald"] .tabbar button.selected{color:#F3FFF9}
+@media(max-width:530px){
+  html[data-theme] .theme-swatches .swatch{min-height:93px;padding:12px;gap:10px}
+  html[data-theme] .theme-swatches .swatch small{font-size:13px}
+}
+
 </style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
