@@ -1205,11 +1205,18 @@ openTransaction=function(initialType='Expense'){
   } catch (_) {}
 })();
 </script><script type="module">
-import { setupPairUI } from './finance-sync/pair-ui.mjs';
+try {
+ const { setupPairUI } = await import('./finance-sync/pair-ui.mjs');
 setupPairUI({mode:'digup',stores:[
  {name:'digup',key:'d4webv15',apply:()=>window.refreshSharedLedger?.()},
  {name:'lona',key:'d4-lona-pair-copy',readOnly:true,apply:()=>{}}
 ]});
+} catch (error) {
+ console.warn('D4 encrypted pairing module unavailable:', String(error?.message || error));
+ const warn=()=>alert('Pairing needs internet the first time. Check your connection and reopen this app.');
+ document.addEventListener('click',event=>{if(event.target.closest('[data-pair-sync]')){event.preventDefault();warn()}});
+ window.addEventListener('open-pair-sync',warn);
+}
 </script></body></html>
 
 
