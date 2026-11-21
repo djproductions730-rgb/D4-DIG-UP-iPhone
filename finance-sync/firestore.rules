@@ -19,5 +19,46 @@ service cloud.firestore {
       allow update: if ownsLedger() && validLedger() &&
         request.resource.data.revision == resource.data.revision + 1;
     }
+
+    // Passwordless one-time pairing: a 256-bit secret is transferred offline
+    // between the owner's devices. Only the SHA-256-derived, unguessable
+    // document ID appears in cloud paths. Contents are AES-GCM encrypted
+    // locally before Firestore receives them. Anonymous Auth still required.
+    match /financePairs/{pairId} {
+      function pairedClient() {
+        return request.auth != null &&
+          pairId.matches('^[0-9a-f]{64}$');
+      }
+      allow get: if pairedClient();
+      allow list: if false;
+      allow create: if pairedClient() &&
+        request.resource.data.keys().hasOnly(['version', 'createdAt']) &&
+        request.resource.data.version == 1 &&
+        request.resource.data.createdAt is timestamp;
+      allow update, delete: if false;
+
+      match /ledgers/{ledger} {
+        function validPeer() {
+          return request.auth != null &&
+            pairId.matches('^[0-9a-f]{64}$') &&
+            ledger in ['digup', 'lona'] &&
+            exists(/databases/$(database)/documents/financePairs/$(pairId));
+        }
+        function validCipher() {
+          return request.resource.data.keys().hasOnly(['revision', 'packet']) &&
+            request.resource.data.revision is int &&
+            request.resource.data.packet is string &&
+            request.resource.data.packet.size() > 24 &&
+            request.resource.data.packet.size() <= 890000;
+        }
+        allow get: if validPeer();
+        allow list: if false;
+        allow create: if validPeer() && validCipher() &&
+          request.resource.data.revision == 1;
+        allow update: if validPeer() && validCipher() &&
+          request.resource.data.revision == resource.data.revision + 1;
+        allow delete: if false;
+      }
+    }
   }
 }
