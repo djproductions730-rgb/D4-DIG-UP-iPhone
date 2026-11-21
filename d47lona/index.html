@@ -959,6 +959,24 @@ function home(){const due=dueSoon();const salaryStats=salaryMonthlyStats(today()
  ${due.length?`<div class="section-title"><h2>Next payments</h2></div>${due.slice(0,2).map(({loan,cycle})=>`<div class="glass list-tile">${loanIcon(loan)}<div class="body"><strong>${safe(loan.name)}</strong><div class="small">${fmtDate(cycle.date)} · Cycle ${cycle.num}</div></div><div style="text-align:right"><div class="money">${money(cycle.amount)}</div><button class="text-btn" data-pay="${loan.id}:${cycle.num}">Mark paid</button></div></div>`).join('')}`:`<div class="notice">${ico('info')}Set the first EMI date for your new Personal Loan to get its reminders.</div>`}
  <div class="notice warn">${ico('info')}Restore your private loan backup if needed. Bank balances sync locally with DIG UP when both apps share the same browser storage. Cloud sync is not connected.</div>
  </div>`}
+function digupLoanHistorySection(){
+ const d=d4Store();
+ if(!d||!Array.isArray(d.loans)||!d.loans.length)return '';
+ const loans=d.loans.filter(l=>l&&typeof l.name==='string').slice(0,100);
+ if(!loans.length)return '';
+ const rows=loans.map(l=>{
+   const paid=Array.isArray(l.payments)?l.payments.length:0;
+   const amount=Number(l.emi);
+   const emi=Number.isFinite(amount)&&amount>0?money(amount):'Not set';
+   const original=Number(l.principal);
+   const principal=Number.isFinite(original)&&original>0?' · Original '+money(original):'';
+   return '<div class="digup-legacy-loan-row"><div><strong>'+safe(l.name)+'</strong><span>'+safe(l.lender||'DIG UP record')+principal+'</span></div><div><b>'+emi+'</b><small>'+paid+' payments recorded</small></div></div>';
+ }).join('');
+ return '<details class="glass digup-legacy-loans"><summary>Earlier DIG UP loans ('+loans.length+') · View separately</summary>'
+ +'<p class="small">Read-only copies from DIG UP in this browser. These are not combined with your D47Lona EMI totals. To edit an earlier DIG UP loan, open DIG UP itself.</p>'
+ +'<div class="digup-legacy-loans-list">'+rows+'</div>'
+ +'<a href="../?section=loans" class="button secondary" style="display:inline-flex;align-items:center;justify-content:center;margin-top:10px">View in DIG UP</a></details>'
+}
 function loansView(){
  const listed=state.loans.filter(l=>filter==='closed'?paidCount(l)>=l.tenure:paidCount(l)<l.tenure);
  const activeCount=activeLoans().length,closedCount=state.loans.length-activeCount;
@@ -976,6 +994,7 @@ function loansView(){
    <button type="button" class="button loan-clean-add" data-action="add-loan">${ico('add')} Add Loan</button>
   </div>
   <div class="loan-clean-list">${listed.length?listed.map(l=>loanCard(l)).join(''):`<div class="glass loan-clean-empty"><h2>${filter==='closed'?'No closed loans yet':'No active loans yet'}</h2><p class="sub">Only loans you add will appear here.</p><button type="button" class="button secondary" data-action="import" style="margin-top:15px">Restore my loan details</button></div>`}</div>
+ ${digupLoanHistorySection()}
  </div>`
 }
 function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
