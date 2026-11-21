@@ -1,0 +1,113 @@
+
+/* D47Lona unified app bar + per-month salary journal. Light-touch glass design. */
+.d47-universal-header{display:flex;align-items:center;justify-content:space-between;gap:13px;min-width:0}
+.d47-page-heading{display:flex;align-items:center;min-width:0;gap:12px;flex:1}
+.d47-page-title{min-width:0;flex:1}
+.d47-page-title h1{margin:2px 0 0;line-height:1.18;letter-spacing:-.8px;font-size:clamp(21px,4.8vw,32px);overflow-wrap:break-word}
+.d47-page-title .eyebrow{font-size:10px;letter-spacing:1.5px;line-height:1.3}
+.d47-page-symbol{
+ --symbol-a:#4bd8c6;--symbol-b:#158c94;
+ height:49px;width:49px;flex:0 0 49px;display:grid;place-items:center;
+ border-radius:16px;color:#f8ffff;
+ background:radial-gradient(circle at 22% 8%,rgba(255,255,255,.48),transparent 56%),
+ linear-gradient(138deg,var(--symbol-a),var(--symbol-b));
+ box-shadow:0 9px 22px color-mix(in srgb,var(--symbol-a) 25%,transparent),
+ inset 0 2px 1px rgba(255,255,255,.44);
+ border:1px solid color-mix(in srgb,var(--symbol-a) 62%,white);
+}
+.d47-page-symbol svg{height:25px;width:25px;stroke-width:2.15}
+.d47-page-symbol-loans{--symbol-a:#bd81ff;--symbol-b:#6240b6}
+.d47-page-symbol-schedule{--symbol-a:#ffcc72;--symbol-b:#bc7d36}
+.d47-page-symbol-reminders{--symbol-a:#ff909c;--symbol-b:#c64d83}
+.d47-page-symbol-settings{--symbol-a:#5ce2b8;--symbol-b:#119684}
+.d47-header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.d47-header-actions .d47-header-secondary{height:44px;width:44px;min-height:44px;min-width:44px}
+.d47-top-sync{
+ min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+ font:750 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ color:var(--ui-title,var(--ink));padding:9px 12px;border-radius:14px;
+ border:1px solid var(--lg-edge,var(--stroke));background:
+ linear-gradient(141deg,var(--lg-top,rgba(255,255,255,.91)),var(--lg-base,rgba(255,255,255,.6)));
+ -webkit-backdrop-filter:blur(19px);backdrop-filter:blur(19px);
+ box-shadow:inset 0 1px 1px var(--lg-inner,rgba(255,255,255,.6)),0 5px 15px var(--lg-shadow,rgba(0,0,0,.1));
+}
+.d47-top-sync svg{height:19px;width:19px;stroke-width:2.25;flex-shrink:0}
+.d47-top-sync i{display:inline-block;width:7px;height:7px;border-radius:50%;flex:0 0 7px;background:#9aa7b7}
+.d47-top-sync.d47-sync-linked i{background:#27cc8e;box-shadow:0 0 0 3px rgba(39,204,142,.16)}
+.d47-top-sync.d47-sync-backup i{background:#f3bd55;box-shadow:0 0 0 3px rgba(243,189,85,.16)}
+.d47-top-sync.d47-sync-local i{background:#9aa7b7}
+.d47-top-sync:active{transform:scale(.96)}
+.d47-top-sync:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.d47-sync-indicator{white-space:nowrap;display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:11px}
+.d47-sync-indicator.d47-sync-linked{color:#0b8062}
+.d47-sync-indicator.d47-sync-backup{color:#86600d}
+html[data-theme]:not([data-theme="crystal"]) .d47-sync-indicator.d47-sync-linked{color:#a5fadb}
+html[data-theme]:not([data-theme="crystal"]) .d47-sync-indicator.d47-sync-backup{color:#ffe09b}
+html[data-theme] body.d47-neon-mode .d47-universal-header .d47-page-title h1{color:#fff7e6}
+html[data-theme] body.d47-neon-mode .d47-top-sync{
+ color:#e9f6ff;border-color:rgba(144,200,242,.48);
+ background:linear-gradient(141deg,rgba(48,80,119,.81),rgba(9,25,53,.9));
+}
+html[data-theme] body.d47-neon-mode .d47-sync-indicator{color:#b8e7de;background:rgba(28,75,84,.42);border-color:rgba(83,223,198,.41)}
+/* Salary view: just one date/amount form and a tidy monthly summary. */
+.salary-journal{display:grid;gap:13px;scroll-margin-top:18px}
+.salary-journal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.salary-journal-head h2{margin:0;font-size:19px}
+.salary-journal-head .sub{font-size:12px;margin-top:6px}
+.salary-month-pill{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;
+ font-size:11px;font-weight:800;color:var(--ui-action,var(--ink));background:var(--lg-base,rgba(255,255,255,.5));
+ border:1px solid var(--lg-edge,var(--stroke));border-radius:100px;padding:8px 10px}
+.salary-month-pill svg{width:14px;height:14px}
+.salary-month-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.salary-journal .field{min-width:0}
+.salary-journal .field input{width:100%;font-variant-numeric:tabular-nums}
+.salary-journal-actions{display:flex;gap:9px;flex-wrap:wrap}
+.salary-journal-actions .button{min-height:44px}
+.salary-from-digup{font-size:12px;font-weight:700;color:#078c6d;margin:3px 0 10px}
+html[data-theme]:not([data-theme="crystal"]) .salary-from-digup{color:#9effd8}
+.salary-month-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.salary-month-results>div{min-width:0;padding:13px 11px;background:var(--lg-base,rgba(255,255,255,.55));border:1px solid var(--lg-edge,var(--stroke));border-radius:15px;display:grid;gap:7px}
+.salary-month-results span{color:var(--ui-muted,var(--muted));font-size:11px;line-height:1.35}
+.salary-month-results strong{font-size:16px;font-weight:900;letter-spacing:-.2px;color:var(--ui-title,var(--ink));font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.salary-use-track{height:8px;border-radius:9px;background:rgba(117,147,162,.22);overflow:hidden}
+.salary-use-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#26cca9,#49bdea);transition:width .25s ease}
+.salary-journal-history{display:grid;gap:0}
+.salary-journal-history h3{font-size:14px;margin:5px 0}
+.salary-history-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--lg-edge,var(--stroke));padding:11px 0}
+.salary-history-row>div{display:grid;gap:3px}
+.salary-history-row>div:last-child{text-align:right}
+.salary-history-row strong{font-size:13px;color:var(--ui-title,var(--ink))}
+.salary-history-row span{font-size:11px;color:var(--ui-muted,var(--muted))}
+.salary-history-row button{display:inline-flex;align-items:center;gap:4px;justify-content:flex-end;background:transparent;border:none;padding:7px 0 7px 8px;color:var(--ui-action,var(--accent));font-weight:800;font-size:12px}
+.salary-history-row button svg{width:14px;height:14px}
+.salary-quick-line{display:flex;justify-content:space-between;align-items:center;gap:12px;
+ padding:12px 15px;border:1px solid var(--lg-edge,var(--stroke));background:var(--lg-base,rgba(255,255,255,.5));
+ border-radius:18px;-webkit-backdrop-filter:blur(13px);backdrop-filter:blur(13px)}
+.salary-quick-line>div{display:grid;gap:4px;min-width:0}
+.salary-quick-line strong{font-size:12px;color:var(--ui-title,var(--ink))}
+.salary-quick-line span{font-size:11px;line-height:1.5;color:var(--ui-muted,var(--muted))}
+.salary-quick-line button{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;font-size:12px;font-weight:850;
+ color:var(--ui-action,var(--ink));border:1px solid var(--lg-edge,var(--stroke));
+ background:var(--lg-top,white);min-height:42px;padding:9px 11px;border-radius:13px}
+.salary-quick-line button svg{width:14px;height:14px}
+@media(max-width:460px){
+ .d47-page-heading{gap:9px}
+ .d47-page-symbol{width:42px;height:42px;flex-basis:42px;border-radius:13px}
+ .d47-page-symbol svg{width:21px;height:21px}
+ .d47-page-title h1{font-size:clamp(18px,5.8vw,25px)}
+ .d47-page-title .eyebrow{font-size:9px;letter-spacing:.8px}
+ .d47-header-actions{gap:6px}
+ .d47-top-sync{padding:8px 9px;gap:5px}
+ .d47-header-actions .d47-header-secondary{width:40px;min-width:40px}
+ .salary-month-results{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .salary-month-results>div:last-child{grid-column:1/-1}
+ .salary-month-grid{grid-template-columns:1fr}
+ .salary-month-pill{display:none}
+}
+@media(max-width:370px){
+ .d47-top-sync span{display:none}
+ .d47-page-symbol{width:38px;height:38px;flex-basis:38px}
+ .salary-quick-line{flex-wrap:wrap}
+ .salary-quick-line button{width:100%;justify-content:center}
+}
+@media(prefers-reduced-motion:reduce){.salary-use-track span{transition:none}}
