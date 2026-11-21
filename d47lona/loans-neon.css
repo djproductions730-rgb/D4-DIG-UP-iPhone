@@ -223,3 +223,39 @@ html[data-theme] body.d47-neon-mode .modal .modal-title h2{color:#f3f8ff}
  .d47-neon-detail .detail-grid .mini-panel{padding:12px}
 }
 @media(prefers-reduced-motion:reduce){html[data-theme] body.d47-neon-mode .loan-compact{transition:none}}
+
+/* iPhone / moneybag artwork from existing D47Lona assets, not new external images */
+html[data-theme] body.d47-neon-mode .loan-compact-head>.loan-icon,
+html[data-theme] body.d47-neon-mode .detail-top .loan-icon{
+ flex:0 0 64px;width:64px;height:64px;border-radius:19px;
+ display:grid;place-items:center;overflow:hidden;
+ background:radial-gradient(circle at 24% 22%,rgba(255,255,255,.44),transparent 51%),linear-gradient(137deg,rgba(22,96,147,.61),rgba(12,38,74,.83));
+ border:1px solid rgba(91,213,248,.6);
+ box-shadow:0 0 15px rgba(25,184,238,.22),inset 0 1px 1px rgba(255,255,255,.27);
+}
+html[data-theme] body.d47-neon-mode .loan-compact.loan-tone-personal .loan-icon{
+ background:radial-gradient(circle at 30% 15%,rgba(229,175,255,.38),transparent 56%),linear-gradient(135deg,rgba(97,44,151,.82),rgba(34,22,76,.93));
+ border-color:rgba(203,120,255,.67);
+ box-shadow:0 0 16px rgba(170,88,255,.2),inset 0 1px 0 rgba(255,255,255,.23);
+}
+html[data-theme] body.d47-neon-mode .loan-compact .loan-art,
+html[data-theme] body.d47-neon-mode .detail-top .loan-art{
+ width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 4px 3px rgba(0,0,0,.25));
+}
+html[data-theme] body.d47-neon-mode .header h1{
+ color:#fff1ce;background:linear-gradient(180deg,#fff7e9,#f6ce79);
+ -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+html[data-theme] body.d47-neon-mode .loan-clean-list{gap:17px}
+html[data-theme] body.d47-neon-mode .loan-clean-toolbar{margin-top:2px}
+html[data-theme] body.d47-neon-mode .loan-compact .loan-compact-head{gap:14px}
+html[data-theme] body.d47-neon-mode .loan-compact .loan-compact-status{margin-left:auto}
+html[data-theme] body.d47-neon-mode .loan-compact-main{margin-top:2px}
+html[data-theme] body.d47-neon-mode .loan-compact-actions .small{font-size:12px}
+html[data-theme] body.d47-neon-mode .loan-clean-empty{color:#f8f9ff}
+html[data-theme] body.d47-neon-mode .loan-clean-empty h2{color:#fff}
+html[data-theme] body.d47-neon-mode .loan-clean-empty .sub{color:#bbd0e4}
+@media(max-width:420px){
+ html[data-theme] body.d47-neon-mode .loan-compact-head>.loan-icon,
+ html[data-theme] body.d47-neon-mode .detail-top .loan-icon{width:54px;height:54px;flex-basis:54px}
+}
