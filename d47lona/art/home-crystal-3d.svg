@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" role="img" aria-labelledby="t d"><title id="t">Emerald Crystal Home</title><desc id="d">Glossy three-dimensional teal house with warm golden windows on a glass plinth</desc>
+<defs>
+ <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#A9FFF1"/><stop offset=".26" stop-color="#37E1B9"/><stop offset=".65" stop-color="#008F7B"/><stop offset="1" stop-color="#005A67"/></linearGradient>
+ <linearGradient id="front" x1=".1" y1="0" x2=".9" y2="1"><stop stop-color="#F3FFFB"/><stop offset=".2" stop-color="#BBFFEE"/><stop offset=".7" stop-color="#35BDAE"/><stop offset="1" stop-color="#138A8B"/></linearGradient>
+ <linearGradient id="side" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0F9D9C"/><stop offset=".4" stop-color="#147E8F"/><stop offset="1" stop-color="#15445E"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFFCD0"/><stop offset=".3" stop-color="#FFDF72"/><stop offset="1" stop-color="#EF962B"/></linearGradient>
+ <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#D8FFF8" stop-opacity=".81"/><stop offset=".5" stop-color="#75E9E4" stop-opacity=".48"/><stop offset="1" stop-color="#196CB0" stop-opacity=".51"/></linearGradient>
+ <filter id="shadow" x="-40%" y="-50%" width="190%" height="210%"><feDropShadow dx="1" dy="10" stdDeviation="8" flood-color="#01314D" flood-opacity=".38"/></filter>
+ <filter id="glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="5"/></filter>
+</defs>
+<ellipse cx="83" cy="138" rx="62" ry="11" fill="#4EF2D2" opacity=".36" filter="url(#glow)"/>
+<g filter="url(#shadow)">
+ <path d="m13 120 61-20 74 21-66 27z" fill="#83F6E5" opacity=".86" stroke="#C7FFFC" stroke-width="2"/>
+ <path d="m16 121 64 25 68-26v7l-68 27-64-26z" fill="url(#glass)" stroke="#C7FFFC" stroke-opacity=".62" stroke-width="1.5"/>
+ <path d="m37 65 45-32 47 34v51l-45 18-47-15z" fill="url(#front)" stroke="#E0FFFE" stroke-width="2"/>
+ <path d="m84 82 45-15v51l-45 18z" fill="url(#side)" stroke="#2AD3C9" stroke-width="1.5"/>
+ <path d="m25 69 57-45 55 44-15 13-41-34-42 37z" fill="url(#roof)" stroke="#C8FFF7" stroke-width="2.5" stroke-linejoin="round"/>
+ <path d="m81 24 56 44-14 12-42-33z" fill="#007D7E" opacity=".62"/>
+ <path d="m43 76 38-29 38 30" fill="none" stroke="#E5FFFD" stroke-opacity=".72" stroke-width="3.5" stroke-linecap="round"/>
+ <path d="M56 105V88q0-4 5-4h12q5 0 5 5v41l-22-7z" fill="url(#gold)" stroke="#FFF9CA" stroke-width="1.5"/>
+ <path d="M59 89h14v35l-14-4z" fill="#FFD676" opacity=".51"/>
+ <path d="M43 91v-13l14-5v20l-14 5z" fill="url(#gold)" stroke="#FFF2B2" stroke-width="1.6"/>
+ <path d="M50 76v19M43 87l14-4" stroke="#D98E27" stroke-width="1.2"/>
+ <path d="m97 88 21-8v22l-21 7z" fill="url(#gold)" stroke="#FFED9B" stroke-width="1.6"/>
+ <path d="M108 84v21M97 98l21-8" stroke="#CC8933" stroke-width="1.2"/>
+ <path d="m54 135 23 8 26-9" fill="none" stroke="#E8FFFB" stroke-width="2.3" stroke-linecap="round" opacity=".68"/>
+ <path d="m31 67 50-39" stroke="#F2FFFD" stroke-width="3.2" opacity=".82" stroke-linecap="round"/>
+ <circle cx="126" cy="41" r="5" fill="#FFFFFF" opacity=".84"/>
+ <path d="M126 29v24M114 41h24" stroke="#B4FFF7" stroke-width="1.8" stroke-linecap="round" opacity=".73"/>
+</g>
+</svg>
