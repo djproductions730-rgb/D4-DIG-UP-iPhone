@@ -1092,6 +1092,7 @@ document.addEventListener('change',e=>{if(e.target?.id==='salary-month'&&validSa
 document.addEventListener('click',handleClick);document.addEventListener('submit',handleSubmit);document.addEventListener('click',e=>{if(e.target.classList.contains('modal-shade'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal)closeModal()});
 syncLocalBalances();render();setTimeout(setupNotifications,1300);
 window.addEventListener('focus',()=>{if(syncLocalBalances())render()});
+window.addEventListener('pageshow',()=>{if(syncLocalBalances())render()});
 window.addEventListener('storage',e=>{if(e.key===D4_LOCAL_KEY){syncLocalBalances();render()}});
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&syncLocalBalances())render()});
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
