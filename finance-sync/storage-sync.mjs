@@ -55,6 +55,10 @@ export function syncStorage({ db, sdk, user, stores, onStatus }) {
         let next;
         if (remote === null) next = local;
         else if (local === null) next = remote;
+        // A new iPhone installation contains blank default accounts. Never treat those
+        // placeholder balances as competing edits to verified cloud records.
+        else if (!base && isPristine(name, local)) next = remote;
+        else if (!base && isPristine(name, remote)) next = local;
         else next = mergeLedger(base?.value ?? (name === 'digup'
           ? { banks: [], entries: [], loans: [], plans: [], savings: [] }
           : { version: 1, banks: [], loans: [], ledger: [], salaries: {} }), local, remote);
@@ -107,6 +111,32 @@ export function syncStorage({ db, sdk, user, stores, onStatus }) {
       channels.forEach(channel => channel.close());
     }
   };
+}
+
+// Only blank first-run records qualify: no loans, payments, salary history,
+// transaction records or edited bank balances. Real local financial data wins no
+// automatic priority and instead uses a guarded three-way merge.
+function isPristine(name, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (name === 'digup') {
+    return ['entries','loans','plans','savings'].every(key =>
+      !value[key] || (Array.isArray(value[key]) && value[key].length === 0))
+      && (!value.banks || (Array.isArray(value.banks) && value.banks.length === 0));
+  }
+  if (name === 'lona') {
+    const banks = Array.isArray(value.banks) ? value.banks : [];
+    const defaultNames = new Set(['hdfc bank','axis bank']);
+    return value.version === 1 &&
+      Array.isArray(value.loans) && value.loans.length === 0 &&
+      Array.isArray(value.ledger) && value.ledger.length === 0 &&
+      (!value.salaries || !Object.keys(value.salaries).length) &&
+      !(Number(value.salary) > 0) &&
+      banks.length <= 2 &&
+      banks.every(bank => defaultNames.has(String(bank.name || '').trim().toLowerCase())
+        && Number(bank.balance) === 0
+        && !bank.reserved);
+  }
+  return false;
 }
 
 function read(key) {
