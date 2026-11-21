@@ -281,3 +281,18 @@ html[data-theme] body.d47-neon-mode .loan-compact.loan-tone-home .loan-compact-p
  background:linear-gradient(90deg,#0bb78b,#8afce0);
  box-shadow:0 0 14px rgba(16,224,174,.4);
 }
+
+/* Earlier DIG UP loans are preserved separately; no automatic merging or charging. */
+.digup-legacy-loans{margin-top:4px;padding:16px 17px!important;border-radius:20px}
+.digup-legacy-loans summary{display:flex;align-items:center;gap:8px;font-weight:800;cursor:pointer;min-height:44px;color:var(--ui-title,var(--ink));font-size:13px}
+.digup-legacy-loans summary::before{content:"▸";color:#a98ae6;font-size:17px}
+.digup-legacy-loans[open] summary::before{content:"▾"}
+.digup-legacy-loans .small{color:var(--ui-muted,var(--muted));font-size:12px;line-height:1.5}
+.digup-legacy-loans-list{display:grid;gap:7px;margin-top:12px}
+.digup-legacy-loan-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 10px;border:1px solid var(--lg-edge,var(--stroke));border-radius:13px;background:var(--lg-base,rgba(130,155,200,.1))}
+.digup-legacy-loan-row>div{display:grid;gap:4px;min-width:0}
+.digup-legacy-loan-row>div:last-child{text-align:right}
+.digup-legacy-loan-row strong,.digup-legacy-loan-row b{color:var(--ui-title,var(--ink));font-size:13px;overflow-wrap:anywhere}
+.digup-legacy-loan-row span,.digup-legacy-loan-row small{font-size:11px;color:var(--ui-muted,var(--muted));overflow-wrap:anywhere}
+html[data-theme] body.d47-neon-mode .digup-legacy-loans{background:linear-gradient(145deg,rgba(55,35,91,.93),rgba(16,26,55,.91));border-color:rgba(193,127,250,.46)}
+html[data-theme] body.d47-neon-mode .digup-legacy-loan-row{background:rgba(53,52,100,.48);border-color:rgba(146,129,221,.36)}
