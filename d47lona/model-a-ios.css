@@ -436,3 +436,40 @@ html[data-theme] body.d47-model-a[data-d47-section="settings"] .glass.form-card 
  color:var(--settings-title)!important;background:var(--settings-selected)!important;
  border:1px solid var(--settings-border)!important;
 }
+
+/* v24 global contrast pass — consistent foreground/surface pairs on every screen. */
+html[data-theme="crystal"] body.d47-model-a{--d47-fg:#182d4b;--d47-muted:#4c6079;--d47-panel:#f4f8ff;--d47-outline:#b8cde6;--d47-control:#e4efff;--d47-control-fg:#16477e}
+html[data-theme="midnight"] body.d47-model-a{--d47-fg:#ffffff;--d47-muted:#d8e9f8;--d47-panel:#173b5c;--d47-outline:#6189ae;--d47-control:#22527b;--d47-control-fg:#ffffff}
+html[data-theme="emerald"] body.d47-model-a{--d47-fg:#ffffff;--d47-muted:#def6eb;--d47-panel:#154b40;--d47-outline:#62a48f;--d47-control:#206653;--d47-control-fg:#ffffff}
+html[data-theme="royal"] body.d47-model-a{--d47-fg:#ffffff;--d47-muted:#efe5ff;--d47-panel:#46325f;--d47-outline:#a48ac6;--d47-control:#604481;--d47-control-fg:#ffffff}
+html[data-theme="gold"] body.d47-model-a{--d47-fg:#ffffff;--d47-muted:#f6e9d1;--d47-panel:#594329;--d47-outline:#b69a6b;--d47-control:#755a36;--d47-control-fg:#ffffff}
+html[data-theme] body.d47-model-a :is(.glass,.form-card,.loan-card,.loan-compact,.modal,.detail-top,.bank-row,.cycle-row,.list-tile,.mini-panel,.detail-grid .mini-panel,.salary-journal,.notice,.calendar,.digup-legacy-loans,.digup-legacy-loan-row){
+ color:var(--d47-fg)!important;
+}
+html[data-theme] body.d47-model-a :is(.glass,.form-card,.loan-card,.loan-compact,.modal,.detail-top,.bank-row,.cycle-row,.list-tile,.mini-panel,.salary-journal,.notice) :is(h1,h2,h3,h4,strong,b,label,.val,.stat,.money,.amount,.loan-title,.bank-amount,.bank-name,.field label){
+ color:var(--d47-fg)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a :is(.glass,.form-card,.loan-card,.loan-compact,.modal,.detail-top,.bank-row,.cycle-row,.list-tile,.mini-panel,.salary-journal,.notice) :is(.sub,.small,.eyebrow,.muted-line,.footnote,.date-note,.tiny-title,.loan-bottom,.salary-from-digup){
+ color:var(--d47-muted)!important;opacity:1!important;
+}
+html[data-theme] body.d47-model-a :is(.theme-swatches .swatch,.theme-swatches .swatch.on){
+ background:var(--d47-panel)!important;border-color:var(--d47-outline)!important;
+}
+html[data-theme] body.d47-model-a .theme-swatches .swatch small{color:var(--d47-fg)!important;font-weight:800!important;opacity:1!important}
+html[data-theme] body.d47-model-a .theme-swatches .swatch.on{outline:2px solid var(--d47-control-fg);outline-offset:2px}
+html[data-theme] body.d47-model-a :is(.mobile-nav,.rail,.tabbar){color:var(--d47-fg)!important}
+html[data-theme] body.d47-model-a :is(.mobile-nav button,.rail .nav-link,.tabbar button){color:var(--d47-muted)!important;opacity:1!important}
+html[data-theme] body.d47-model-a :is(.mobile-nav button.active,.rail .nav-link.current,.tabbar button.selected){
+ background:var(--d47-control)!important;color:var(--d47-control-fg)!important;border-color:var(--d47-outline)!important;
+}
+html[data-theme] body.d47-model-a :is(.mobile-nav button.active,.rail .nav-link.current,.tabbar button.selected) :is(svg,span,small){color:var(--d47-control-fg)!important;opacity:1!important}
+html[data-theme] body.d47-model-a :is(.field input,.field select,.field textarea,input,select,textarea){
+ color:var(--d47-fg)!important;border-color:var(--d47-outline)!important;
+}
+html[data-theme] body.d47-model-a :is(input,textarea)::placeholder{color:var(--d47-muted)!important;opacity:1!important}
+html[data-theme]:not([data-theme="crystal"]) body.d47-model-a :is(.field input,.field select,.field textarea,input,select,textarea){background:var(--d47-panel)!important}
+html[data-theme] body.d47-model-a :is(.button.secondary,.d47-top-sync,.icon-btn){
+ background:var(--d47-control)!important;color:var(--d47-control-fg)!important;border-color:var(--d47-outline)!important;
+}
+html[data-theme] body.d47-model-a :is(.button.secondary,.d47-top-sync,.icon-btn) :is(svg,span){color:inherit!important}
+html[data-theme] body.d47-model-a :is(button,input,select,textarea,a):focus-visible{outline:3px solid var(--d47-outline)!important;outline-offset:3px}
