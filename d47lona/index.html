@@ -1127,7 +1127,15 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
     if (event.target.closest('[data-finance-sync]')) open();
   });
   window.addEventListener('open-finance-sync', open);
-  try { if (localStorage.getItem('d4-finance-sync-enabled')) void prepare().catch(() => {}); } catch (_) {}
+  try {
+    const openFromLink = new URLSearchParams(location.search).get('finance') === 'sync';
+    if (openFromLink) {
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', open, { once:true });
+      else open();
+    } else if (localStorage.getItem('d4-finance-sync-enabled')) {
+      void prepare().catch(() => {});
+    }
+  } catch (_) {}
 })();
 })();
 </script><script src="./intro.js"></script><script src="./liquid-glass.js"></script></body>
