@@ -488,10 +488,49 @@ const D4_LOCAL_KEY='d4webv15';
 function d4Store(){try{const d=JSON.parse(localStorage.getItem(D4_LOCAL_KEY)||'null');return d&&Array.isArray(d.banks)&&Array.isArray(d.entries)?d:null}catch(_){return null}}
 function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
 function d4BrowserLinked(){return !!d4Store()}
+
 function syncLocalBalances(){
  const d=d4Store();if(!d)return false;let changed=false;
- for(const b of state.banks){const match=d4Match(d,b);if(match&&Number.isFinite(Number(match.balance))&&b.balance!==Number(match.balance)){b.balance=Number(match.balance);changed=true}}
+ const normalize=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
+ const seen=new Set();
+ for(const bank of d.banks){
+   if(!bank||typeof bank.name!=='string'||/pluxee/i.test(bank.name)||!Number.isFinite(Number(bank.balance)))continue;
+   const norm=normalize(bank.name);
+   if(!norm||seen.has(norm))continue;seen.add(norm);
+   let existing=state.banks.find(x=>normalize(x.name)===norm);
+   if(!existing){
+     const base='digup-'+String(bank.id||norm).replace(/[^a-z0-9_-]/gi,'').slice(0,65);
+     let id=base,n=1;while(state.banks.some(x=>x.id===id))id=base+'-'+n++;
+     existing={id,name:bank.name,balance:Number(bank.balance),reserved:false,note:'Same-browser DIG UP balance'};
+     state.banks.push(existing);changed=true
+   }else if(Number(existing.balance)!==Number(bank.balance)){
+     existing.balance=Number(bank.balance);changed=true
+   }
+ }
  if(changed)save();return true
+}
+function d4SyncStats(){
+ const d=d4Store();if(!d)return {connected:false,banks:0,linked:0};
+ return {connected:true,banks:d.banks.filter(x=>!/pluxee/i.test(x.name||'')).length,
+ linked:state.banks.filter(b=>!!d4Match(d,b)).length};
+}
+function d4ImportBackup(){
+ const input=document.createElement('input');input.type='file';input.accept='.json,application/json';
+ input.onchange=async()=>{
+  const f=input.files?.[0];if(!f)return;
+  try{
+   if(f.size>5*1024*1024)throw Error('File exceeds 5 MB');
+   const data=JSON.parse(await f.text());
+   if(data.format!=='d4webv15'||!Array.isArray(data.banks)||!Array.isArray(data.entries))throw Error('Choose a valid D4 DIG UP backup JSON');
+   if(data.banks.length>200||data.entries.length>150000)throw Error('Unexpectedly large DIG UP backup');
+   if(data.banks.some(x=>!x||typeof x.name!=='string'||!Number.isFinite(Number(x.balance))))throw Error('Invalid bank details');
+   if(d4Store()){syncLocalBalances();render();notify('DIG UP data is already linked here. No import needed.');return}
+   if(!confirm('Import this DIG UP backup to this Safari browser? It will not update a different browser or device.'))return;
+   localStorage.setItem(D4_LOCAL_KEY,JSON.stringify(data));
+   syncLocalBalances();render();notify('DIG UP backup imported. Auto-sync ready on this browser.');
+  }catch(e){notify('Import failed: '+String(e.message||e))}
+ };
+ input.click()
 }
 function recordD4Emi(loan,cycle,bank,amount,paidDate){
  const d=d4Store();if(!d)return {linked:false};
