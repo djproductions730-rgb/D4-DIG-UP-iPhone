@@ -431,10 +431,8 @@ function refreshSharedLedger(){
  try{
   const latest=JSON.parse(localStorage.getItem(KEY)||'null');
   if(!latest||!Array.isArray(latest.banks)||!Array.isArray(latest.entries))return;
-  if(JSON.stringify(latest.banks)===JSON.stringify(data.banks)&&
-     JSON.stringify(latest.entries)===JSON.stringify(data.entries))return;
-  data.banks=latest.banks;
-  data.entries=latest.entries;
+  if(JSON.stringify(latest)===JSON.stringify(data))return;
+  Object.assign(data, latest);
   render();
  }catch(_){}
 }
@@ -1069,7 +1067,7 @@ function exportBackup(){const json=JSON.stringify({format:'d4webv15',version:3,s
 async function importBackup(input){const file=input.files?.[0];if(!file)return;try{if(file.size>5e6)throw Error('Backup exceeds 5 MB');const parsed=JSON.parse(await file.text());if(parsed.format!=='d4webv15'||!Array.isArray(parsed.banks)||!Array.isArray(parsed.entries))throw Error('Not a compatible D4 import file');const savings=parsed.savings===undefined?[]:parsed.savings;if(!validSavings(savings))throw Error('Invalid savings history');const newBanks=parsed.banks.map(b=>({id:String(b.id),name:String(b.name),nick:String(b.nick||''),balance:Number(b.balance)}));const newEntries=parsed.entries.map(e=>({...e,bankId:String(e.bankId||''),amount:Number(e.amount)}));if(!savings.length&&!newBanks.length&&!newEntries.length&&!parsed.loans?.length&&!parsed.plans?.length)throw Error('Selected file contains 0 banks and 0 transactions. No changes were made. Select D4_Old_Data_3_Banks_7_Transactions.json from iPhone Files → Downloads instead of an empty Safari backup.');if(newBanks.some(b=>!b.id||!b.name||!Number.isFinite(b.balance))||newEntries.some(e=>!Number.isFinite(e.amount)||e.amount<0))throw Error('Invalid values in backup');if(data.savings?.length||data.banks.length||data.entries.length||data.loans?.length||data.plans?.length){if(!confirm('File: '+file.name+'\\nFound '+newBanks.length+' banks, '+newEntries.length+' transactions, '+(parsed.loans||[]).length+' loans and '+(parsed.plans||[]).length+' plans.\\nThis will REPLACE your current local records including savings. Download a Backup in Settings first if you want to preserve them. The old Google Sheets data will not change. Continue?'))return;}else if(!confirm('File: '+file.name+'\\nRestore '+newBanks.length+' original banks, '+newEntries.length+' transactions, '+(parsed.loans||[]).length+' loans and '+(parsed.plans||[]).length+' plans on this iPhone? Your Google Sheet will not change.'))return;data={savings,banks:newBanks,entries:newEntries,plans:Array.isArray(parsed.plans)?parsed.plans:[],loans:Array.isArray(parsed.loans)?parsed.loans:[],source:String(parsed.source||''),exportedAt:String(parsed.exportedAt||parsed.originalSnapshotAt||'')};save();alert('Restored '+newBanks.length+' banks, '+newEntries.length+' transactions, '+data.loans.length+' loans and '+data.plans.length+' plans. This is a local snapshot, not live sync.')}catch(e){alert('Could not restore: '+e.message)}finally{input.value=''}}
 
 // Stable click handlers: avoid broken quoted inline handlers for dynamically named items.
-function openD4MoreMenu(){showSheet('More D4 DIG UP','<div class="d4-more-grid">'+[['loans','🪙','Loans'],['pluxee','💳','Pluxee'],['settings','⚙','Settings']].map(([id,icon,label])=>'<button type="button" class="d4-more-choice" data-d4-more-tab="'+id+'"><span>'+icon+'</span><b>'+label+'</b></button>').join('')+'</div>')}
+function openD4MoreMenu(){showSheet('More D4 DIG UP','<div class="d4-more-grid">'+[['loans','🪙','Loans'],['pluxee','💳','Pluxee'],['settings','⚙','Settings']].map(([id,icon,label])=>'<button type="button" class="d4-more-choice" data-d4-more-tab="'+id+'"><span>'+icon+'</span><b>'+label+'</b></button>').join('')+'<button type="button" class="d4-more-choice" data-finance-sync><span>🔄</span><b>Finance Auto-sync</b></button></div>')}
 document.getElementById('nav').addEventListener('click',e=>{if(e.target.closest('[data-d4-more]')){e.preventDefault();openD4MoreMenu();return}const target=e.target.closest('[data-tab]');if(target){e.preventDefault();go(target.dataset.tab)}});
 document.getElementById('view').addEventListener('click',e=>{
 const loan=e.target.closest('[data-loan-action]');
@@ -1174,7 +1172,31 @@ openTransaction=function(initialType='Expense'){
   try{return submit.call(this,event)}finally{note.value=original}
  };
 };
-</script><script src="./online-shopping.js?v=shopping-luxe-20261111"></script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script></body></html>
+</script><script src="./online-shopping.js?v=shopping-luxe-20261111"></script><script src="./navigation-ui.js?v=pluxee-button-visible-v29"></script><script src="./app-update.js?v=toast-20261109"></script><script>
+(() => {
+  
+  function applyLedger() { refreshSharedLedger(); }
+  function applyLona() {  }
+  
+  const stores = [
+    { name: 'digup', key: 'd4webv15', validate: value => !!value && Array.isArray(value.banks) && Array.isArray(value.entries) && ['loans','plans','savings'].every(key => value[key] === undefined || Array.isArray(value[key])), apply: applyLedger },
+    { name: 'lona', key: 'd47lona-crystal-v1', validate: value => value?.version === 1 && Array.isArray(value.banks) && Array.isArray(value.loans) && Array.isArray(value.ledger), apply: applyLona }
+  ];
+  let ready;
+  function prepare() {
+    ready ??= import('./finance-sync/account.mjs').then(module => module.setupFinanceSync(stores)).catch(error => { ready = null; throw error; });
+    return ready;
+  }
+  function open() {
+    void prepare().then(show => show()).catch(() => alert('Finance Auto-sync could not load. Check your internet connection.'));
+  }
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-finance-sync]')) open();
+  });
+  window.addEventListener('open-finance-sync', open);
+  try { if (localStorage.getItem('d4-finance-sync-enabled')) void prepare().catch(() => {}); } catch (_) {}
+})();
+</script></body></html>
 
 
 

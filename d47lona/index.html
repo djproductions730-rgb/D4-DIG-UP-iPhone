@@ -955,7 +955,7 @@ function introSettings(){
   +'</div><div class="d47-intro-actions"><button type="button" class="button secondary" data-action="intro-replay">▶ Replay my intro</button></div></div>';
 }
 
-function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack">${introSettings()}<div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
+function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack">${introSettings()}<div class="glass form-card"><button type="button" class="button secondary" data-finance-sync>Finance Auto-sync</button></div><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
  ${salaryJournalSection()}
  <div class="glass form-card"><h2>Install on your phone</h2><p class="sub" style="margin:7px 0 14px">Android: open the secure hosted link in Chrome and choose Install App. iPhone: open it in Safari, tap Share, then Add to Home Screen. This file must be hosted on HTTPS to install as a PWA.</p><button class="button secondary" data-action="install-help">${ico('download')} Install instructions</button></div><div class="glass form-card"><h2>Data and backups</h2><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="export">${ico('download')} Export backup</button><button class="button secondary" data-action="import">${ico('upload')} Restore backup</button><button class="button secondary" data-action="export-digup">${ico('download')} DIG UP entries</button></div><p class="footnote" style="margin-top:12px">Local-first storage. Browser data deletion will remove it unless backed up. Never share backup files publicly.</p></div>
  <div class="glass form-card"><h2>D4 DIG UP Auto Sync</h2><div class="strip" style="margin:14px 0">${ico('shield')} ${d4BrowserLinked()?'Connected · Same browser':'Not connected in this browser'}</div><p class="sub">${d4BrowserLinked()?'Bank accounts: '+d4SyncStats().banks+' · Linked: '+d4SyncStats().linked+' · Recorded transactions: '+d4SyncStats().transactions+'. Same Safari/browser changes appear automatically after opening or switching back.':'Not connected live. '+(state.digupBackupMeta?'Last DIG UP snapshot: '+new Date(state.digupBackupMeta.importedAt).toLocaleDateString('en-IN')+'. Import a newer backup to update.':'Open DIG UP in this same Safari browser or import its backup manually.')}</p><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="sync-now">${ico('refresh')} Sync Now</button><button class="button secondary" data-action="import-digup">${ico('upload')} Import DIG UP Backup</button><button class="button secondary" data-action="open-digup">Open D4 DIG UP</button></div><p class="footnote" style="margin-top:12px">Same-origin Safari tabs: automatic bank balance & Salary income refresh. Backup imports: snapshots, not live. No automatic cross-browser, Home Screen app, or device sync without an authenticated cloud service. DIG UP loan payments are not automatically marked Paid here.</p><div style="margin-top:12px"><button class="text-btn" data-action="sync-info">How sync works ${ico('right')}</button></div></div>
@@ -1101,5 +1101,29 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
-<script src="./intro.js"></script><script src="./liquid-glass.js"></script></body>
+<script src="./intro.js"></script><script src="./liquid-glass.js"></script><script>
+(() => {
+  if (digUpHost) { document.addEventListener('click', event => { if (event.target.closest('[data-finance-sync]')) digUpHost.dispatchEvent(new Event('open-finance-sync')); }); return; }
+  function applyLedger() { syncLocalBalances(); render(); }
+  function applyLona() { state = load(); syncLocalBalances(); render(); }
+  window.addEventListener('storage', event => { if (event.key === STORE) applyLona(); });
+  const stores = [
+    { name: 'digup', key: 'd4webv15', validate: value => !!value && Array.isArray(value.banks) && Array.isArray(value.entries) && ['loans','plans','savings'].every(key => value[key] === undefined || Array.isArray(value[key])), apply: applyLedger },
+    { name: 'lona', key: 'd47lona-crystal-v1', validate: value => value?.version === 1 && Array.isArray(value.banks) && Array.isArray(value.loans) && Array.isArray(value.ledger), apply: applyLona }
+  ];
+  let ready;
+  function prepare() {
+    ready ??= import('../finance-sync/account.mjs').then(module => module.setupFinanceSync(stores)).catch(error => { ready = null; throw error; });
+    return ready;
+  }
+  function open() {
+    void prepare().then(show => show()).catch(() => alert('Finance Auto-sync could not load. Check your internet connection.'));
+  }
+  document.addEventListener('click', event => {
+    if (event.target.closest('[data-finance-sync]')) open();
+  });
+  window.addEventListener('open-finance-sync', open);
+  try { if (localStorage.getItem('d4-finance-sync-enabled')) void prepare().catch(() => {}); } catch (_) {}
+})();
+</script></body>
 </html>
