@@ -442,6 +442,31 @@ window.addEventListener('storage',event=>{if(event.key===KEY)refreshSharedLedger
 window.addEventListener('pageshow',refreshSharedLedger);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshSharedLedger()});
 
+document.addEventListener('click',event=>{
+ const link=event.target.closest('a[href="./d47lona/"]');
+ if(!link||event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+ event.preventDefault();
+ try{
+  if(localStorage.getItem(KEY)===null)localStorage.setItem(KEY,JSON.stringify(data));
+ }catch(_){
+  alert('DigUp storage is unavailable. Allow browser storage to link D47 Lona.');
+  return;
+ }
+ const viewer=document.createElement('dialog');
+ viewer.setAttribute('aria-label','D47 Lona');
+ viewer.style.cssText='box-sizing:border-box;position:fixed;inset:0;margin:0;width:100%;max-width:none;height:100%;max-height:none;padding:0;border:0;background:#eef8f7;color:#17334a';
+ viewer.innerHTML='<div style="display:flex;flex-direction:column;height:100%"><div style="padding:calc(env(safe-area-inset-top, 0px) + 4px) 12px 4px"><button class="button ghost" type="button">← Back to DigUp</button></div><iframe title="D47 Lona" style="flex:1;width:100%;min-height:0;border:0"></iframe></div>';
+ const frame=viewer.querySelector('iframe');
+ frame.src=new URL('./d47lona/?embedded=1',location.href).href;
+ viewer.querySelector('button').addEventListener('click',()=>viewer.close());
+ viewer.addEventListener('close',()=>{viewer.remove();refreshSharedLedger();link.focus()},{once:true});
+ document.body.append(viewer);
+ viewer.showModal();
+});
+function closeEmbeddedLona(){
+ document.querySelector('dialog[aria-label="D47 Lona"][open]')?.close();
+}
+
 function total(){return data.banks.filter(bank=>!isPluxeeAccount(bank)).reduce((sum,b)=>sum+(Number(b.balance)||0),0)}
 function badge(name){const n=String(name||'');let bg=n.includes('Axis')?'#a3134f':n.includes('HDFC')?'#1269bd':n.includes('ICICI')?'#dc6019':n.includes('State Bank')?'#1596d3':n.includes('Canara')?'#00a5cc':n.includes('Punjab')?'#a51c54':n.includes('Baroda')?'#f37927':'#554bc1';let letters=n==='State Bank of India'?'SBI':n.split(/\s+/).map(s=>s[0]).join('').slice(0,3).toUpperCase();return '<div class="bank-symbol" style="background:'+bg+'">'+tidy(letters)+'</div>'}
 function categoryIcon(name){return (cats[name]||cats.Other)[0]}
