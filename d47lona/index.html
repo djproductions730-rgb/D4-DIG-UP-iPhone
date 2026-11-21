@@ -537,7 +537,18 @@ function d4Store(){try{
  const cloud=d4CloudCopyEnabled()?JSON.parse(localStorage.getItem(D4_CLOUD_COPY_KEY)||'null'):null;
  return cloud&&Array.isArray(cloud.banks)&&Array.isArray(cloud.entries)?cloud:null
 }catch(_){return null}}
-function d4Match(d,b){const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');const name=norm(b.name);return d.banks.find(x=>norm(x.name)===name&&!/pluxee/i.test(x.name||''))}
+function d4Match(d,b){
+ if(!d||!b)return null;
+ // Multiple accounts at the same bank can have different balances.
+ // A stable DigUp account ID wins; a name is safe only when unique.
+ if(b.digupBankId!=null){
+   const exact=d.banks.find(x=>String(x.id)===String(b.digupBankId));
+   if(exact)return exact;
+ }
+ const norm=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
+ const matches=d.banks.filter(x=>norm(x.name)===norm(b.name)&&!/pluxee/i.test(x.name||''));
+ return matches.length===1?matches[0]:null
+}
 function d4BrowserLinked(){return !!d4Store()}
 function d47SyncState(){
  // A valid DIG UP ledger in the same Safari origin is already connected and
@@ -560,24 +571,42 @@ function d47SyncState(){
 }
 
 function syncLocalBalances(){
- const d=d4Store();if(!d)return false;let changed=false;
- const normalize=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
- const seen=new Set();
- for(const bank of d.banks){
-   if(!bank||typeof bank.name!=='string'||/pluxee/i.test(bank.name)||!Number.isFinite(Number(bank.balance)))continue;
-   const norm=normalize(bank.name);
-   if(!norm||seen.has(norm))continue;seen.add(norm);
-   let existing=state.banks.find(x=>normalize(x.name)===norm);
+ const d=d4Store();if(!d)return false;
+ let changed=false;
+ const normalized=x=>String(x||'').toLowerCase().replace(/bank|ltd|limited/g,'').replace(/[^a-z0-9]/g,'');
+ const linked=new Set(state.banks.filter(b=>b.digupBankId!=null).map(b=>String(b.digupBankId)));
+ const incoming=d.banks.filter(x=>x&&typeof x.name==='string'&&!/pluxee/i.test(x.name)&&Number.isFinite(Number(x.balance)));
+ const normalizeBankId=id=>String(id||'').replace(/[^a-z0-9_-]/gi,'').slice(0,65);
+ for(const db of incoming){
+   const ref=String(db.id);if(!ref)continue;
+   let existing=state.banks.find(x=>x.digupBankId!=null&&String(x.digupBankId)===ref);
    if(!existing){
-     const base='digup-'+String(bank.id||norm).replace(/[^a-z0-9_-]/gi,'').slice(0,65);
-     let id=base,n=1;while(state.banks.some(x=>x.id===id))id=base+'-'+n++;
-     existing={id,name:bank.name,balance:Number(bank.balance),reserved:false,note:'Same-browser DIG UP balance'};
-     state.banks.push(existing);changed=true
-   }else if(Number(existing.balance)!==Number(bank.balance)){
-     existing.balance=Number(bank.balance);changed=true
+     const uniqueName=incoming.filter(x=>normalized(x.name)===normalized(db.name)).length===1;
+     // Reuse one legacy bank row only for an unambiguous name.
+     if(uniqueName)existing=state.banks.find(x=>x.digupBankId==null&&normalized(x.name)===normalized(db.name)&&!linked.has(String(x.id)));
    }
+   if(!existing){
+     const base='digup-'+normalizeBankId(ref);
+     let id=base,n=1;while(state.banks.some(x=>x.id===id))id=base+'-'+n++;
+     existing={id,name:db.name,balance:Number(db.balance),reserved:false,note:'Linked DIG UP account',digupBankId:ref};
+     state.banks.push(existing);changed=true
+   }else{
+     if(existing.digupBankId!==ref){existing.digupBankId=ref;changed=true}
+     if(existing.name!==db.name){existing.name=db.name;changed=true}
+     if(Number(existing.balance)!==Number(db.balance)){existing.balance=Number(db.balance);changed=true}
+     if(existing.digupInactive){delete existing.digupInactive;changed=true}
+   }
+   linked.add(ref)
  }
- if(changed)save();return true
+ // Retain removed bank records referenced by past EMI payments, but clearly
+ // distinguish them from active DIG UP accounts instead of deleting history.
+ for(const b of state.banks){
+  if(b.digupBankId==null)continue;
+  const missing=!incoming.some(x=>String(x.id)===String(b.digupBankId));
+  if(Boolean(b.digupInactive)!==missing){b.digupInactive=missing;changed=true}
+ }
+ if(changed)save();
+ return true
 }
 function d4SyncStats(){
  const d=d4Store();if(!d)return {connected:false,banks:0,linked:0,transactions:state.digupBackupMeta?.entryCount||0,snapshot:!!state.digupBackupMeta};
@@ -723,8 +752,10 @@ function d4ImportBackup(){
 }
 
 function recordD4Emi(loan,cycle,bank,amount,paidDate){
+ // Only the actual local DIG UP ledger can be safely modified. A cloud-copy
+ // snapshot must never receive an unconfirmed EMI charge.
+ if(!digUpStorage.getItem(D4_LOCAL_KEY))return {linked:false};
  const d=d4Store();if(!d)return {linked:false};
- if(d4CloudCopyEnabled())return {linked:false};
  const db=d4Match(d,bank);if(!db)return {linked:false};
  const id='d47lona:emi:'+loan.id+':'+cycle;
  const found=d.entries.find(e=>String(e.id)===id);
@@ -737,7 +768,7 @@ function recordD4Emi(loan,cycle,bank,amount,paidDate){
  return {linked:true,id,balance:after}
 }
 function undoD4Emi(payment,bank){
- if(d4CloudCopyEnabled())return false;
+ if(!digUpStorage.getItem(D4_LOCAL_KEY))return false;
  const d=d4Store();if(!d||!payment.d4Id)return false;
  const index=d.entries.findIndex(e=>String(e.id)===payment.d4Id);
  if(index<0)return false;
