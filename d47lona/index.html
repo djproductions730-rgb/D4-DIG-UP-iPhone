@@ -430,7 +430,7 @@ html[data-theme]:not([data-theme="crystal"]) .mobile-nav button.active{
   color:var(--ui-action);
 }
 
-</style></head>
+</style><link rel="stylesheet" href="./intro.css"></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -479,7 +479,7 @@ const iso=(y,m,d)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0'
 const datePlusMonths=(base,i)=>{if(!base)return '';const [y,m,d]=base.split('-').map(Number);let total=y*12+(m-1)+i;let yy=Math.floor(total/12),mm=total%12+1;return iso(yy,mm,Math.min(d,new Date(Date.UTC(yy,mm,0)).getUTCDate()))};
 const today=()=>{let d=new Date();return iso(d.getFullYear(),d.getMonth()+1,d.getDate())};
 const diffDays=(a,b)=>Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T12:00:00Z'))/86400000);
-function fresh(){return {version:1,createdAt:today(),theme:'crystal',hideMoney:false,salary:0,reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
+function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
 function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.version===1&&Array.isArray(v.loans)&&Array.isArray(v.banks)&&Array.isArray(v.ledger))return v}catch(e){}return fresh()}
 let state=load();let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
@@ -615,7 +615,25 @@ function remindersView(){const dues=dueSoon();return `${header('PAYMENTS WITHOUT
  <div class="button-group" style="margin-top:13px"><button class="button secondary" data-action="notify-permission">${ico('bell')} Enable browser notifications</button><button class="button" data-action="calendar-export">${ico('calendar')} Add EMI dates to calendar</button></div></div>
  <div class="section-title"><h2>Upcoming loan payments</h2></div>${dues.length?dues.map(({loan,cycle})=>`<div class="glass list-tile">${loanIcon(loan)}<div class="body"><strong>${safe(loan.name)}</strong><div class="small">${fmtDate(cycle.date)} · ${Math.max(0,diffDays(cycle.date,today()))} days left</div></div><div style="text-align:right"><div class="money">${money(cycle.amount)}</div><button class="text-btn" data-pay="${loan.id}:${cycle.num}">Mark paid</button></div></div>`).join(''):`<div class="glass empty"><p class="sub">No upcoming dated payments.</p></div>`}
  <div class="notice warn">${ico('info')}iPhone closing date: 07 Sep 2029. Personal Loan closing date will appear after setting its first EMI date. No payments are initiated through this app.</div></div>`}
-function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack"><div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
+
+function introSettings(){
+ const selected=['crystal','emi','vault'].includes(state.introStyle)?state.introStyle:'crystal';
+ const choices=[
+  {id:'crystal',name:'Crystal Assemble',symbol:'✦'},
+  {id:'emi',name:'EMI Journey',symbol:'▣'},
+  {id:'vault',name:'Loan Unlock',symbol:'♢'}
+ ];
+ return '<div class="glass form-card d47-intro-settings">'
+  +'<h2>Opening Intro · Cinematic</h2>'
+  +'<p class="d47-intro-sub" style="margin:7px 0 0">Choose your favourite D47Lona logo reveal. Preview each animation. Plays once on opening per session.</p>'
+  +'<div class="d47-intro-options">'
+  +choices.map(x=>'<button type="button" class="d47-intro-choice" data-intro-choose="'+x.id+'" aria-pressed="'+(selected===x.id)+'">'
+   +'<span class="d47-mini-symbol" aria-hidden="true">'+x.symbol+'</span>'
+   +'<span>'+x.name+'</span>'+(selected===x.id?'<small>✓ Selected</small>':'')+'</button>').join('')
+  +'</div><div class="d47-intro-actions"><button type="button" class="button secondary" data-action="intro-replay">▶ Replay my intro</button></div></div>';
+}
+
+function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#ffffff',b:'#41d7ad'},{id:'midnight',name:'Midnight Blue',a:'#0e304f',b:'#3dc8ee'},{id:'emerald',name:'Emerald',a:'#0f5d50',b:'#6dffc7'},{id:'royal',name:'Royal Purple',a:'#35205c',b:'#bf91ff'},{id:'gold',name:'Luxury Gold',a:'#493a24',b:'#f1d68e'}];return `${header('YOUR APP, YOUR CONTROL','Settings')}<div class="stack">${introSettings()}<div class="glass form-card"><h2>Appearance</h2><p class="sub" style="margin:6px 0 14px">Choose your preferred look. Crystal Glossy is the default.</p><div class="theme-swatches">${themeOpts.map(t=>`<button type="button" aria-pressed="${state.theme===t.id}" class="swatch ${state.theme===t.id?'on':''}" data-theme-choose="${t.id}"><span class="swatch-chip" style="background:linear-gradient(125deg,${t.a},${t.b})"></span><small>${t.name}${state.theme===t.id?' ✓':''}</small></button>`).join('')}</div></div>
  <div class="glass form-card"><h2>Monthly salary</h2><p class="sub" style="margin:6px 0 14px">Used only to show salary after EMI. Stays on your device.</p><form data-form="salary"><div class="fields"><div class="field"><label for="salary">Monthly salary (₹)</label><input id="salary" name="salary" required type="number" min="0" step="1" value="${state.salary}" /></div><div class="field" style="justify-content:end"><button type="submit" class="button">Save salary</button></div></div></form></div>
  <div class="glass form-card"><h2>Install on your phone</h2><p class="sub" style="margin:7px 0 14px">Android: open the secure hosted link in Chrome and choose Install App. iPhone: open it in Safari, tap Share, then Add to Home Screen. This file must be hosted on HTTPS to install as a PWA.</p><button class="button secondary" data-action="install-help">${ico('download')} Install instructions</button></div><div class="glass form-card"><h2>Data and backups</h2><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="export">${ico('download')} Export backup</button><button class="button secondary" data-action="import">${ico('upload')} Restore backup</button><button class="button secondary" data-action="export-digup">${ico('download')} DIG UP entries</button></div><p class="footnote" style="margin-top:12px">Local-first storage. Browser data deletion will remove it unless backed up. Never share backup files publicly.</p></div>
  <div class="glass form-card"><h2>D4 DIG UP Auto Sync</h2><div class="strip" style="margin:14px 0">${ico('shield')} ${d4BrowserLinked()?'Connected · Same browser':'Not connected in this browser'}</div><p class="sub">${d4BrowserLinked()?'DIG UP banks found: '+d4SyncStats().banks+' · Matched balances: '+d4SyncStats().linked+'. Balances refresh whenever you reopen or return to this app.':'Open DIG UP on this same website and Safari browser. If your DIG UP records live in another browser, import its backup once.'}</p><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="sync-now">${ico('refresh')} Sync Now</button><button class="button secondary" data-action="import-digup">${ico('upload')} Import DIG UP Backup</button><button class="button secondary" data-action="open-digup">Open D4 DIG UP</button></div><p class="footnote" style="margin-top:12px">Bank balances and explicitly linked EMI entries only. Different browsers, other devices, and separately isolated iPhone Home Screen storage require cloud sync.</p><div style="margin-top:12px"><button class="text-btn" data-action="sync-info">How sync works ${ico('right')}</button></div></div>
@@ -643,6 +661,14 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  l.paid=l.paid.filter(x=>x!==p);state.ledger=state.ledger.filter(x=>x.id!==`emi:${id}:${n}`);
  save();modal=null;render();notify(restored?'Payment undone in both apps':'Payment undone locally');return}
  if(el.dataset.themeChoose){state.theme=el.dataset.themeChoose;save();render();notify('Theme saved');return}
+ if(el.dataset.introChoose){
+  const intro=el.dataset.introChoose;
+  if(!['crystal','emi','vault'].includes(intro))return;
+  state.introStyle=intro;save();render();
+  if(window.D47Intro)window.D47Intro.play(intro);
+  else notify('Opening intro saved');
+  return;
+ }
  if(el.dataset.filter){filter=el.dataset.filter;render();return}
  if(el.dataset.cycleFilter){cycleFilter=el.dataset.cycleFilter;cyclePage=0;render();return}
  if(el.dataset.cyclePage!==undefined){cyclePage=Math.max(0,Number(el.dataset.cyclePage));render();return}
@@ -689,6 +715,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
   exportJson(`D47Lona-EMI-Calendar-${today()}.ics`,rows.join('\r\n')+'\r\n','text/calendar;charset=utf-8');
   notify(`${count} upcoming EMI reminders exported`);break;
  }
+ case 'intro-replay':if(window.D47Intro)window.D47Intro.play(state.introStyle||'crystal');else notify('Opening intro not ready yet');break;
  case 'install-help':modal=infoModal('Install D47Lona',`<p class="sub">After uploading this app to an HTTPS website:</p><p style="margin-top:12px"><b>iPhone:</b> Safari → Share → Add to Home Screen.</p><p style="margin-top:12px"><b>Android:</b> Chrome → Menu → Install app or Add to Home screen.</p><p class="sub" style="margin-top:12px">Offline use works after the first visit. Back up your data before changing devices.</p>`);render();break;
  case 'notify-permission':if(!('Notification' in window)){notify('Browser notifications are not supported');break}Notification.requestPermission().then(p=>notify(p==='granted'?'Browser permission enabled. In-app reminders are active.':'Notification permission not enabled.'));break;
  }
@@ -731,5 +758,5 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
 </script>
-</body>
+<script src="./intro.js"></script></body>
 </html>
