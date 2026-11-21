@@ -10,6 +10,8 @@
 - 256-bit random code; AES-GCM encrypts finance data on-device before upload. The pairing code IS the secret; never share it publicly.
 - Code generation is immediate and works offline. **Registration and actual auto-sync are separate**: they remain unavailable until Firebase Anonymous Auth and the Firestore rules have been enabled. The UI must show a real **Synced** status before you consider your data connected.
 - If cloud registration fails, the generated code stays the same. Retry after Firebase is configured; do not regenerate it for each attempt.
+- If a screenshot exposed your code, DIG UP → **Pair & Auto-sync → Replace Exposed Pair Code** creates a new random link when you confirm. Re-pair any other browser/device using the new code. Local finance data is not removed. **Rotation does not revoke or delete old remote cloud records**; an administrator must clean up the obsolete cloud pairing if it was ever activated.
+
 - Cloud stores only a SHA-256-derived document ID, record revisions and encrypted payloads.
 - Cloud document lookup is unlistable. Anonymous Firebase Auth is used silently; it does not ask for email/password.
 - DIG UP updates (banks, income/transactions including Salary) flow to D47Lona's linked balance / monthly salary calculations.
