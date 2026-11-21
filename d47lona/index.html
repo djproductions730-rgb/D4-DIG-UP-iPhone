@@ -515,9 +515,15 @@ const iso=(y,m,d)=>`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0'
 const datePlusMonths=(base,i)=>{if(!base)return '';const [y,m,d]=base.split('-').map(Number);let total=y*12+(m-1)+i;let yy=Math.floor(total/12),mm=total%12+1;return iso(yy,mm,Math.min(d,new Date(Date.UTC(yy,mm,0)).getUTCDate()))};
 const today=()=>{let d=new Date();return iso(d.getFullYear(),d.getMonth()+1,d.getDate())};
 const diffDays=(a,b)=>Math.round((new Date(a+'T12:00:00Z')-new Date(b+'T12:00:00Z'))/86400000);
-function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
-function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.version===1&&Array.isArray(v.loans)&&Array.isArray(v.banks)&&Array.isArray(v.ledger))return v}catch(e){}return fresh()}
-let state=load();let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
+function fresh(){return {version:1,createdAt:today(),theme:'crystal',introStyle:'crystal',hideMoney:false,salary:0,salaries:{},reminderDays:3,reminderOnDue:true,reminderAfterDue:false,banks:[{id:'hdfc',name:'HDFC Bank',balance:0,reserved:false,note:'Manual balance'},{id:'axis',name:'Axis Bank',balance:0,reserved:false,note:'Manual balance'}],loans:[],ledger:[]}};
+function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.version===1&&Array.isArray(v.loans)&&Array.isArray(v.banks)&&Array.isArray(v.ledger)){
+ if(!v.salaries||typeof v.salaries!=='object'||Array.isArray(v.salaries))v.salaries={};
+ if(!Object.keys(v.salaries).length&&Number(v.salary)>0&&Number.isFinite(Number(v.salary))){
+   v.salaries[today().slice(0,7)]={amount:Number(v.salary),note:'Moved from earlier single salary setting'};
+ }
+ return v
+ }}catch(e){}return fresh()}
+let state=load();let salarySelectedMonth=today().slice(0,7);let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
 
 const D4_LOCAL_KEY='d4webv15';
@@ -688,6 +694,56 @@ function cycles(loan){if(!loan.firstDue)return [];return Array.from({length:loan
 function closing(loan){return loan.firstDue?fmtDate(datePlusMonths(loan.firstDue,loan.tenure-1)):'Add first EMI date'}
 function activeLoans(){return state.loans.filter(x=>paidCount(x)<x.tenure)}
 function monthly(){return activeLoans().reduce((a,l)=>a+Number(l.emi),0)}
+
+/* Month-specific salary journal. An unentered month is unknown, not a zero salary. */
+function validSalaryMonth(month){return typeof month==='string'&&/^(19|20|21)\d{2}-(0[1-9]|1[0-2])$/.test(month)}
+function salaryMap(){return state.salaries&&typeof state.salaries==='object'&&!Array.isArray(state.salaries)?state.salaries:{}}
+function salaryRecord(month){return Object.prototype.hasOwnProperty.call(salaryMap(),month)?salaryMap()[month]:null}
+function salaryAmount(month){
+ const row=salaryRecord(month);if(row===null)return null;
+ const raw=typeof row==='number'?row:row?.amount;
+ const n=Number(raw);return Number.isFinite(n)&&n>=0?n:null;
+}
+function monthName(ym){
+ if(!validSalaryMonth(ym))return 'Unknown month';
+ const [y,m]=ym.split('-').map(Number);return MONTHS[m-1]+' '+y
+}
+function scheduledEmiForMonth(ym){
+ if(!validSalaryMonth(ym))return 0;
+ return state.loans.reduce((total,loan)=>total+cycles(loan).filter(c=>c.date.slice(0,7)===ym).reduce((sum,c)=>sum+Number(c.amount||0),0),0)
+}
+function salaryMonthlyStats(ym){
+ const salary=salaryAmount(ym),emi=scheduledEmiForMonth(ym),after=salary===null?null:salary-emi;
+ const percent=salary!==null&&salary>0?emi/salary*100:null;
+ return {month:ym,salary,emi,after,percent,missingDue:state.loans.some(l=>!l.firstDue)}
+}
+function salaryJournalSection(){
+ const ym=validSalaryMonth(salarySelectedMonth)?salarySelectedMonth:today().slice(0,7);
+ const selected=salaryRecord(ym),stats=salaryMonthlyStats(ym);
+ const value=salaryAmount(ym);
+ const rows=Object.entries(salaryMap()).filter(([k])=>validSalaryMonth(k))
+   .sort((a,b)=>b[0].localeCompare(a[0])).slice(0,8);
+ const percentLabel=stats.percent===null?'—':stats.percent.toFixed(1)+'%';
+ const meter=stats.percent===null?0:Math.min(100,Math.max(0,stats.percent));
+ return '<section class="glass form-card salary-journal" id="salary-journal">'
+  +'<div class="salary-journal-head"><div><h2>Monthly Salary Tracker</h2><p class="sub">Record your actual salary separately for each month.</p></div><span class="salary-month-pill">'+ico('calendar')+' History</span></div>'
+  +'<form data-form="salary"><div class="salary-month-grid">'
+  +'<div class="field"><label for="salary-month">Salary month</label><input id="salary-month" name="month" type="month" min="2020-01" max="2120-12" required value="'+safe(ym)+'"></div>'
+  +'<div class="field"><label for="salary-amount">Salary received (₹)</label><input id="salary-amount" name="salary" type="number" min="0" max="1000000000" step="0.01" required placeholder="Enter actual salary" value="'+(value===null?'':value)+'"></div>'
+  +'</div><div class="field"><label for="salary-note">Note (optional)</label><input id="salary-note" name="note" maxlength="100" placeholder="Salary, bonus or adjustment" value="'+safe(typeof selected==='object'&&selected?.note?selected.note:'')+'"></div>'
+  +'<div class="salary-journal-actions"><button class="button" type="submit">'+ico('check')+' '+(selected!==null?'Update':'Add')+' Salary</button>'
+  +(selected!==null?'<button type="button" class="button secondary" data-salary-delete="'+safe(ym)+'">Delete this month</button>':'')+'</div></form>'
+  +'<div class="salary-month-results"><div><span>EMIs scheduled · '+monthName(ym)+'</span><strong>'+money(stats.emi)+'</strong></div>'
+  +'<div><span>Balance after EMI</span><strong>'+ (stats.after===null?'Add salary':money(stats.after))+'</strong></div>'
+  +'<div><span>Salary used for EMI</span><strong>'+percentLabel+'</strong></div></div>'
+  +'<div class="salary-use-track" role="img" aria-label="EMI to salary ratio '+percentLabel+'"><span style="width:'+meter+'%"></span></div>'
+  +(stats.missingDue?'<p class="footnote">A loan without its first EMI date is excluded from that month’s due total.</p>':'')
+  +'<p class="footnote">Salary is entered manually and is not deducted from any bank. EMI totals use each loan’s due-date schedule.</p>'
+  +(rows.length?'<div class="salary-journal-history"><h3>Saved months</h3>'
+   +rows.map(([key])=>{const info=salaryMonthlyStats(key);return '<div class="salary-history-row"><div><strong>'+monthName(key)+'</strong><span>Salary '+money(info.salary)+' · EMI '+money(info.emi)+'</span></div><div><strong>'+ (info.after===null?'—':money(info.after))+'</strong><button type="button" data-salary-edit="'+safe(key)+'" aria-label="Edit salary for '+monthName(key)+'">'+ico('edit')+' Edit</button></div></div>'}).join('')
+   +'</div>':'')+'</section>'
+}
+
 function bankTotal(){return state.banks.reduce((a,b)=>a+b.balance,0)}
 function remainText(n){return state.hideMoney?'••••••':money(n)}
 function selectedLoan(){return state.loans.find(l=>l.id===detailId)}
