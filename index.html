@@ -383,6 +383,12 @@ let raw;try{raw=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(_){raw={}}
 let data={savings:validSavings(raw.savings)?raw.savings:[],banks:Array.isArray(raw.banks)?raw.banks:[],entries:Array.isArray(raw.entries)?raw.entries:[],plans:Array.isArray(raw.plans)?raw.plans:[],loans:Array.isArray(raw.loans)?raw.loans:[],source:String(raw.source||''),exportedAt:String(raw.exportedAt||raw.originalSnapshotAt||''),linkedName:String(raw.linkedName||''),linkedEmail:String(raw.linkedEmail||'')};function openingTab(){const section=new URLSearchParams(location.search).get('section');return section==='savings'||section==='plans'?'plans':section==='pluxee'?'pluxee':'home'}
 let tab=openingTab(),selectedBank=null;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){alert('Device storage is full; export a backup before adding more entries.');}render()}
+// Keep the existing DIG UP screen current when D47Lona updates the shared browser ledger.
+window.addEventListener('storage',event=>{
+ if(event.key!==KEY||!event.newValue)return;
+ try{const v=JSON.parse(event.newValue);if(!Array.isArray(v.banks)||!Array.isArray(v.entries))return;data.banks=v.banks;data.entries=v.entries;render()}catch(_){}
+});
+
 function total(){return data.banks.filter(bank=>!isPluxeeAccount(bank)).reduce((sum,b)=>sum+(Number(b.balance)||0),0)}
 function badge(name){const n=String(name||'');let bg=n.includes('Axis')?'#a3134f':n.includes('HDFC')?'#1269bd':n.includes('ICICI')?'#dc6019':n.includes('State Bank')?'#1596d3':n.includes('Canara')?'#00a5cc':n.includes('Punjab')?'#a51c54':n.includes('Baroda')?'#f37927':'#554bc1';let letters=n==='State Bank of India'?'SBI':n.split(/\s+/).map(s=>s[0]).join('').slice(0,3).toUpperCase();return '<div class="bank-symbol" style="background:'+bg+'">'+tidy(letters)+'</div>'}
 function categoryIcon(name){return (cats[name]||cats.Other)[0]}
