@@ -1,5 +1,37 @@
 <!doctype html>
-<html lang="en"><head>
+<html lang="en"><head><script>
+/* DIG UP emergency boot fallback. Never clears, modifies, uploads or logs personal finance data. */
+(function(){
+ function showProblem(error){
+   const v=document.getElementById('view');
+   if(!v)return;
+   const box=document.getElementById('d4-startup-help');
+   if(!box)v.innerHTML="<section id=\"d4-startup-help\" class=\"card\" style=\"padding:20px;margin:18px 0;border-radius:18px;background:#fff;color:#1b2b43;box-shadow:0 6px 22px #23345a12\">\n  <h2 id=\"d4-startup-title\" style=\"font-size:20px;margin:0 0 9px\">D4 DIG UP</h2>\n  <p id=\"d4-startup-text\" style=\"font-size:13px;line-height:1.7;margin:0 0 12px\">Opening your saved finance records…</p>\n  <div style=\"display:flex;gap:10px;flex-wrap:wrap\">\n    <button type=\"button\" onclick=\"location.reload()\" style=\"min-height:42px;padding:11px 14px;border-radius:12px;background:#5042BD;color:white;font-weight:750\">Retry opening</button>\n    <button type=\"button\" onclick=\"window.d4RecoveryDownload&&window.d4RecoveryDownload()\" style=\"min-height:42px;padding:11px 14px;border-radius:12px;background:#E8E9FC;color:#34318D;font-weight:750\">Save my backup</button>\n  </div>\n  <p style=\"color:#756c90;font-size:12px;margin:12px 0 0\">Do not clear Safari website data or uninstall the app before backing up.</p>\n</section>";
+   const title=document.getElementById('d4-startup-title'),txt=document.getElementById('d4-startup-text');
+   if(title)title.textContent='DIG UP could not finish loading';
+   if(txt)txt.textContent='Your saved finance records have not been deleted. Save a backup, then retry. Do not clear website data.';
+   if(error)console.error('DIG UP startup error:',error);
+ }
+ window.d4RecoveryShow=showProblem;
+ window.d4RecoveryDownload=function(){
+   try{
+     const raw=localStorage.getItem('d4webv15');
+     if(!raw){alert('No DIG UP records were found in this browser. Your old records may be saved in a different browser or installed app.');return}
+     let content=raw;
+     try{const value=JSON.parse(raw);content=JSON.stringify(Object.assign({format:'d4webv15',version:3,exportedAt:new Date().toISOString()},value),null,2)}catch(_){}
+     const blob=new Blob([content],{type:'application/json'}),url=URL.createObjectURL(blob);
+     const a=document.createElement('a');a.href=url;a.download='D4-DIG-UP-Recovery-Backup.json';document.body.appendChild(a);a.click();a.remove();
+     setTimeout(()=>URL.revokeObjectURL(url),2000)
+   }catch(_){alert('Could not export on this browser. Do not clear your browser data.')}
+ };
+ function detectBlank(){
+   const v=document.getElementById('view');
+   if(v&&document.getElementById('d4-startup-help'))showProblem()
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(detectBlank,2600));
+ else setTimeout(detectBlank,2600);
+})();
+</script>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#4033ba"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="D4 DIG UP"><link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png"><link rel="icon" type="image/svg+xml" href="./icon.svg"><title>D4 DIG UP · Web</title>
@@ -285,7 +317,15 @@ body.d4-modal-open:has(#txform) #nav{visibility:hidden}
 <g class="savings-columns"><g class="coin-column" style="--delay:0.91s"><rect x="105" y="272" width="58" height="72" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M107 331h54"/><path d="M107 318h54"/><path d="M107 305h54"/><path d="M107 292h54"/></g></g><g class="coin-column" style="--delay:1.04s"><rect x="185" y="232" width="58" height="112" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M187 331h54"/><path d="M187 318h54"/><path d="M187 305h54"/><path d="M187 292h54"/><path d="M187 279h54"/><path d="M187 266h54"/><path d="M187 253h54"/><path d="M187 240h54"/></g></g><g class="coin-column" style="--delay:1.17s"><rect x="265" y="182" width="58" height="162" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M267 331h54"/><path d="M267 318h54"/><path d="M267 305h54"/><path d="M267 292h54"/><path d="M267 279h54"/><path d="M267 266h54"/><path d="M267 253h54"/><path d="M267 240h54"/><path d="M267 227h54"/><path d="M267 214h54"/><path d="M267 201h54"/></g></g><g class="coin-column" style="--delay:1.3s"><rect x="345" y="126" width="58" height="218" rx="10" fill="url(#launch-gold)"/><g class="coin-seams" stroke="#aa681e" stroke-width="3"><path d="M347 331h54"/><path d="M347 318h54"/><path d="M347 305h54"/><path d="M347 292h54"/><path d="M347 279h54"/><path d="M347 266h54"/><path d="M347 253h54"/><path d="M347 240h54"/><path d="M347 227h54"/><path d="M347 214h54"/><path d="M347 201h54"/><path d="M347 188h54"/><path d="M347 175h54"/><path d="M347 162h54"/><path d="M347 149h54"/><path d="M347 136h54"/></g></g></g><g class="trend-wrap"><path class="trend" d="M96 302 L161 249 L202 257 L259 196 L293 207 L416 94" pathLength="1" fill="none" stroke="#8fffe6" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></g><text class="launch-d4" x="256" y="287" font-family="Arial,Helvetica,sans-serif" font-size="215" font-weight="900" text-anchor="middle" fill="url(#launch-ink)" letter-spacing="-14">D4</text>
 <rect class="launch-rule" x="93" y="329" width="326" height="7" rx="3.5" fill="#ac85ff"/>
 <text class="launch-name" x="256" y="407" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="800" text-anchor="middle" letter-spacing="4" fill="#fff">DIG UP</text>
-</svg></div><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+</svg></div><div class="app"><header><div><div class="brand"><span>D4</span> DIG UP <small style="font-size:10px;color:#8e86bb">v15</small></div><div class="subtitle">Your personal finance buddy · iPhone & Android Web</div></div><div class="buddy" aria-hidden="true">🧑‍💼</div></header><main id="view"><section id="d4-startup-help" class="card" style="padding:20px;margin:18px 0;border-radius:18px;background:#fff;color:#1b2b43;box-shadow:0 6px 22px #23345a12">
+  <h2 id="d4-startup-title" style="font-size:20px;margin:0 0 9px">D4 DIG UP</h2>
+  <p id="d4-startup-text" style="font-size:13px;line-height:1.7;margin:0 0 12px">Opening your saved finance records…</p>
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button type="button" onclick="location.reload()" style="min-height:42px;padding:11px 14px;border-radius:12px;background:#5042BD;color:white;font-weight:750">Retry opening</button>
+    <button type="button" onclick="window.d4RecoveryDownload&&window.d4RecoveryDownload()" style="min-height:42px;padding:11px 14px;border-radius:12px;background:#E8E9FC;color:#34318D;font-weight:750">Save my backup</button>
+  </div>
+  <p style="color:#756c90;font-size:12px;margin:12px 0 0">Do not clear Safari website data or uninstall the app before backing up.</p>
+</section></main></div><nav class="bottom" id="nav"></nav><div class="sheet-bg" id="overlay" role="presentation"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <script>
 'use strict';
 // This app is intentionally local-only; no finance data is sent to the public GitHub repository.
@@ -812,7 +852,8 @@ function openLogout(){showSheet('Logout','<p>Log out of DIG UP on this device?</
 function logoutLocalApp(){try{localStorage.setItem(LOGOUT_KEY,'1')}catch(_){alert('Could not save logout. Please try again.');return;}loggedOut=true;selectedBank=null;tab='home';document.getElementById('sheet').innerHTML='';closeSheet();render();window.scrollTo({top:0,behavior:'instant'});document.querySelector('#view button').focus()}
 function resumeLocalApp(){try{localStorage.removeItem(LOGOUT_KEY)}catch(_){alert('Could not reopen the app. Please try again.');return;}loggedOut=false;tab=openingTab();render()}
 function go(next){if(next==='savings')next='plans';if(next==='banks'&&tab!==next)resetBankWalletFilters();tab=next;selectedBank=null;closeSheet();render();window.scrollTo({top:0,behavior:'instant'})}
-function render(){document.body.classList.toggle('d4-logged-out',loggedOut);if(loggedOut){document.getElementById('nav').innerHTML='';document.getElementById('view').innerHTML='<section class="card" style="margin-top:32px;text-align:center"><h2>You’re logged out</h2><p class="muted">Your records are saved in this browser.</p><button type="button" class="button" onclick="resumeLocalApp()">Open on this device</button><p class="muted">This local app has no password or OTP sign-in yet. Anyone using this browser can reopen it.</p></section>';return;}document.getElementById('nav').innerHTML=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['more','☷','More']].map(([id,ic,label])=>'<button type="button" class="navbtn '+((id===tab||(id==='more'&&['savings','loans','pluxee','settings'].includes(tab)))?'active':'')+'" '+(id==='more'?'data-d4-more="1"':'data-tab="'+id+'"')+' aria-label="'+label+'"><span class="ico">'+ic+'</span><span>'+label+'</span></button>').join('');let html=tab==='pluxee'?pluxeePage():tab==='savings'?savingsPage():tab==='home'?home():tab==='banks'?banksPage()+pluxeePage(true):tab==='transactions'?transactionHistory():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html;scrollGlassChart()}
+function render(){try{return d4RenderApp()}catch(error){window.d4RecoveryShow?.(error)}}
+function d4RenderApp(){document.body.classList.toggle('d4-logged-out',loggedOut);if(loggedOut){document.getElementById('nav').innerHTML='';document.getElementById('view').innerHTML='<section class="card" style="margin-top:32px;text-align:center"><h2>You’re logged out</h2><p class="muted">Your records are saved in this browser.</p><button type="button" class="button" onclick="resumeLocalApp()">Open on this device</button><p class="muted">This local app has no password or OTP sign-in yet. Anyone using this browser can reopen it.</p></section>';return;}document.getElementById('nav').innerHTML=[['home','⌂','Home'],['banks','▣','Banks'],['transactions','⇄','Transactions'],['plans','◈','Plans'],['more','☷','More']].map(([id,ic,label])=>'<button type="button" class="navbtn '+((id===tab||(id==='more'&&['savings','loans','pluxee','settings'].includes(tab)))?'active':'')+'" '+(id==='more'?'data-d4-more="1"':'data-tab="'+id+'"')+' aria-label="'+label+'"><span class="ico">'+ic+'</span><span>'+label+'</span></button>').join('');let html=tab==='pluxee'?pluxeePage():tab==='savings'?savingsPage():tab==='home'?home():tab==='banks'?banksPage()+pluxeePage(true):tab==='transactions'?transactionHistory():tab==='plans'?plans():tab==='loans'?loansPage():settings();document.getElementById('view').innerHTML=html;scrollGlassChart()}
 let d4SheetScrollY=0;
 function fitTransactionPopup(){
  const overlay=document.getElementById('overlay');
