@@ -33,7 +33,7 @@ export function setupPairUI({mode,stores}){
       field.value=existingPairCode();
       dialog.querySelector('[data-pair-main]').textContent=paired()?'Copy Pair Code':autoAttempted?'Retry Code Creation':'Preparing Pair Code…';
     }else{
-      dialog.querySelector('[data-pair-main]').textContent=paired()?'Already paired · Auto-sync on':'Pair Once · Enable Auto-sync';
+      dialog.querySelector('[data-pair-main]').textContent=paired()?'Code saved · check sync status':'Pair Once · Enable Auto-sync';
       dialog.querySelector('[data-pair-main]').disabled=paired();
       dialog.querySelector('[data-pair-helper]').textContent=paired()?'Retry Connection':'Paste from Clipboard';
     }
