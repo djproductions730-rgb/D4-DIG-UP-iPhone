@@ -1436,11 +1436,11 @@ function cycleList(l,cs){
  const label=new Date(c.date+'T12:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  const active=next&&next.num===c.num;
  const principal=l.schedule?.[c.num-1]?.principal;
- return '<article class="emerald-emi-card '+(c.paid?'is-paid':active?'is-next':'')+'">'+
- '<div class="emerald-cycle-id"><small>Cycle</small><b>'+String(c.num).padStart(2,'0')+'</b><span>'+(c.paid?'✓ Paid':active?'Next':'')+'</span></div>'+
- '<div class="emerald-cycle-info"><strong>'+label+'</strong><span>Due: '+fmtDate(c.date)+'</span>'+
- (c.interest!=null?'<p>Principal: '+money(principal??0)+' <i>│</i> Interest: '+money(c.interest)+'</p><p>Outstanding: '+money(c.principalLeft)+'</p>':'')+'</div>'+
- '<div class="emerald-cycle-pay"><strong>'+money(c.amount)+'</strong><button type="button" data-pay="'+safe(l.id)+':'+c.num+'">'+(c.paid?'✓ Paid · Change':active?'◷ Upcoming · Pay':'○ Unpaid · Mark paid')+'</button></div></article>';
+ return '<article style="background:'+(c.paid?'#eaf9f0':active?'#f4fff8':'#ffffff')+'!important;color:#153426!important;-webkit-text-fill-color:#153426!important;border:2px solid '+(active?'#087c49':'#dbe5df')+'!important" class="emerald-emi-card '+(c.paid?'is-paid':active?'is-next':'')+'">'+
+ '<div class="emerald-cycle-id" style="background:'+(active?'#007849':'#e6f3ea')+'!important;color:'+(active?'#fff':'#123d29')+'!important;-webkit-text-fill-color:'+(active?'#fff':'#123d29')+'!important"><small style="color:inherit!important;-webkit-text-fill-color:inherit!important">Cycle</small><b style="color:inherit!important;-webkit-text-fill-color:inherit!important">'+String(c.num).padStart(2,'0')+'</b><span>'+(c.paid?'✓ Paid':active?'Next':'')+'</span></div>'+
+ '<div class="emerald-cycle-info" style="color:#153426!important;-webkit-text-fill-color:#153426!important"><strong style="color:#122b21!important;-webkit-text-fill-color:#122b21!important">'+label+'</strong><span style="color:#40584c!important;-webkit-text-fill-color:#40584c!important">Due: '+fmtDate(c.date)+'</span>'+
+ (c.interest!=null?'<p style="color:#253c32!important;-webkit-text-fill-color:#253c32!important">Principal: '+money(principal??0)+' <i>│</i> Interest: '+money(c.interest)+'</p><p style="color:#253c32!important;-webkit-text-fill-color:#253c32!important">Outstanding: '+money(c.principalLeft)+'</p>':'')+'</div>'+
+ '<div class="emerald-cycle-pay"><strong style="color:#075c36!important;-webkit-text-fill-color:#075c36!important">'+money(c.amount)+'</strong><button type="button" data-pay="'+safe(l.id)+':'+c.num+'">'+(c.paid?'✓ Paid · Change':active?'◷ Upcoming · Pay':'○ Unpaid · Mark paid')+'</button></div></article>';
  }).join(''):'<div class="date-note">No cycles match this filter.</div>')+
  '<div class="pagination"><button class="button secondary mini" data-cycle-page="'+(p-1)+'" '+(p===0?'disabled':'')+'>Previous</button><span>'+(filtered.length?(p*6+1)+'–'+Math.min(filtered.length,p*6+6)+' / '+filtered.length:'0 cycles')+'</span><button class="button secondary mini" data-cycle-page="'+(p+1)+'" '+(p>=max?'disabled':'')+'>Next</button></div></div>';
 }
