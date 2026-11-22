@@ -36,7 +36,7 @@
   if(existing&&!e){alert('Linked expense not found.');return}
   if(!data.banks.length){alert('Add a bank account first.');return}
   if(!data.plans.some(isTrip)){alert('Create a Travel plan first.');return}
-  const original=JSON.stringify(data),initialIndex=existing?data.plans.findIndex((p,i)=>identity(p,i)===String(e.tripPlanId)):Number(planIndex);
+  const original=JSON.stringify(data),stored=localStorage.getItem(KEY),initialIndex=existing?data.plans.findIndex((p,i)=>identity(p,i)===String(e.tripPlanId)):Number(planIndex);
   const selectedPlan=initialIndex>=0&&isTrip(data.plans[initialIndex])?initialIndex:data.plans.findIndex(isTrip);
   const options=choosePlan(),bankOptions=pickBank();
   showSheet(existing?'✎ Re-Edit Trip Expense':'✦ New Trip Expense','<form id="trip-linked-form" class="trip-edit-form">'+
@@ -55,7 +55,7 @@
    ev.preventDefault();
    const error=form.querySelector('[role=alert]');
    try{
-    if(JSON.stringify(data)!==original||localStorage.getItem(KEY)!==original)throw Error('Records changed. Close and reopen this form to avoid overwriting data.');
+    if(JSON.stringify(data)!==original||localStorage.getItem(KEY)!==stored)throw Error('Records changed. Close and reopen this form to avoid overwriting data.');
     const f=Object.fromEntries(new FormData(form)),amount=Number(f.amount),pi=Number(f.plan);
     if(!validAmount(amount))throw Error('Enter a valid amount.');
     if(!Number.isInteger(pi)||!isTrip(data.plans[pi]))throw Error('Choose a valid trip.');
