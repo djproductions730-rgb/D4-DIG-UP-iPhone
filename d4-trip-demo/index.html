@@ -1075,7 +1075,7 @@ case 'expense':case 'expense-edit':{
   context.quickExpense=true;
   title='Quick Expense';
   body='<div class="d4-expense-amount">'+field('amount','Amount (₹)','','number','required min="0.01" max="100000000" step="0.01" inputmode="decimal" placeholder="0"')+'</div>'+
-   '<fieldset class="neon-categories"><legend>Category</legend><div>'+Object.entries(quickExpenseCategories).map(([category,icon],i)=>'<label><input type="radio" name="category" value="'+esc(category)+'" '+(i===0?'checked':'')+'><span><b aria-hidden="true">'+icon+'</b>'+esc(category)+'</span></label>').join('')+'</div></fieldset>'+
+   '<details class="neon-category-picker"><summary>🍔 Food &amp; Drinks</summary><fieldset class="neon-categories"><legend>Category</legend><div>'+Object.entries(quickExpenseCategories).map(([category,icon],i)=>'<label><input type="radio" name="category" value="'+esc(category)+'" '+(i===0?'checked':'')+'><span><b aria-hidden="true">'+icon+'</b>'+esc(category)+'</span></label>').join('')+'</div></fieldset></details>'+
    expenseSplitFields(t,true)+
    field('date','Date',today(),'date','required')+
    field('note','Note (optional)','','text','maxlength="150"')+'<details><summary>Payment method</summary>'+selectField('method','Method','<option>Other</option><option>Cash</option><option>UPI</option><option>Card</option><option>Bank transfer</option>')+'</details>';
@@ -1129,6 +1129,15 @@ const expensePopup=name==='expense'||name==='expense-edit';
  const simplePopup=name==='expense'||(name==='collection-payment'&&context.simple);
 $('#modalRoot').innerHTML=`<div class="modal-backdrop${expensePopup?' d4-expense-backdrop':''}${simplePopup?' neon-popup-backdrop':''}"><div class="modal${expensePopup?' d4-expense-popup':''}${simplePopup?' neon-popup':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="modal-header"><button type="button" class="modal-back" data-action="close-modal" aria-label="Back to previous screen">← Back</button><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">✕</button></div><form id="activeForm"><div class="modal-body">${body}</div><div class="modal-footer"><button class="btn mint block" type="submit">${button}</button></div></form></div></div>`;
  if(name==='expense'||name==='expense-edit')mountExpenseSplit($('#activeForm'),t);
+ if(name==='expense'){
+  const picker=$('#activeForm .neon-category-picker');
+  picker?.addEventListener('change',event=>{
+   const icon=quickExpenseCategories[event.target.value];
+   if(!icon)return;
+   picker.querySelector('summary').textContent=icon+' '+event.target.value;
+   picker.open=false;
+  });
+ }
  if(name==='d4-ticket-editor')renderTicketQueue();
 }
 function renderTicketQueue(){

@@ -94,16 +94,18 @@ test('failed save restores the previous ledger and totals',()=>{
  assert.equal(t.collection.payments.length,2);
 });
 
-test('home UI renders member balances from collectionTotals with edit only for admins',()=>{
+test('home uses Paid by Person and keeps receipt corrections available',()=>{
  const src=fs.readFileSync(__dirname+'/reference-premium.js','utf8');
  assert.match(src,/function memberAmountPanel\(t\)/);
  assert.match(src,/collectionTotals\(t\)/);
  assert.match(src,/home=function\(\)/);
- assert.match(src,/tripHero\(t\)\+memberAmountPanel\(t\)/);
+ assert.match(src,/iconButton\(luxeIcon\('members'\),'Paid by Person','paid-by-person'\)/);
  assert.match(src,/data-action="collection-member-total"/);
  assert.match(src,/class="ref-full-payment-history"/,'Full history keeps earlier receipts editable');
  assert.match(src,/data-action="collection-edit-payment"/,'Each original receipt has an edit action');
  const markup=fs.readFileSync(__dirname+'/index.html','utf8');
+ assert.match(markup,/case 'paid-by-person':/);
+ assert.match(markup,/collectionTotals\(t\)\.rows/);
  assert.match(markup,/case 'collection-member-total':/);
  assert.match(markup,/case 'collection-payment-edit':/);
 });

@@ -217,3 +217,7 @@ body.d4-premium .bottom-nav:has(.ref-nav-item) {grid-template-columns:repeat(3,m
 .neon-pdf-preview summary {padding:12px;cursor:pointer}
 @media print {.neon-pdf-preview {display:none!important}}
  .neon-split-options{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.neon-split-options label{padding:7px;border:1px solid #59848c;border-radius:9px}.neon-split-options label:has(:checked){color:#d4ff80;border-color:#baff49}.neon-split-options input{accent-color:#baff49}
+
+.neon-category-picker > summary{padding:10px 12px;background:#152735;color:#f6ffef;border:1px solid #779b75;border-radius:11px;cursor:pointer}
+body.d4-premium .d4-ticket-mode.selected,body.d4-premium .d4-ticket-directions button.active{border-color:#baff49!important;color:#dcffa5!important;background:#243c27!important}
+body.d4-premium .ref-plan-cover,body.d4-premium .ref-expense-cover,body.d4-premium .d4-ticket-page{background:radial-gradient(ellipse at top right,#33357477,transparent 50%),radial-gradient(ellipse at top left,#19747458,transparent 54%),#101b28!important;border-color:#3a737c!important}
