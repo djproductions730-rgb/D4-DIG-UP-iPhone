@@ -73,6 +73,7 @@ export function setupPairUI({mode,stores}){
        mode==='digup'?'readonly':'',' placeholder="',mode==='digup'?'Your code is being created…':'Paste the code copied from DIG UP','"></textarea>',
        '<div class="pair-message" data-pair-message role="status" aria-live="polite" hidden></div>',
        '<div class="pair-buttons">',
+       inDigupFrame()?'<button type="button" class="pair-primary" data-pair-copy-digup>📋 Copy DIG UP Auto-sync Code</button>':'',
        '<button type="button" class="pair-primary" data-pair-main>',mode==='digup'?'Copy Pair Code':'Pair Once · Enable Auto-sync','</button>',
        '<button type="button" class="pair-secondary" data-pair-helper>',mode==='digup'?'Copy Again':'Paste from Clipboard','</button>',
        '<a class="pair-secondary" href="',mode==='digup'?'./d47lona/':'../','">',mode==='digup'?'Open D47Lona':'Open DIG UP','</a></div>',
@@ -83,6 +84,12 @@ export function setupPairUI({mode,stores}){
       document.body.appendChild(dialog);
       dialog.querySelector('[data-pair-close]').addEventListener('click',()=>dialog.close());
       dialog.querySelector('[data-pair-main]').addEventListener('click',()=>void mainAction());
+      dialog.querySelector('[data-pair-copy-digup]')?.addEventListener('click',async()=>{
+        const code=existingPairCode();
+        if(!code){emit('DIG UP Pair Code not created yet. Open DIG UP Settings → Pair & Auto-sync first.',true);return}
+        await copy(code);
+        emit('DIG UP Pair Code copied. Open Home Screen D47 Lona → Settings → Pair Once to paste it.');
+      });
       dialog.querySelector('[data-pair-helper]').addEventListener('click',()=>void helper());
       dialog.querySelector('[data-pair-rotate]')?.addEventListener('click',()=>{
         if(!confirm('Replace the Pair Code shown in a screenshot? You will need to pair D47Lona and other devices with the NEW code. Loan, Salary, Bank and transaction data stays on this device. Old cloud records are NOT automatically deleted. Continue?'))return;
