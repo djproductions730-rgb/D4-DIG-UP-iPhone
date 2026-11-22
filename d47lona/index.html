@@ -975,8 +975,8 @@ function home(){const due=dueSoon();const salaryStats=salaryMonthlyStats(today()
  <section class="stack" style="gap:9px">${linkedBankRows.map(bankRow).join('')}</section>
  ${manualBankRows.length?`<details class="glass digup-legacy-loans"><summary>Manual / older bank records (${manualBankRows.length})</summary><p class="small">These accounts are retained for history but not counted as active linked DIG UP accounts. Their balances are separate.</p><div class="stack" style="gap:8px;margin-top:12px">${manualBankRows.map(bankRow).join('')}</div></details>`:''}
  ${!d4BrowserLinked()?'<div class="notice" style="margin-top:12px">DIG UP data is not connected in this browser. The balances above may be manual. <button type="button" class="button secondary" data-action="import-digup" style="margin-top:10px">Import DIG UP Backup</button></div>':''}
- ${due.length?`<div class="section-title"><h2>Next payments</h2></div>${due.slice(0,2).map(({loan,cycle})=>`<div class="glass list-tile">${loanIcon(loan)}<div class="body"><strong>${safe(loan.name)}</strong><div class="small">${fmtDate(cycle.date)} · Cycle ${cycle.num}</div></div><div style="text-align:right"><div class="money">${money(cycle.amount)}</div><button class="text-btn" data-pay="${loan.id}:${cycle.num}">Mark paid</button></div></div>`).join('')}`:`<div class="notice">${ico('info')}Set the first EMI date for your new Personal Loan to get its reminders.</div>`}
- <div class="notice warn">${ico('info')}Restore your private loan backup if needed. Bank balances sync locally with DIG UP when both apps share the same browser storage. Cloud sync is not connected.</div>
+ ${due.length?`<div class="section-title"><h2>Next payments</h2></div>${due.slice(0,2).map(({loan,cycle})=>`<div class="glass list-tile">${loanIcon(loan)}<div class="body"><strong>${safe(loan.name)}</strong><div class="small">${fmtDate(cycle.date)} · Cycle ${cycle.num}</div></div><div style="text-align:right"><div class="money">${money(cycle.amount)}</div><button class="text-btn" data-pay="${loan.id}:${cycle.num}">Mark paid</button></div></div>`).join('')}`:``}
+ 
  </div>`}
 function digupLoanHistorySection(){
  const d=d4Store();
@@ -1231,7 +1231,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   }).catch(()=>{});
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     // Reload only when a new worker takes control; avoid repeated refreshes.
-    const stamp='d47lona-sw-reload-v29';
+    const stamp='d47lona-sw-reload-v30';
     if(sessionStorage.getItem(stamp)==='1')return;
     sessionStorage.setItem(stamp,'1');
     location.reload();
