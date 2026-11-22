@@ -519,3 +519,18 @@ body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter{width:clamp(86px,28vw,1
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-number{font-size:14px}
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-heading{font-size:14px}
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-values>span{font-size:11px}
+
+/* Larger artwork and touch targets in the three-column shortcut grid. */
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-actions.ref-luxe-actions{
+  grid-template-rows:repeat(3,minmax(82px,auto))!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions :is(.ref-action,[data-action="paid-by-person"]){
+  min-height:82px!important;height:clamp(82px,22vw,104px)!important;gap:5px!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action-ico,
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action-ico .ref-luxe-svg{
+  width:clamp(36px,10vw,46px)!important;height:clamp(36px,10vw,46px)!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action strong{
+  font-size:clamp(11px,3.3vw,15px)!important;
+}
