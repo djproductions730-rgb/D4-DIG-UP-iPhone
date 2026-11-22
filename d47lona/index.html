@@ -534,9 +534,14 @@ const digUpStorage=digUpHost?.localStorage||localStorage;
 function d4CloudCopyEnabled(){return !digUpHost&&(!!localStorage.getItem('d4-pair-link-v1')||!!localStorage.getItem('d4-finance-sync-enabled'))}
 function d4Store(){try{
  const live=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
- if(live&&Array.isArray(live.banks)&&Array.isArray(live.entries))return live;
  const cloud=d4CloudCopyEnabled()?JSON.parse(localStorage.getItem(D4_CLOUD_COPY_KEY)||'null'):null;
- return cloud&&Array.isArray(cloud.banks)&&Array.isArray(cloud.entries)?cloud:null
+ const valid=x=>x&&Array.isArray(x.banks)&&Array.isArray(x.entries);
+ // The Lona iPhone PWA can hold an old local DIG UP import. A successful
+ // encrypted pair's DIG UP cloud snapshot must win over that stale import.
+ // The embedded DIG UP view still reads directly from its parent storage.
+ if(!digUpHost&&localStorage.getItem('d4-pair-link-v1')&&valid(cloud))return cloud;
+ if(valid(live))return live;
+ return valid(cloud)?cloud:null
 }catch(_){return null}}
 function d4Match(d,b){
  if(!d||!b)return null;
@@ -619,8 +624,68 @@ function syncLocalBalances(){
   const missing=!incoming.some(x=>String(x.id)===String(b.digupBankId));
   if(Boolean(b.digupInactive)!==missing){b.digupInactive=missing;changed=true}
  }
+ if(syncDigupLoans(d))changed=true;
  if(changed)save();
  return true
+}
+// DIG UP loans are not in Lona's native schema: DIG UP stores months/payments,
+// while Lona uses tenure/paid cycles. Mirror one way, never write to DIG UP.
+function syncDigupLoans(d){
+ if(!Array.isArray(d?.loans))return false;
+ let changed=false;
+ const ids=new Set();
+ const norm=x=>String(x||'').trim().toLowerCase().replace(/\s+/g,' ');
+ for(const src of d.loans){
+  if(!src||src.id==null||!String(src.id).trim()||!String(src.name||'').trim())continue;
+  const externalId=String(src.id),tenure=Number(src.months),principal=Number(src.principal),rate=Math.max(0,Number(src.annualRate)||0)/1200;
+  if(!Number.isInteger(tenure)||tenure<1||tenure>480)continue;
+  let emi=Number(src.emi);
+  if(!(emi>0)&&Number.isFinite(principal)&&principal>0)
+   emi=rate?principal*rate/(1-Math.pow(1+rate,-tenure)):principal/tenure;
+  if(!Number.isFinite(emi)||emi<=0)continue;
+  emi=Math.round(emi*100)/100;if(!(emi>0))continue;
+  ids.add(externalId);
+  const defaultId='digup-'+Array.from(externalId,c=>c.codePointAt(0).toString(16).padStart(4,'0')).join('');
+  let loan=state.loans.find(x=>x.digupLoanId===externalId);
+  if(!loan){
+   const candidates=state.loans.filter(x=>!x.digupLinked&&(!x.paid||x.paid.length===0)
+     &&norm(x.name)===norm(src.name)&&Number(x.tenure)===tenure
+     &&Math.abs(Number(x.emi)-emi)<0.01
+     &&(!x.firstDue||!src.firstDue||String(x.firstDue).slice(0,10)===String(src.firstDue).slice(0,10)));
+   if(candidates.length===1)loan=candidates[0];
+  }
+  if(!loan){loan={id:defaultId,paid:[]};state.loans.push(loan);changed=true}
+  const db=d.banks.find(b=>norm(b.name)===norm(src.bank));
+  const bank=db?state.banks.find(b=>String(b.digupBankId)===String(db.id)):null;
+  const payments=(Array.isArray(src.payments)?src.payments:[])
+    .filter(p=>p&&/^\d{4}-\d{2}-\d{2}$/.test(String(p.date||'').slice(0,10))
+      &&Number.isFinite(Number(p.amount))&&Number(p.amount)>0)
+    .slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const paid=[];let sum=0;
+  for(const p of payments){
+   sum+=Number(p.amount);
+   while(paid.length<tenure&&sum+0.009>=emi*(paid.length+1)){
+    const b=state.banks.find(x=>String(x.digupBankId)===String(p.bankId));
+    paid.push({cycle:paid.length+1,date:String(p.date).slice(0,10),amount:emi,
+      bankId:b?.id||bank?.id||loan.bankId||'',deducted:false,origin:'digup-linked'});
+   }
+  }
+  const freshLoan={
+   digupLoanId:externalId,digupLinked:true,
+   name:String(src.name).slice(0,60),lender:String(src.lender||src.bank||'').slice(0,80),
+   kind:loan.kind||'personal',bankId:bank?.id||loan.bankId||'',
+   principal:Number.isFinite(principal)&&principal>0?principal:null,
+   emi,tenure,
+   firstDue:/^\d{4}-\d{2}-\d{2}$/.test(String(src.firstDue||'').slice(0,10))
+     ?String(src.firstDue).slice(0,10):'',
+   source:'DIG UP auto-sync',paid
+  };
+  for(const [key,value] of Object.entries(freshLoan))
+   if(JSON.stringify(loan[key])!==JSON.stringify(value)){loan[key]=value;changed=true}
+ }
+ const oldLength=state.loans.length;
+ state.loans=state.loans.filter(x=>!x.digupLinked||ids.has(String(x.digupLoanId)));
+ return changed||state.loans.length!==oldLength;
 }
 function d4SyncStats(){
  const d=d4Store();if(!d)return {connected:false,banks:0,linked:0,transactions:state.digupBackupMeta?.entryCount||0,snapshot:!!state.digupBackupMeta};
@@ -955,7 +1020,7 @@ function currentDigupBankRows(){
  return linked.length?linked:state.banks.slice()
 }
 function bankRow(b){
- const d=d4Store(),source=d&&d4Match(d,b)?'DIG UP · Same-browser balance':b.note||'Manually recorded balance';
+ const d=d4Store(),source=d&&d4Match(d,b)?'DIG UP · Synced balance':b.note||'Manually recorded balance';
  return '<button type="button" class="glass bank-row" data-bank-detail="'+safe(b.id)+'" aria-label="Open '+safe(b.name)+' bank details">'
  +d47BankLogo(b)+'<span class="bank-name"><strong>'+safe(b.name)+'</strong><span class="small">'+safe(b.reserved?'Reserved · '+source:source)+'</span></span>'
  +'<span class="bank-amount">'+remainText(b.balance)+'</span><span class="bank-chevron" aria-hidden="true">›</span></button>'
@@ -992,7 +1057,7 @@ function digupLoanHistorySection(){
    return '<div class="digup-legacy-loan-row"><div><strong>'+safe(l.name)+'</strong><span>'+safe(l.lender||'DIG UP record')+principal+'</span></div><div><b>'+emi+'</b><small>'+paid+' payments recorded</small></div></div>';
  }).join('');
  return '<details class="glass digup-legacy-loans"><summary>Earlier DIG UP loans ('+loans.length+') · View separately</summary>'
- +'<p class="small">Read-only copies from DIG UP in this browser. These are not combined with your D47Lona EMI totals. To edit an earlier DIG UP loan, open DIG UP itself.</p>'
+ +'<p class="small">Linked DIG UP loans are visible in the main loan cards. Make loan and payment changes in DIG UP.</p>'
  +'<div class="digup-legacy-loans-list">'+rows+'</div>'
  +'<a href="../?section=loans" class="button secondary" style="display:inline-flex;align-items:center;justify-content:center;margin-top:10px">View in DIG UP</a></details>'
 }
@@ -1013,7 +1078,7 @@ function loansView(){
    <button type="button" class="button loan-clean-add" data-action="add-loan">${ico('add')} Add Loan</button>
   </div>
   <div class="loan-clean-list">${listed.length?listed.map(l=>loanCard(l)).join(''):`<div class="glass loan-clean-empty"><h2>${filter==='closed'?'No closed loans yet':'No active loans yet'}</h2><p class="sub">Only loans you add will appear here.</p><button type="button" class="button secondary" data-action="import" style="margin-top:15px">Restore my loan details</button></div>`}</div>
- ${digupLoanHistorySection()}
+ 
  </div>`
 }
 function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
@@ -1087,7 +1152,7 @@ function infoModal(title,body){return `<div class="modal-shade"><div class="moda
 function render(){document.body.dataset.d47Section=view==='detail'?'loans':view;document.body.classList.remove('d47-neon-mode');document.body.classList.add('d47-model-a');document.documentElement.dataset.theme=state.theme;const browserThemeColors={crystal:'#edf9f8',midnight:'#07172D',emerald:'#051F1B',royal:'#1A0B2E',gold:'#201809'};document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#eef5ff');let body=view==='home'?home():view==='loans'?loansView():view==='cycles'?cyclesView():view==='schedule'?scheduleView():view==='reminders'?remindersView():view==='settings'?settingsView():view==='detail'&&selectedLoan()?loanDetail(selectedLoan()):home();$('#app').innerHTML=`<div class="shell"><aside class="rail"><div class="brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div></div><div class="rail-label">YOUR FINANCES</div>${navItems()}<div class="rail-footer">${ico('shield')} Offline-first app<br/>App data stays on this device.<br/>${d4BrowserLinked()?'DIG UP same-browser link active.':'DIG UP cloud sync not connected.'}</div></aside><main class="main"><div class="mobile-brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div><span class="sync-indicator d47-sync-indicator d47-sync-${d47SyncState().color}" title="${safe(d47SyncState().description)}">${ico('shield')} ${safe(d47SyncState().label)}</span></div>${body}<div class="footspace"></div></main><nav class="mobile-nav" aria-label="Main navigation">${navItems(true)}</nav></div>${modal||''}`}
 function goto(name){view=name;detailId=null;modal=null;render();window.scrollTo({top:0,behavior:'instant'})}
 function openLoan(id){detailId=id;view='detail';cycleFilter='all';let l=selectedLoan();let next=cycles(l).findIndex(c=>!c.paid);cyclePage=next>=0?Math.floor(next/6):0;render();window.scrollTo({top:0,behavior:'instant'})}
-function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
+function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}if(l.digupLinked){notify('Linked EMI: record payments in DIG UP. Lona updates automatically.');return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
 function closeModal(){modal=null;render()}
 function exportJson(name,content,type='application/json'){const a=document.createElement('a'),blob=new Blob([content],{type}),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[data-open-loan],[data-theme-choose],[data-bank-detail]');if(!el)return;
@@ -1104,7 +1169,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
   delete state.salaries[ym];save();render();notify('Salary record deleted');return
  }
  if(el.dataset.pay){let [id,n]=el.dataset.pay.split(':');markPayment(id,Number(n));return}
- if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
+ if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(l.digupLinked){notify('Undo linked payments in DIG UP.');return}if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
  let bank=state.banks.find(x=>x.id===p.bankId),restored=false;
  if(p.deducted&&p.d4Id){try{restored=undoD4Emi(p,bank)}catch(_){notify('Could not update DIG UP. Undo cancelled to avoid inconsistent balances.');return}}
  if(p.deducted&&!restored&&bank)bank.balance=Number((bank.balance+p.amount).toFixed(2));
@@ -1125,7 +1190,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  switch(el.dataset.action){
  case 'salary-manage':salarySelectedMonth=today().slice(0,7);goto('settings');setTimeout(()=>document.getElementById('salary-journal')?.scrollIntoView({behavior:'smooth',block:'start'}),80);break;
  case 'add-loan':modal=addForm();render();break;
- case 'edit-loan':modal=addForm(selectedLoan());render();break;
+ case 'edit-loan':if(selectedLoan()?.digupLinked){notify('Edit this linked loan in DIG UP.');break}modal=addForm(selectedLoan());render();break;
  case 'close-modal':closeModal();break;
  case 'back-loans':goto('loans');break;
  case 'privacy':state.hideMoney=!state.hideMoney;save();render();break;
@@ -1144,7 +1209,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  case 'export-digup':{let data=state.ledger.filter(x=>x.type==='emi').map(x=>({externalId:x.id,source:'D47Lona',transactionType:'Expense',category:'Loan EMI',loanId:x.loanId,amount:x.amount,bankId:x.bankId,date:x.date,description:x.label}));exportJson(`D47Lona-DIGUP-entries-${today()}.json`,JSON.stringify({note:'For manual integration; not imported into DIG UP automatically',entries:data},null,2));notify('DIG UP-compatible local entries exported');break}
  case 'import':chooseRestoreJson();break;
  case 'reset':if(confirm('Reset all local loans and payments to the initial loan data? This cannot be undone without a backup.')){state=fresh();save();goto('home');notify('Initial data restored')}break;
- case 'delete-loan':{const l=selectedLoan();if(!l)return;if(l.paid.some(x=>x.deducted)){notify('Undo locally recorded payments before deleting this loan.');return}if(confirm(`Delete ${l.name}? This will remove its schedule and payment history.`)){state.loans=state.loans.filter(x=>x.id!==l.id);save();goto('loans');notify('Loan deleted')}break}
+ case 'delete-loan':{const l=selectedLoan();if(!l)return;if(l.digupLinked){notify('Remove this linked loan in DIG UP.');break}if(l.paid.some(x=>x.deducted)){notify('Undo locally recorded payments before deleting this loan.');return}if(confirm(`Delete ${l.name}? This will remove its schedule and payment history.`)){state.loans=state.loans.filter(x=>x.id!==l.id);save();goto('loans');notify('Loan deleted')}break}
  case 'calendar-export':{
   const escapeIcs=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
   const toIcsDate=d=>d.replaceAll('-','');
@@ -1182,11 +1247,13 @@ function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)r
  salarySelectedMonth=ym;save();render();notify('Salary for '+monthName(ym)+' saved');return
 }
  if(form.dataset.form==='loan'){
+ if(state.loans.some(x=>x.id===obj.id&&x.digupLinked)){notify('Edit linked loans in DIG UP.');return}
  let principal=obj.principal!==''?Number(obj.principal):null,credited=obj.credited!==''?Number(obj.credited):null,emi=Number(obj.emi),tenure=Number(obj.tenure);if(!obj.name.trim()||!(emi>0)||!Number.isInteger(tenure)||tenure<1||tenure>480)return notify('Please check name, EMI and duration');
  const old=state.loans.find(x=>x.id===obj.id);if(old&&old.paid.length&&((old.firstDue||'')!==(obj.firstDue||'')||old.tenure!==tenure||old.emi!==emi)){if(!confirm('Changing schedule details can make past payment dates or amounts inconsistent. Continue?'))return}
  const newLoan={id:old?.id||`loan-${Date.now()}`,name:obj.name.trim().slice(0,60),kind:obj.kind,bankId:obj.bankId,lender:obj.lender.trim(),principal,credited,emi,tenure,firstDue:obj.firstDue||'',source:old?.source||'Manually entered',schedule:old?.schedule||undefined,paid:old?.paid||[]};
  if(old){state.loans=state.loans.map(x=>x.id===old.id?newLoan:x)}else state.loans.push(newLoan);save();modal=null;openLoan(newLoan.id);notify(old?'Loan details updated':'Loan added');return}
  if(form.dataset.form==='payment'){
+ if(state.loans.some(x=>x.id===obj.loanId&&x.digupLinked)){notify('Record linked EMIs in DIG UP.');return}
  const l=state.loans.find(x=>x.id===obj.loanId),n=Number(obj.cycle),c=l&&cycles(l).find(x=>x.num===n);
  if(!l||!c)return notify('Payment could not be recorded');
  if(isPaid(l,n)){modal=null;render();return notify('This EMI is already marked paid')}
