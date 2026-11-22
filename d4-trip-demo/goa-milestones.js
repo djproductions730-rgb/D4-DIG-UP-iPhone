@@ -229,14 +229,14 @@
       return '<article class="d4-ms-item '+status+'" data-goa-step-id="'+htmlSafe(p.id)+'" '+(p===next?'data-goa-next="true"':'')+'>'+
         '<div class="d4-ms-rail" aria-hidden="true"><span class="d4-ms-num">'+(p.done?'✓':String(i+1))+'</span><i></i></div>'+
         '<div class="d4-ms-card"><div class="d4-ms-top">'+symbol+'<div class="d4-ms-copy"><span class="d4-ms-time">'+htmlSafe(time)+'</span><h3>'+htmlSafe(p.title)+'</h3><p>'+htmlSafe(p.place||'Location to be decided')+'</p></div></div>'+
-        '<div class="d4-ms-bottom"><span class="d4-ms-status">'+(status==='done'?'✓ Completed':status==='next'?'● Next stop':'○ Upcoming')+'</span>'+
+        '<details class="neon-stop-tools"'+(admin&&inlineEditor?.afterId===p.id?' open':'')+'><summary>Stop details</summary><div class="d4-ms-bottom"><span class="d4-ms-status">'+(status==='done'?'✓ Completed':status==='next'?'● Next stop':'○ Upcoming')+'</span>'+
         (admin?'<div class="d4-ms-actions"><button type="button" data-action="plan-edit" data-id="'+htmlSafe(p.id)+'" aria-label="Edit '+htmlSafe(p.title)+'">Edit details</button><button type="button" class="d4-ms-check" data-action="plan-toggle" data-id="'+htmlSafe(p.id)+'" aria-label="'+(p.done?'Undo completion for ':'Mark complete: ')+htmlSafe(p.title)+'">'+(p.done?'↶ Undo':'✓ '+(status==='next'?'Complete & Next':'Complete'))+'</button></div>':'')+'</div>'+
         (admin?'<div class="d4-ms-inline-buttons"><button type="button" data-goa-action="time" data-id="'+htmlSafe(p.id)+'">🕒 Edit time</button><button type="button" data-goa-action="add" data-id="'+htmlSafe(p.id)+'">＋ Add below</button></div>':'')+
         (admin&&inlineEditor&&inlineEditor.tripId===t.id&&inlineEditor.date===daySelected&&inlineEditor.afterId===p.id
-          ?renderInlineEditor(t,ordered,i,p):'')+'</div></article>';
+          ?renderInlineEditor(t,ordered,i,p):'')+'</details></div></article>';
     }).join('')+'</div>':
       '<div class="empty bright-empty"><div class="emoji">🧭</div><h3>Your next adventure starts here</h3><p>Admins can add day-wise journey milestones.</p></div>';
-    const bottomButton=admin?'<div class="d4-ms-add-next"><button type="button" data-goa-action="add" data-id="'+(ordered.length?htmlSafe(ordered[ordered.length-1].id):'')+'">＋ Add Next Milestone</button><p>New stop stays below the previous one · time continues from your schedule.</p></div>':'';
+    const bottomButton=admin?'<div class="d4-ms-add-next"><button type="button" data-goa-action="add" data-id="'+(ordered.length?htmlSafe(ordered[ordered.length-1].id):'')+'">＋ Add Stop</button><p>New stop stays below the previous one · time continues from your schedule.</p></div>':'';
     const firstEditor=admin&&ordered.length===0&&inlineEditor&&inlineEditor.tripId===t.id&&inlineEditor.date===daySelected
       ?renderInlineEditor(t,ordered,-1,null):'';
     return before+importButton+progress+timeline+bottomButton+firstEditor+original.slice(end);
