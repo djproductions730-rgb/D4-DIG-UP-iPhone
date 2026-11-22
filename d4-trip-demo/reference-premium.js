@@ -145,7 +145,7 @@
   }
   home=function(){
     const t=current();
-    return t?tripHero(t):previous.home();
+    return t&&(teamId||isMain())?tripHero(t):previous.home();
   };
   // Keep all nine destinations visible by default; Hide only collapses the grid.
   // This preference lives locally and never writes to a trip or Firebase.
