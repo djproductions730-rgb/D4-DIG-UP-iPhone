@@ -93,25 +93,22 @@
       '<h2>'+html(t.name)+'</h2><p>📍 '+html(t.destination)+' · '+html(shortDate(t.start))+' — '+html(shortDate(t.end))+'</p>'+
       '<div class="ref-hero-stats ref-luxe-stats">'+
         '<div><span class="ref-luxe-stat-icon">'+luxeIcon('members')+'</span><b>'+t.members.length+'</b><small>Members</small></div>'+
-        '<div><span class="ref-luxe-stat-icon">'+luxeIcon('check')+'</span><b>'+money(c.paid)+'</b><small>Received</small></div>'+
-        '<div><span class="ref-luxe-stat-icon">'+luxeIcon('hourglass')+'</span><b>'+money(c.pending)+'</b><small>Pending</small></div></div>'+
+        ''+
+        '</div>'+
       '<nav class="ref-hero-actions ref-luxe-actions" aria-label="Main trip sections">'+
         iconButton(luxeIcon('calendar'),'Day Plan','open-tab','data-ctx="plan"')+
         iconButton('<svg class="ref-luxe-svg ref-ticket-svg" viewBox="0 0 100 100" role="img" aria-label="Golden travel tickets" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="d4tgold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff3b0"/><stop offset=".48" stop-color="#ffbf32"/><stop offset="1" stop-color="#cc7617"/></linearGradient><linearGradient id="d4tred" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb4ad"/><stop offset="1" stop-color="#d84665"/></linearGradient></defs><g transform="rotate(-17 53 48)"><path d="M25 8H85V26Q76 28 76 36T85 46V73H25V57Q34 55 34 47T25 37Z" fill="url(#d4tred)" stroke="#ffd5d2" stroke-width="2"/></g><g transform="rotate(-12 47 59)"><path d="M8 27H90V45Q81 48 81 55T90 65V87H8V69Q17 66 17 58T8 47Z" fill="url(#d4tgold)" stroke="#fff3b1" stroke-width="2.5"/><path d="M23 37H74" stroke="#9c4b0d" stroke-width="2" stroke-dasharray="4 3"/><text x="49" y="55" text-anchor="middle" font-size="13" font-weight="900" fill="#7c3d0b">TICKET</text><path d="M27 64l9 5 11-12-5 16 9 6-17-2-8 6 3-13Z" fill="#e34c38"/><path d="M61 64v14m4-14v14m4-14v14m4-14v14m4-14v14" stroke="#663b16" stroke-width="2"/></g><path d="M10 18l2-7 2 7 7 2-7 2-2 7-2-7-7-2Z" fill="#ffe8a1"/></svg>','Tickets','nav','data-view="tickets"')+
         iconButton(luxeIcon('memories'),'Memories','open-tab','data-ctx="memories"')+
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
-        iconButton(luxeIcon('expenses'),'Expenses','nav','data-view="expenses"')+'</nav>'+
-      '<section class="ref-luxe-tracker" aria-label="Trip payments circular tracker">'+
-        '<div class="ref-luxe-tracker-title"><span class="ref-luxe-coins">'+luxeIcon('coins')+'</span><h3>Trip Payments</h3><span class="ref-luxe-tracker-tag">'+pc+'%</span></div>'+
-        '<div class="ref-luxe-money-grid">'+
-          '<div class="ref-luxe-money-side"><span class="ref-luxe-mini-icon">'+luxeIcon('check')+'</span><small>Received</small><strong>'+money(c.paid)+'</strong></div>'+
-          '<div class="ref-luxe-dial" style="--luxe-percent:'+p+'%" role="progressbar" aria-label="Trip payment collection" aria-valuenow="'+pc+'" aria-valuemin="0" aria-valuemax="100">'+
-            '<div class="ref-luxe-dial-inner"><strong>'+pc+'%</strong><span>COLLECTED</span><span class="ref-luxe-dial-art" aria-hidden="true">✦</span></div></div>'+
-          '<div class="ref-luxe-money-side"><span class="ref-luxe-mini-icon">'+luxeIcon('hourglass')+'</span><small>Pending</small><strong>'+money(c.pending)+'</strong></div></div>'+
-        '<div class="ref-luxe-target">'+luxeIcon('target')+'<span>Trip Target <b>'+money(c.target)+'</b></span></div>'+
-        '<p class="ref-hero-foot">'+days+' trip days · Amounts update from your saved member payments</p>'+
-      '</section></section>';
+        iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+'</nav>'+
+      '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
+        '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
+        '<span class="neon-meter"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
+        '<strong class="neon-meter-number">'+pc+'% collected</strong>'+
+        '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
+      '</button><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
+
   }
   function memberAmountPanel(t){
     const c=collectionTotals(t),canEdit=isTripAdmin(t);
@@ -131,7 +128,7 @@
   }
   home=function(){
     const t=current(),legacy=previous.home();
-    return t?memberAmountPanel(t)+legacy:legacy;
+    return t?tripHero(t)+legacy:legacy;
   };
   // Keep all nine destinations visible by default; Hide only collapses the grid.
   // This preference lives locally and never writes to a trip or Firebase.
@@ -179,7 +176,7 @@
   tripOverview=function(t){
     if(!t)return previous.tripOverview(t);
     const legacy=previous.tripOverview(t).replace(/<h3 class="d4p-title">Trip Sections<\/h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">[\s\S]*?<\/nav>/,'');
-    return tripHero(t)+memberAmountPanel(t)+tripSections()+
+    return tripHero(t)+
       '<details class="ref-expand-tools"><summary>✨ More Trip Tools &amp; Admin Options <span>⌄</span></summary>'+
       '<div class="ref-tool-body">'+legacy+'</div></details>';
   };
@@ -320,20 +317,24 @@
     const members=(t.members||[]).map(name=>{
       const role=memberRole(t,name);
       const amounts=balances.find(row=>row.member===name);
+      const payButton=canEdit?'<button type="button" class="neon-pay-add" data-action="member-payment-add" data-member="'+html(name)+'">+ Payment</button>':'';
+      const editButton=canEdit?'<button type="button" class="neon-edit-person" data-action="collection-member-total" data-member="'+html(name)+'">Edit paid</button>':'';
+      const removeButton=isMain()&&!['D','Karthik'].includes(name)?'<button type="button" class="neon-remove" data-action="remove-member" data-member="'+html(name)+'">Remove</button>':'';
       return '<article class="ref-person" data-ref-person="'+html(String(name).toLocaleLowerCase())+'">'+
         '<span class="ref-person-avatar" aria-hidden="true">'+html(String(name).slice(0,1).toUpperCase())+'</span>'+
         '<div><strong>'+html(name)+'</strong>'+roleBadge(role)+
         (amounts?'<small class="ref-person-finance">Paid '+money(amounts.paid)+' · Due '+money(amounts.pending)+'</small>':'')+'</div>'+
-        (canEdit?'<button type="button" class="ref-edit-paid" data-action="collection-member-total" data-member="'+html(name)+'" aria-label="Edit amount for '+html(name)+'">✎ Edit</button>':'<span class="ref-person-arrow" aria-hidden="true">›</span>')+'</article>';
+        '<div class="neon-member-actions">'+payButton+editButton+removeButton+'</div></article>';
     }).join('');
     const editors=(t.admins||[]).length;
     return '<section class="ref-members-head"><span class="ref-overline">✦ YOUR PEOPLE</span><h2>Members <em>('+t.members.length+')</em></h2>'+
       '<p>Everyone in your trip, together.</p>'+
       '<div class="ref-member-counts"><span>👥 All '+t.members.length+'</span><span>🛡️ Admins '+editors+'</span></div>'+
+      (canEdit?'<button class="neon-add-member" data-action="modal-add-member">+ Add Member</button>':'')+
       '<label class="ref-member-search">⌕ <input type="search" id="ref-member-search" placeholder="Search member..." aria-label="Search members"></label></section>'+
       '<section class="ref-person-list" id="ref-person-list">'+(members||'<div class="ref-empty">No members yet.</div>')+'</section>'+
       '<details class="ref-expand-tools"><summary>👥 Member Management &amp; Cloud Roster <span>⌄</span></summary>'+
-      '<div class="ref-tool-body">'+previous.tripMembers(t)+'</div></details>';
+      '<div class="ref-tool-body">'+(window.D4Team?.controls(t)||'')+archivedMembersPanel(t)+(isMain()?'<button class="btn small" data-action="modal" data-modal="assign-admin">Manage Trip Admins</button>':'')+'</div></details>';
   };
   expensesPage=function(){
     const t=current();
@@ -393,7 +394,6 @@
     const items=[
       mobileItem(navSvg('home'),'Home','open-tab','data-ctx="overview"',view==='trip'&&tripTab==='overview'),
       mobileItem(navSvg('calendar'),'Day Plan','open-tab','data-ctx="plan"',view==='trip'&&tripTab==='plan'),
-      '<button type="button" class="ref-nav-plus" data-ref-action="toggle-plus" aria-label="'+(canEdit?'Add trip item':'Explore trip sections')+'" aria-expanded="'+(quickPanel==='plus')+'"><span>＋</span></button>',
       '<button type="button" class="ref-nav-item'+(quickPanel==='more'?' active':'')+'" data-ref-action="toggle-more" aria-label="More sections" aria-expanded="'+(quickPanel==='more')+'"><span class="ref-nav-icon">'+navSvg('more')+'</span><small>More</small></button>'
     ];
     let overlay='';
