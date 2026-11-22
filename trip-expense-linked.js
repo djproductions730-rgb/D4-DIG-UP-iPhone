@@ -40,17 +40,17 @@
   const selectedPlan=initialIndex>=0&&isTrip(data.plans[initialIndex])?initialIndex:data.plans.findIndex(isTrip);
   const options=choosePlan(),bankOptions=pickBank();
   showSheet(existing?'✎ Re-Edit Trip Expense':'✦ New Trip Expense','<form id="trip-linked-form" class="trip-edit-form">'+
-    '<p class="trip-note">New trip expenses update both the plan and the selected bank balance. Earlier expenses are not imported or charged again.</p>'+
+    '<div class="trip-modal-banner"><span>🏝️</span><div><b>Goa · Add Trip Expense</b><small>Saved to Trip Journal, Transactions & Bank</small></div></div>'+
     '<label class="field">Trip Plan<select name="plan" required>'+options+'</select></label>'+
-    '<label class="field">Category<select name="category" required>'+categories()+'</select></label>'+
+    '<label class="field">Category *</label><div class="trip-category-grid" role="group" aria-label="Trip expense category">'+CATEGORIES.map((c,j)=>'<label class="trip-category-tile"><input type="radio" name="category" value="'+escape(c)+'" '+((existing?e.tripCategory===c:j===0)?'checked':'')+' required><span class="trip-category-emoji">'+({'Food & Drinks':'🍴','Snacks':'🍿','Train Snacks':'🚆','Shopping & Accessories':'🛍️','Travel & Transport':'🚐','Hotel & Stay':'🛏️','Activities':'🌴','Tickets':'🎟️','Other':'•••'}[c])+'</span><span>'+escape(c)+'</span></label>').join('')+'</div>'+
     '<label class="field">Bank Account<select name="bank" required>'+bankOptions+'</select></label>'+
     '<label class="field">Amount (₹)<input name="amount" type="number" min="0.01" max="100000000000" step="0.01" required value="'+(existing?Number(e.amount):'')+'"></label>'+
     '<label class="field">Date<input name="date" type="date" required value="'+escape(existing?(e.date||stamp()):stamp())+'"></label>'+
-    '<label class="field">Note<input name="note" maxlength="200" value="'+escape(existing?e.note:'')+'"></label>'+
-    '<div class="error" role="alert"></div><button class="button" type="submit" style="width:100%;min-height:48px;background:#e9be8d;color:#25152b;font-weight:850">Save Trip Expense</button></form>');
+    '<label class="field">Description / Note<input name="note" maxlength="200" placeholder="e.g. Lunch at Calangute" value="'+escape(existing?e.note:'')+'"></label>'+
+    '<div class="error" role="alert"></div><button class="button" type="submit" style="width:100%;min-height:48px;background:linear-gradient(105deg,#ff83ac,#c84bf5);color:#20112c;font-weight:850">Save Trip Expense</button></form>');
   const form=document.getElementById('trip-linked-form');
   form.elements.plan.value=String(selectedPlan);
-  if(existing){form.elements.category.value=CATEGORIES.includes(e.tripCategory)?e.tripCategory:'Other';form.elements.bank.value=String(e.bankId)}
+  if(existing){const cat=form.querySelector('input[name=category][value="'+(CATEGORIES.includes(e.tripCategory)?e.tripCategory:'Other')+'"]');if(cat)cat.checked=true;form.elements.bank.value=String(e.bankId)}
   form.onsubmit=ev=>{
    ev.preventDefault();
    const error=form.querySelector('[role=alert]');
