@@ -59,7 +59,7 @@ test('Home shortcuts open the existing sections and quick editors',()=>{
  const {show}=setup();
  const actions=show().match(/<nav class="ref-hero-actions ref-luxe-actions"[\s\S]*?<\/nav>/)?.[0];
  assert.ok(actions);
- assert.equal((actions.match(/class="ref-action"/g)||[]).length,7);
+ assert.equal((actions.match(/class="ref-action"/g)||[]).length,8);
  for(const action of ['data-ctx="plan"','data-view="tickets"','data-ctx="memories"','data-ctx="members"','data-view="collections"','data-action="quick-expense"','data-action="paid-by-person"'])assert.ok(actions.includes(action),action);
 });
 

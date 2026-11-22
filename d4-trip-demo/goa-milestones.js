@@ -225,7 +225,7 @@
     const timeline=ordered.length?'<div class="d4-ms-track" aria-label="Milestone checklist">'+ordered.map((p,i)=>{
       const status=p.done?'done':p===next?'next':'pending';
       const icon=iconFor(p),visual=artFor(p),time=p.goaTimeLabel|| (p.time?ampm(p.time):'Time flexible');
-      const symbol='<span class="d4-ms-symbol">'+(visual?'<img src="'+visual+'" alt="" loading="lazy" decoding="async" />':'')+'<span aria-hidden="true">'+htmlSafe(icon)+'</span></span>';
+      const symbol=typeof planCategoryGraphic==='function'?'<span class="d4-ms-symbol neon-stop-symbol">'+planCategoryGraphic(p)+'</span>':'<span class="d4-ms-symbol">'+(visual?'<img src="'+visual+'" alt="" loading="lazy" decoding="async" />':'')+'<span aria-hidden="true">'+htmlSafe(icon)+'</span></span>';
       return '<article class="d4-ms-item '+status+'" data-goa-step-id="'+htmlSafe(p.id)+'" '+(p===next?'data-goa-next="true"':'')+'>'+
         '<div class="d4-ms-rail" aria-hidden="true"><span class="d4-ms-num">'+(p.done?'✓':String(i+1))+'</span><i></i></div>'+
         '<div class="d4-ms-card"><div class="d4-ms-top">'+symbol+'<div class="d4-ms-copy"><span class="d4-ms-time">'+htmlSafe(time)+'</span><h3>'+htmlSafe(p.title)+'</h3><p>'+htmlSafe(p.place||'Location to be decided')+'</p></div></div>'+

@@ -445,3 +445,29 @@ body.d4-premium .home-expense-history{margin:12px 0;padding:12px;border:1px soli
 .home-expense-row :is(strong,small){display:block;overflow-wrap:anywhere}
 .home-expense-row small{color:#b6ccd8}
 .home-expense-row>b{color:#ffcd91;white-space:nowrap}
+
+/* Equal shortcuts and a full-width neon payments gauge. */
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-actions.ref-luxe-actions{
+  flex:0;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,minmax(64px,auto))!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action{
+  min-height:68px!important;align-self:stretch!important;border-color:var(--trip-tile-edge,#357184)!important;
+  background:linear-gradient(155deg,var(--trip-tile-base,#133543),#101a2a 78%)!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action:nth-child(2n){--trip-tile-base:#263252;--trip-tile-edge:#6963aa}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action:nth-child(3n){--trip-tile-base:#213a32;--trip-tile-edge:#528b63}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action:nth-child(4n){--trip-tile-base:#402944;--trip-tile-edge:#9b649b}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action strong{font-size:clamp(10px,2.8vw,13px)!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payments{
+  flex:1;margin-top:10px;padding:12px;gap:5px;min-height:185px;
+  background:radial-gradient(ellipse at 50% 12%,#133f54,transparent 70%),#101f2d!important;
+  border-color:#60c7c2!important;box-shadow:inset 0 0 20px #159c9f25;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter{width:min(58vw,226px);color:#c6ff5a}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-heading{font-size:16px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-heading>span{font-size:11px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-number{font-size:19px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-values>span{font-size:13px}
+body.d4-premium .plan-ui .neon-stop-symbol{display:grid!important;place-items:center}
+body.d4-premium .plan-ui .neon-stop-symbol .expense-category-art{width:40px;height:40px}

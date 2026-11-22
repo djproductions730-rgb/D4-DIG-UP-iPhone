@@ -17,6 +17,7 @@
     Members:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v2"/>',
     Payments:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18m-14 5h4"/>',
     Expenses:'<path d="M5 3h14v17l-2-1-2 1-3-1-3 1-2-1-2 1zM8 8h8m-8 4h8m-8 4h5"/>',
+    'Expense History':'<path d="M3 12a9 9 0 1 1 3 7m-3-7V6m0 6h6m3-5v5l3 2"/>',
     'Paid by Person':'<circle cx="8" cy="8" r="3"/><path d="M2 20v-2a6 6 0 0 1 10-4m2-7h8m-8 3h8m-5-3q6 6-3 6l6 6"/>'
   };
   function iconButton(icon,label,action,attr=''){
@@ -100,15 +101,6 @@
     return '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
         '<strong class="neon-meter-number">'+pc+'% collected</strong>';
   }
-  function recentExpenses(t){
-    const rows=(t.expenses||[]).slice().reverse().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,5);
-    return '<section class="home-expense-history" aria-label="Expense History"><header><h3>Expense History</h3>'+
-      '<button type="button" data-action="open-tab" data-ctx="expenses">View all ›</button></header>'+
-      (rows.map(e=>'<article class="home-expense-row">'+expenseCategoryGraphic(e.category)+
-        '<div><strong>'+html(e.note||e.category||'Expense')+'</strong><small>'+
-        [e.category,e.paidBy?'Paid by '+e.paidBy:'',e.date?shortDate(e.date):''].filter(Boolean).map(html).join(' · ')+'</small></div>'+
-        '<b>'+money(e.amount)+'</b></article>').join('')||'<p>No expenses recorded yet.</p>')+'</section>';
-  }
   function tripHero(t){
     const c=collectionTotals(t);
     const days=datesInTrip(t).length;
@@ -129,11 +121,12 @@
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
         iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+
+        iconButton(luxeIcon('expenses'),'Expense History','open-tab','data-ctx="expenses"')+'</nav>'+
       '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
         paymentGauge(p)+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
-      '</button></nav><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>'+recentExpenses(t);
+      '</button><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
 
   }
   function memberAmountPanel(t){

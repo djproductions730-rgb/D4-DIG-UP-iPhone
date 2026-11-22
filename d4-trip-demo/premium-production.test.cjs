@@ -195,9 +195,9 @@ assert.doesNotMatch(dashboard,/d4-home-join-requests|data-join-decision/,'Dashbo
 assert.match(dashboard,/Trip Payments/);
 assert.match(dashboard,/ref-hero-actions/);
 const navTiles=(dashboard.match(/data-action="(?:open-tab|nav)"[^>]+class=/g)||[]);
-assert.equal((dashboard.match(/class="ref-action"/g)||[]).length,7,'Only approved home shortcuts appear');
+assert.equal((dashboard.match(/class="ref-action"/g)||[]).length,8,'Only approved home shortcuts appear');
 assert.match(dashboard, /data-view="tickets"/,'Tickets remains a working navigation target');
-for(const section of ['Day Plan','Tickets','Memories','Members','Payments','Expenses','Paid by Person','Trip Report PDF'])assert.ok(dashboard.includes(section),section+' missing');
+for(const section of ['Day Plan','Tickets','Memories','Members','Payments','Expenses','Paid by Person','Expense History','Trip Report PDF'])assert.ok(dashboard.includes(section),section+' missing');
 assert.doesNotMatch(dashboard,/Split & Settle|Split Costs/);
 assert.match(css,/d4p-nav-grid\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
 assert.match(dashboard,/Members/);
