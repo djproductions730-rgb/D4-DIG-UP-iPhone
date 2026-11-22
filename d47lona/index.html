@@ -962,15 +962,29 @@ function syncDigupLoans(d){
     .filter(p=>p&&/^\d{4}-\d{2}-\d{2}$/.test(String(p.date||'').slice(0,10))
       &&Number.isFinite(Number(p.amount))&&Number(p.amount)>0)
     .slice().sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-  const paid=[];let sum=0;
+  const paid=[], explicit=new Set(payments.filter(p=>Number.isSafeInteger(p.cycle)&&p.cycle>0&&p.cycle<=tenure).map(p=>p.cycle));
+  function paidCycle(p,cycle){
+   const b=state.banks.find(x=>String(x.digupBankId)===String(p.bankId));
+   paid.push({cycle,date:String(p.date).slice(0,10),amount:emi,
+    bankId:b?.id||bank?.id||loan.bankId||'',deducted:!!p.txId||d.entries.some(e=>e.id===p.reference&&p.reference),
+    paymentId:(p.local===true||p.source==='D47Lona')?(p.id??p.reference):undefined,origin:'digup-linked'});
+  }
+  let sum=-payments.filter(p=>explicit.has(p.cycle)).reduce((total,p)=>total+(p.legacyCoverageCents||0),0),next=1;
   for(const p of payments){
-   sum+=Number(p.amount);
-   while(paid.length<tenure&&sum+0.009>=emi*(paid.length+1)){
-    const b=state.banks.find(x=>String(x.digupBankId)===String(p.bankId));
-    paid.push({cycle:paid.length+1,date:String(p.date).slice(0,10),amount:emi,
-      bankId:b?.id||bank?.id||loan.bankId||'',deducted:false,origin:'digup-linked'});
+   if(explicit.has(p.cycle)){
+    if(!paid.some(row=>row.cycle===p.cycle))paidCycle(p,p.cycle);
+    continue;
+   }
+   sum+=Math.round(Number(p.amount)*100);
+   while(sum>=Math.round(emi*100)&&next<=tenure){
+    if(!explicit.has(next)){
+     paidCycle(p,next);
+     sum-=Math.round(emi*100);
+    }
+    next++;
    }
   }
+  paid.sort((a,b)=>a.cycle-b.cycle);
   const freshLoan={
    digupLoanId:externalId,digupLinked:true,
    name:String(src.name).slice(0,60),lender:String(src.lender||src.bank||'').slice(0,80),
@@ -1421,6 +1435,7 @@ function bankDetailModal(id){
  +'<div class="bank-detail-balance"><small>Recorded balance · Not a live bank account</small><strong>'+remainText(b.balance)+'</strong></div>'
  +(b.reserved?'<div class="notice warn">This bank balance is reserved.</div>':'')
  +(db?'<p class="small" style="margin-top:12px">'+entries.length+' DIG UP entries in this browser</p>':'<div class="notice">No linked DIG UP data in this browser. Import DIG UP backup or open DIG UP in the same Safari browser.</div>')
+ +(db?'<form data-form="linked-bank-balance"><input type="hidden" name="bankId" value="'+safe(db.id)+'"><input type="hidden" name="before" value="'+safe(db.balance)+'"><label class="field">Recorded balance (₹)<input name="balance" type="number" step="0.01" required value="'+safe(db.balance)+'"></label><button class="button" type="submit">Update linked balance</button></form>':'')
  +(details?'<h3 class="bank-detail-heading">Recent activity</h3><div class="bank-statement">'+details+'</div>':'')
  +'<p class="footnote" style="margin:16px 0">This app does not connect to your bank directly. Verify your recorded balance against your statement.</p>'
  +'<div class="button-group"><button class="button secondary" data-action="sync-now">Sync Now</button><button class="button secondary" data-action="import-digup">Import DIG UP Backup</button></div></div></div>'
@@ -1644,21 +1659,10 @@ async function saveLinkedLoanEdit(form, values, id) {
  savingLinkedLoan=true;
  if(button)button.disabled=true;
  try{
-  let updatePairedDigupLedger;
-  if(edit.pairLink){
-   ({updatePairedDigupLedger}=await import('../finance-sync/pair-sync.mjs?v=lona-loan-edit-1'));
-  }
   async function saveAgainst(source){
    const currentLink=digUpHost?null:localStorage.getItem('d4-pair-link-v1');
    if(currentLink!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
-   const apply=ledger=>applyLinkedLoanPatch(ledger,{...edit,source},patch,preferredBank);
-   if(updatePairedDigupLedger){
-    await updatePairedDigupLedger(apply);
-   }else{
-    const ledger=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
-    if(apply(ledger))digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(ledger));
-    syncLocalBalances();
-   }
+   await mutateLinkedDigup(ledger=>applyLinkedLoanPatch(ledger,{...edit,source},patch,preferredBank));
   }
   try{
    await saveAgainst(edit.source);
@@ -1696,14 +1700,49 @@ function quickMoneySection(){
  const rows=state.ledger.filter(x=>x.type==='income'||x.type==='expense').slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,6);
  return '<section class="glass d47-money-quick"><div class="section-title"><h2>Income & Expenses</h2></div><div class="button-group"><button class="button" data-action="quick-income">+ Add Income</button><button class="button secondary" data-action="quick-expense">− Add Expense</button></div><div class="small" style="margin:10px 0">Lona activity only · bank balances unchanged</div>'+rows.map(x=>'<div class="list-tile"><div class="body"><strong>'+safe(x.label)+'</strong><div class="small">'+fmtDate(x.date)+'</div></div><div class="money">'+(x.type==='income'?'+':'−')+money(x.amount)+'</div><button class="text-btn" data-quick-delete="'+safe(x.id)+'">Delete</button></div>').join('')+'</section>';
 }
-function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!record;return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="EMI payment"><div class="modal-title"><h2>${record?'Payment details':'Mark EMI as paid'}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><div class="modal-summary"><div class="flex-between"><strong>${safe(l.name)}</strong><span class="badge">Cycle ${c.num} / ${l.tenure}</span></div><div style="font-size:30px;font-weight:850;margin:12px 0 5px">${money(c.amount)}</div><div class="small">Due ${fmtDate(c.date)} · Closing ${closing(l)}</div></div>
+function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!record&&(!l.digupLinked||!!record.paymentId);return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="EMI payment"><div class="modal-title"><h2>${record?'Payment details':'Mark EMI as paid'}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><div class="modal-summary"><div class="flex-between"><strong>${safe(l.name)}</strong><span class="badge">Cycle ${c.num} / ${l.tenure}</span></div><div style="font-size:30px;font-weight:850;margin:12px 0 5px">${money(c.amount)}</div><div class="small">Due ${fmtDate(c.date)} · Closing ${closing(l)}</div></div>
  ${record?`<div class="notice">${ico('check')}${record.origin==='historical-estimate'?'This older cycle was imported as paid from your earlier details. Verify it against your bank statement.':'Marked paid on '+fmtDate(record.date)+'. '+(record.deducted?'Local bank balance deducted.':'No local bank deduction was recorded.')}</div>${undoable?`<button class="button danger full" data-undo="${l.id}:${c.num}" style="margin-top:14px">${ico('refresh')} ${record.origin==='historical-estimate'?'Unmark imported paid':'Undo payment'}</button>`:''}`:
  `<form data-form="payment"><input type="hidden" name="loanId" value="${l.id}"/><input type="hidden" name="cycle" value="${c.num}"/><div class="field"><label for="paid-date">Date paid *</label><input id="paid-date" name="paidDate" type="date" required value="${today()}" /></div><div class="field"><label for="pay-bank">Paid from bank *</label><select id="pay-bank" name="bankId">${state.banks.map(b=>`<option value="${b.id}" ${b.id===l.bankId?'selected':''}>${safe(b.name)}${b.reserved?' · reserved for trip':''}</option>`).join('')}</select></div><label class="toggle-row" style="border:1px solid #d5e8e7;border-radius:13px;margin-bottom:15px;cursor:pointer"><div class="body"><strong>Record local bank deduction</strong><div class="small">Subtract this EMI once from the selected local balance and add a ledger entry.</div></div><input style="width:20px;height:20px;accent-color:#0baf8c" type="checkbox" name="deduct" checked /></label><div class="notice warn" style="margin-bottom:15px">${ico('info')} This never sends real money. On the same GitHub Pages domain, a linked DIG UP record is updated once. Otherwise, local balance only. Turn off deduction if already recorded elsewhere.</div><button class="button full" type="submit">${ico('check')} Confirm paid</button></form>`}</div></div>`}
 function infoModal(title,body){return `<div class="modal-shade"><div class="modal" role="dialog" aria-modal="true" aria-label="${safe(title)}"><div class="modal-title"><h2>${safe(title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>${body}<button class="button secondary full" style="margin-top:16px" data-action="close-modal">Close</button></div></div>`}
 function render(){document.body.dataset.d47Section=view==='detail'?'loans':view;document.body.classList.remove('d47-neon-mode');document.body.classList.add('d47-model-a');document.body.classList.toggle('d47-emerald-cycles',view==='detail'||view==='cycles');document.documentElement.dataset.theme=state.theme;const browserThemeColors={crystal:'#edf9f8',midnight:'#07172D',emerald:'#051F1B',royal:'#1A0B2E',gold:'#201809'};document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#eef5ff');let body=view==='home'?home():view==='loans'?loansView():view==='cycles'?cyclesView():view==='schedule'?scheduleView():view==='reminders'?remindersView():view==='settings'?settingsView():view==='detail'&&selectedLoan()?loanDetail(selectedLoan()):home();$('#app').innerHTML=`<div class="shell"><aside class="rail"><div class="brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div></div><div class="rail-label">YOUR FINANCES</div>${navItems()}<div class="rail-footer">${ico('shield')} Offline-first app<br/>App data stays on this device.<br/>${d4BrowserLinked()?'DIG UP data link available.':'DIG UP cloud sync not connected.'}</div></aside><main class="main"><div class="mobile-brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div><span class="sync-indicator d47-sync-indicator d47-sync-${d47SyncState().color}" title="${safe(d47SyncState().description)}">${ico('shield')} ${safe(d47SyncState().label)}</span></div>${body}<div class="footspace"></div></main><nav class="mobile-nav" aria-label="Main navigation">${navItems(true)}</nav></div>${modal||''}`;if(view==='detail'){const track=document.getElementById('emerald-cycle-track');const focus=track?.querySelector('[data-cycle-num="'+track.dataset.focusCycle+'"]');if(track&&focus)track.scrollLeft=focus.offsetLeft-track.offsetLeft;if(track)track.addEventListener('scroll',()=>{const cards=[...track.querySelectorAll('[data-cycle-num]')];if(!cards.length)return;const nearest=cards.reduce((best,c)=>Math.abs(c.offsetLeft-track.offsetLeft-track.scrollLeft)<Math.abs(best.offsetLeft-track.offsetLeft-track.scrollLeft)?c:best,cards[0]);const n=Number(nearest.dataset.cycleNum);if(n===Number(track.dataset.focusCycle))return;track.dataset.focusCycle=String(n);cycleFocusNum=n;const nav=track.previousElementSibling;if(nav){const label=nav.querySelector('span');if(label)label.textContent='Cycle '+n+' / '+cycles(selectedLoan()).length;const buttons=nav.querySelectorAll('button');if(buttons[0])buttons[0].disabled=nearest===cards[0];if(buttons[1])buttons[1].disabled=nearest===cards[cards.length-1]}} ,{passive:true})}}
 function goto(name){view=name;detailId=null;modal=null;render();window.scrollTo({top:0,behavior:'instant'})}
 function openLoan(id){detailId=id;view='detail';cycleFocusNum=0;cycleFilter='all';let l=selectedLoan();let next=cycles(l).findIndex(c=>!c.paid);cyclePage=next>=0?Math.floor(next/6):0;render();window.scrollTo({top:0,behavior:'instant'})}
-function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}if(l.digupLinked){const c=cycles(l).find(x=>x.num===n);if(!c)return notify('EMI cycle not found');const d=d4Store(),source=d?.loans?.find(x=>String(x.id)===String(l.digupLoanId));if(!source||!digUpStorage.getItem(D4_LOCAL_KEY)||(!digUpHost&&localStorage.getItem('d4-pair-link-v1'))){modal=infoModal('Linked EMI','This loan uses a cloud-linked DIG UP ledger. Direct payment changes are not available until the authoritative ledger is safely writable on this device. Please use DIG UP for this payment.');render();return}const banks=d.banks.filter(x=>x&&x.id!=null&&!/pluxee/i.test(x.name||''));modal=infoModal('Pay EMI · '+l.name,'<div class="modal-summary"><strong>'+safe(l.name)+'</strong><div style="font-size:28px;font-weight:850">'+money(c.amount)+'</div><div>Due '+fmtDate(c.date)+'</div></div><form data-form="linked-payment"><input type="hidden" name="loanId" value="'+safe(l.id)+'"><input type="hidden" name="cycle" value="'+c.num+'"><label>Date paid<input type="date" name="paidDate" value="'+today()+'" required></label><label>Paid from bank<select name="bankId" required>'+banks.map(x=>'<option value="'+safe(x.id)+'">'+safe(x.name)+'</option>').join('')+'</select></label><label class="toggle-row"><span>Deduct from DIG UP bank balance</span><input type="checkbox" name="deduct" checked></label><p class="small">Records payment in DIG UP loan history. Bank deduction is optional to avoid double charging if already recorded.</p><button type="submit" class="button full">Confirm EMI Paid</button></form>');render();return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
+async function mutateLinkedDigup(edit){
+ if(localStorage.getItem('d4-pair-link-v1')){
+  const {updatePairedDigupLedger}=await import('../finance-sync/pair-sync.mjs');
+  return updatePairedDigupLedger(edit);
+ }
+ const raw=digUpStorage.getItem(D4_LOCAL_KEY);
+ if(!raw)throw Error('Pair with DIG UP before editing linked records.');
+ const ledger=JSON.parse(raw);
+ const changed=edit(ledger);
+ if(changed){
+  const backupKey='d4-two-way-backup-v1';
+  if(!digUpStorage.getItem(backupKey))digUpStorage.setItem(backupKey,raw);
+  digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(ledger));
+  syncLocalBalances();
+ }
+ return changed;
+}
+
+async function saveLinkedChange(form, edit, message){
+ const button=form?.querySelector('button[type="submit"]');
+ if(button?.disabled)return;
+ if(button)button.disabled=true;
+ try{
+  const changed=await mutateLinkedDigup(edit);
+  modal=null;render();notify(changed?message:'Already up to date');
+ }catch(error){notify(error.message||'Sync unavailable. Try again when connected.')}
+ finally{if(button)button.disabled=false}
+}
+
+async function undoLinkedEmi(loan, payment){
+ if(!payment.paymentId)return notify('This imported payment has no linked EMI record.');
+ if(!confirm('Mark this EMI unpaid and reverse its recorded deduction, if any?'))return;
+ const {undoEmi}=await import('../finance-sync/linked-emi.mjs');
+ await saveLinkedChange(null,ledger=>undoEmi(ledger,loan.digupLoanId,payment.paymentId),'EMI marked unpaid');
+}
+function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}if(l.digupLinked){const c=cycles(l).find(x=>x.num===n);if(!c)return notify('EMI cycle not found');if(c.paid){modal=payForm(l,c);render();return}const d=d4Store(),source=d?.loans?.find(x=>String(x.id)===String(l.digupLoanId));if(!source||(!digUpStorage.getItem(D4_LOCAL_KEY)&&!localStorage.getItem('d4-pair-link-v1'))){modal=infoModal('Linked EMI','This loan uses a cloud-linked DIG UP ledger. Direct payment changes are not available until the authoritative ledger is safely writable on this device. Please use DIG UP for this payment.');render();return}const banks=d.banks.filter(x=>x&&x.id!=null&&!/pluxee/i.test(x.name||''));modal=infoModal('Pay EMI · '+l.name,'<div class="modal-summary"><strong>'+safe(l.name)+'</strong><div style="font-size:28px;font-weight:850">'+money(c.amount)+'</div><div>Due '+fmtDate(c.date)+'</div></div><form data-form="linked-payment"><input type="hidden" name="loanId" value="'+safe(l.id)+'"><input type="hidden" name="cycle" value="'+c.num+'"><label>Date paid<input type="date" name="paidDate" value="'+today()+'" required></label><label>Paid from bank<select name="bankId" required>'+banks.map(x=>'<option value="'+safe(x.id)+'">'+safe(x.name)+'</option>').join('')+'</select></label><label class="toggle-row"><span>Deduct from DIG UP bank balance</span><input type="checkbox" name="deduct" checked></label><p class="small">Records payment in DIG UP loan history. Bank deduction is optional to avoid double charging if already recorded.</p><button type="submit" class="button full">Confirm EMI Paid</button></form>');render();return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
 function closeModal(){modal=null;render()}
 function exportJson(name,content,type='application/json'){const a=document.createElement('a'),blob=new Blob([content],{type}),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[data-open-loan],[data-theme-choose],[data-bank-detail],[data-quick-delete]');if(!el)return;
@@ -1723,7 +1762,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  if(el.dataset.cycleJump){cycleFocusNum=Number(el.dataset.cycleJump);cycleFilter='all';render();return}
   if(el.dataset.quickDelete){const row=state.ledger.find(x=>x.id===el.dataset.quickDelete);if(!row||!['income','expense'].includes(row.type))return;if(!confirm('Delete this Lona entry?'))return;state.ledger=state.ledger.filter(x=>x.id!==row.id);save();render();return}
  if(el.dataset.pay){let [id,n]=el.dataset.pay.split(':');markPayment(id,Number(n));return}
- if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(l.digupLinked){notify('Undo linked payments in DIG UP.');return}if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
+ if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(l.digupLinked){void undoLinkedEmi(l,p).catch(error=>notify(error.message));return}if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
  let bank=state.banks.find(x=>x.id===p.bankId),restored=false;
  if(p.deducted&&p.d4Id){try{restored=undoD4Emi(p,bank)}catch(_){notify('Could not update DIG UP. Undo cancelled to avoid inconsistent balances.');return}}
  if(p.deducted&&!restored&&bank)bank.balance=Number((bank.balance+p.amount).toFixed(2));
@@ -1838,26 +1877,30 @@ function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)r
  const newLoan={id:old?.id||`loan-${Date.now()}`,name:obj.name.trim().slice(0,60),kind:obj.kind,bankId:obj.bankId,lender:obj.lender.trim(),principal,credited,emi,tenure,firstDue:obj.firstDue||'',source:old?.source||'Manually entered',schedule:old?.schedule||undefined,paid:old?.paid||[]};
  if(old){state.loans=state.loans.map(x=>x.id===old.id?newLoan:x)}else state.loans.push(newLoan);save();modal=null;openLoan(newLoan.id);notify(old?'Loan details updated':'Loan added');return}
  if(form.dataset.form==='linked-payment'){
- const l=state.loans.find(x=>String(x.id)===String(obj.loanId)&&x.digupLinked),n=Number(obj.cycle),c=l&&cycles(l).find(x=>x.num===n);
- if(!l||!c||c.paid)return notify('EMI already paid or unavailable');
- if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(obj.paidDate||'')))return notify('Select a valid date');
- if(!digUpStorage.getItem(D4_LOCAL_KEY)||(!digUpHost&&localStorage.getItem('d4-pair-link-v1')))return notify('Cloud-linked ledger cannot be safely edited here');
- let d;try{d=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY))}catch(_){return notify('DIG UP data unavailable')}
- const src=d?.loans?.find(x=>String(x.id)===String(l.digupLoanId)),bank=d?.banks?.find(x=>String(x.id)===String(obj.bankId));
- if(!src||!bank)return notify('Linked loan or bank not found');
- if(!Array.isArray(src.payments))src.payments=[];
- const existing=src.payments.reduce((sum,p)=>sum+(Number(p.amount)||0),0);
- if(existing+0.01>=Number(src.emi||l.emi)*n)return notify('Payment already exists in DIG UP');
- const amount=Math.round(Number(c.amount)*100)/100;
- if(!(amount>0))return notify('Invalid EMI amount');
- const deduct=fd.has('deduct'),id='d47lona:linked:'+String(l.digupLoanId)+':'+n;
- if(d.entries.some(e=>String(e.id)===id))return notify('EMI already recorded');
- if(deduct&&Number(bank.balance)<amount&&!confirm('This bank balance will become negative. Continue?'))return;
- const payment={date:obj.paidDate,amount,bankId:bank.id,source:'D47Lona',cycle:n,reference:id};
- src.payments.push(payment);
- if(deduct){const before=Number(bank.balance)||0;bank.balance=Math.round((before-amount)*100)/100;d.entries.push({id,bankId:bank.id,bank:bank.name,type:'Expense',category:'Bills',amount,note:l.name+' EMI '+n+'/'+l.tenure,created:obj.paidDate+'T12:00:00+05:30',balanceBefore:before,balanceAfter:bank.balance,loanId:src.id,emiCycle:n,source:'D47Lona'});}
- try{digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(d))}catch(_){return notify('Unable to save DIG UP payment')}
- syncLocalBalances();modal=null;render();notify('EMI payment saved in DIG UP'+(deduct?' · bank deducted':' · no bank deduction'));return;
+ const loan=state.loans.find(x=>x.id===obj.loanId&&x.digupLinked);
+ const cycle=Number(obj.cycle), due=loan&&cycles(loan).find(x=>x.num===cycle);
+ if(!due||due.paid)return notify('EMI already paid or unavailable');
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(obj.paidDate)||obj.paidDate>today())return notify('Select a valid payment date');
+ const deduct=fd.has('deduct'),bank=d4Store()?.banks.find(x=>String(x.id)===obj.bankId);
+ if(!bank)return notify('Select a linked bank');
+ if(deduct&&Number(bank.balance)<due.amount&&!confirm('This balance may become negative. Continue?'))return;
+ void import('../finance-sync/linked-emi.mjs').then(({recordEmi})=>saveLinkedChange(form,ledger=>
+  recordEmi(ledger,{loanId:loan.digupLoanId,cycle,emi:loan.emi,bankId:obj.bankId,
+   amount:due.amount,date:obj.paidDate,note:loan.name+' EMI '+cycle,deduct}),'EMI saved to DIG UP'))
+  .catch(error=>notify(error.message));
+ return;
+ }
+ if(form.dataset.form==='linked-bank-balance'){
+ const amount=Number(obj.balance),before=Number(obj.before);
+ if(!obj.balance||!Number.isSafeInteger(Math.round(amount*100)))return notify('Enter a valid balance');
+ void saveLinkedChange(form,ledger=>{
+  const bank=ledger.banks.find(x=>String(x.id)===obj.bankId);
+  if(!bank)throw Error('The linked bank is unavailable.');
+  if(Number(bank.balance)===amount)return false;
+  if(Number(bank.balance)!==before)throw Error('Balance changed. Reopen bank details and review the current balance.');
+  bank.balance=amount;return true;
+ },'Balance saved to DIG UP');
+ return;
  }
  if(form.dataset.form==='payment'){
  if(state.loans.some(x=>x.id===obj.loanId&&x.digupLinked)){notify('Record linked EMIs in DIG UP.');return}

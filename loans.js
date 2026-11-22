@@ -203,18 +203,25 @@ function loanForm(id){
   closeSheet();tab='loans';save();
  };
 }
-function loanPaymentForm(id){
+async function loanPaymentForm(id){
  const l=loanById(id);if(!l)return;
  if(!data.banks.length){alert('Add a bank account before recording an EMI payment.');openBankPicker();return;}
  const expected=loanEmi(l);
+ const paired=!!localStorage.getItem('d4-pair-link-v1');
+ const emiTools=paired?await import('./finance-sync/linked-emi.mjs').catch(()=>null):null;
+ if(paired&&!emiTools)return alert('Connect to the internet to load linked EMI tools.');
+ const cycle=paired?Array.from({length:Number(l.months)},(_,i)=>i+1)
+  .find(n=>emiTools.cycleCoverage(l.payments||[],expected,n)<Math.round(expected*100)):null;
+ if(paired&&!cycle)return alert('All scheduled EMIs are covered.');
+ const suggested=paired?(Math.round(expected*100)-emiTools.cycleCoverage(l.payments||[],expected,cycle))/100:expected;
  showSheet('Record EMI · '+l.name,
  '<p class="loan-caption">Record a payment you already made. This does not transfer money. The chosen bank balance will decrease only when you save this NEW payment.</p>'+
  '<form id="emi-form"><label class="field">Pay from bank</label><select class="input" id="emi-bank" required>'+loanBankOptions(data.banks.find(b=>b.name===l.bank)?.id||'')+'</select>'+
- '<label class="field">Paid amount (₹)</label><input class="input" id="emi-amount" type="number" required min="0.01" step="0.01" value="'+Number(expected).toFixed(2)+'">'+
+ '<label class="field">Paid amount (₹)</label><input class="input" id="emi-amount" type="number" required min="0.01" step="0.01" value="'+Number(suggested).toFixed(2)+'">'+
  '<label class="field">Payment date</label><input class="input" id="emi-date" type="date" required value="'+loanLocalToday()+'">'+
  '<label class="field">Payment note</label><input class="input" id="emi-note" maxlength="180" value="'+tidy(l.name+' EMI payment')+'">'+
  '<button type="submit" class="button" style="width:100%">✅ Save Payment & Deduct Bank</button></form>');
- document.getElementById('emi-form').onsubmit=e=>{
+ document.getElementById('emi-form').onsubmit=async e=>{
   e.preventDefault();
   const bankID=document.getElementById('emi-bank').value;
   const bank=data.banks.find(b=>String(b.id)===bankID);
@@ -225,6 +232,23 @@ function loanPaymentForm(id){
   if(!bank||!Number.isFinite(amount)||amount<=0||!validLoanDate(date)||date>today){alert('Select a bank and enter a valid past/today payment.');return;}
   if(Number(bank.balance)<amount&&!confirm('Bank balance will become negative. Continue?'))return;
   if(!confirm('Record '+fmt(amount)+' paid from '+bank.name+' for '+l.name+'? This will deduct only this bank balance, not send money.'))return;
+  if(localStorage.getItem('d4-pair-link-v1')){
+   const button=e.currentTarget.querySelector('button[type="submit"]');
+   if(button.disabled)return;
+   button.disabled=true;
+   try{
+    const [{updatePairedDigupLedger},{recordEmi}]=await Promise.all([
+     import('./finance-sync/pair-sync.mjs'),import('./finance-sync/linked-emi.mjs')]);
+    if(Math.round(amount*100)!==Math.round(suggested*100))
+     throw Error('Enter the remaining amount for this EMI: '+fmt(suggested));
+    const changed=await updatePairedDigupLedger(ledger=>recordEmi(ledger,{loanId:l.id,cycle,
+     emi:expected,bankId:bank.id,amount,date,note:note||'EMI payment · '+l.name,deduct:true}));
+    closeSheet();tab='loans';render();
+    if(!changed)alert('This EMI was already recorded.');
+   }catch(error){alert(error.message||'Could not sync the EMI.')}
+   finally{button.disabled=false}
+   return;
+  }
   const id='local-emi-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   const txId='loan-tx-'+id;
   bank.balance=Math.round((Number(bank.balance)-amount)*100)/100;
@@ -240,12 +264,26 @@ function loanHistory(id){
  let content='<div class="loan-hero"><div class="loan-hero-meta">ESTIMATED OUTSTANDING</div><div class="loan-hero-total">'+fmt(loanStatus(l).outstanding)+'</div></div>'+
  '<h2>📋 Payment History</h2>';
  if(!pays.length)content+='<div class="card empty">No payments recorded yet.</div>';
- else content+=pays.map(p=>'<div class="card"><div class="row"><div><strong>'+fmt(p.amount)+'</strong><div class="muted">'+tidy(loanDay(p.date)||'')+' · '+tidy(p.bank||'Bank not recorded')+'</div></div>'+(p.local===true?'<button type="button" class="loan-small-btn" data-loan-action="undo" data-loan-id="'+tidy(l.id)+'" data-payment-id="'+tidy(p.id)+'">Undo</button>':'<span class="pill">Imported</span>')+'</div>'+(p.note?'<p class="muted">'+tidy(p.note)+'</p>':'')+'</div>').join('');
+ else content+=pays.map(p=>'<div class="card"><div class="row"><div><strong>'+fmt(p.amount)+'</strong><div class="muted">'+tidy(loanDay(p.date)||'')+' · '+tidy(p.bank||'Bank not recorded')+'</div></div>'+((p.local===true||p.source==='D47Lona')?'<button type="button" class="loan-small-btn" data-loan-action="undo" data-loan-id="'+tidy(l.id)+'" data-payment-id="'+tidy(p.id??p.reference)+'">Undo</button>':'<span class="pill">Imported</span>')+'</div>'+(p.note?'<p class="muted">'+tidy(p.note)+'</p>':'')+'</div>').join('');
  content+='<p class="loan-caption">Imported payments are already reflected in original transactions and will not deduct your bank balance again. Undo is available only for newly recorded local payments.</p>';
  showSheet('History · '+l.name,content);
 }
-function undoLocalLoanPayment(loanId,paymentId){
+async function undoLocalLoanPayment(loanId,paymentId){
  const l=loanById(loanId);if(!l)return;
+ const paired=!!localStorage.getItem('d4-pair-link-v1');
+ const linked=l.payments?.find(p=>String(p.id??p.reference)===String(paymentId));
+ if(paired||linked?.cycle!=null){
+  if(!confirm('Mark this EMI unpaid and reverse its recorded deduction, if any?'))return;
+  try{
+   const {undoEmi}=await import('./finance-sync/linked-emi.mjs');
+   if(paired){
+    const {updatePairedDigupLedger}=await import('./finance-sync/pair-sync.mjs');
+    await updatePairedDigupLedger(ledger=>undoEmi(ledger,loanId,paymentId));
+   }else if(undoEmi(data,loanId,paymentId))save();
+   closeSheet();tab='loans';render();
+  }catch(error){alert(error.message||'Could not sync the EMI.')}
+  return;
+ }
  const payment=(l.payments||[]).find(p=>String(p.id)===String(paymentId)&&p.local===true);
  if(!payment)return alert('Only new local payments can be undone.');
  const tx=data.entries.find(e=>String(e.id)===String(payment.txId)&&String(e.loanPaymentId)===String(payment.id));

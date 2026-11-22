@@ -186,7 +186,7 @@ export async function updatePairedDigupLedger(edit) {
   const ident = await identity(code);
   await ensureAnonymous();
   const doc = ledgerDoc(ident.id, 'digup');
-  await fire.runTransaction(db, async tx => {
+  return fire.runTransaction(db, async tx => {
     const current = await tx.get(doc);
     if (getStored() !== code) throw Error('Pairing changed. Reopen the loan and try again.');
     if (!current.exists()) throw Error('Waiting for DIG UP to publish its records.');
@@ -196,10 +196,15 @@ export async function updatePairedDigupLedger(edit) {
     }
     const ledger = await decrypt(ident, 'digup', packet);
     if (!validData('digup', ledger)) throw Error('DIG UP sync data is invalid.');
-    if (!edit(ledger)) return;
+    if (!edit(ledger)) return false;
+    const backupKey = 'd4-two-way-backup-v1:' + ident.id + ':digup';
+    if (!localStorage.getItem(backupKey)) {
+      localStorage.setItem(backupKey, JSON.stringify({revision, packet}));
+    }
     const packed = await encrypt(ident, 'digup', ledger);
     if (getStored() !== code) throw Error('Pairing changed. Reopen the loan and try again.');
     tx.set(doc, {revision: revision + 1, packet: packed});
+    return true;
   });
 }
 
@@ -249,6 +254,9 @@ export async function startPairSync(stores,onStatus=()=>{}){
         if(observed&&raw.revision<observed.revision)return;
         try{
           const value=await decrypt(ident,name,raw.packet);
+          const backupKey='d4-two-way-backup-v1:'+ident.id+':'+name;
+          if(!localStorage.getItem(backupKey))
+            localStorage.setItem(backupKey,JSON.stringify({revision:raw.revision,packet:raw.packet}));
           if(observed&&raw.revision<observed.revision)return;
           observed={revision:raw.revision,value};
         }catch(e){setStatus(readableError(e));return}
@@ -293,11 +301,15 @@ export async function startPairSync(stores,onStatus=()=>{}){
             return true;
           });
           if(!result){setStatus('Checking newest cloud revision…');return}
+          if(observed.revision<=snapshot.revision)
+            observed={revision:snapshot.revision+1,value:target};
         }
         if(!stopped&&!closed){
-          base={value:target};
+          const latest=load(key);
+          const unchanged=eq(latest,local);
+          base={value:unchanged?target:local};
           localStorage.setItem(baseKey,JSON.stringify(base));
-          if(!eq(load(key),target)&&eq(load(key),local)){
+          if(unchanged&&!eq(latest,target)){
             localStorage.setItem(key,JSON.stringify(target));
             apply();
           }
