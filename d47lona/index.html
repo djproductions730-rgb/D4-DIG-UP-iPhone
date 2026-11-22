@@ -782,12 +782,15 @@ html[data-theme] body.d47-model-a .modal.d47-emi-sheet {
 .d47-emi-summary .d47-emi-amount {font-size:clamp(30px,9vw,40px);font-weight:850;font-variant-numeric:tabular-nums;line-height:1.12}
 .d47-emi-summary .d47-emi-due,.d47-emi-sheet .d47-emi-hint {color:var(--read-secondary);font-size:13px}
 .d47-emi-form {display:grid;gap:14px;margin-top:17px}
-.d47-emi-form .field {display:grid;gap:6px;margin:0;min-width:0}
-.d47-emi-form .field label {font-size:13px;font-weight:750}
-.d47-emi-form .field input,.d47-emi-form .field select {
-  box-sizing:border-box;display:block;width:100%;min-width:0;min-height:48px;
+.d47-emi-form .field,.d47-emi-loan-picker {display:grid;gap:6px;margin:0;min-width:0}
+.d47-emi-form .field label,.d47-emi-loan-picker label {font-size:13px;font-weight:750}
+.d47-emi-form .field input,.d47-emi-form .field select,.d47-emi-loan-picker select {
+  box-sizing:border-box;display:block;width:100%;max-width:100%;min-width:0;min-height:48px;
   font-size:16px;border-radius:12px;padding:9px 12px;text-align:start;
 }
+.d47-emi-loan-picker {margin:0 0 14px}
+.d47-emi-form input[type="date"] {-webkit-appearance:none;appearance:none}
+.d47-emi-form input[type="date"]::-webkit-date-and-time-value {text-align:start}
 .d47-emi-sheet .d47-emi-toggle {
   display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
   padding:12px 14px;border-radius:14px;
@@ -1732,7 +1735,7 @@ function quickMoneySection(){
  const rows=state.ledger.filter(x=>x.type==='income'||x.type==='expense').slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,6);
  return '<section class="glass d47-money-quick"><div class="section-title"><h2>Income & Expenses</h2></div><div class="button-group"><button class="button" data-action="quick-income">+ Add Income</button><button class="button secondary" data-action="quick-expense">− Add Expense</button></div><div class="small" style="margin:10px 0">Lona activity only · bank balances unchanged</div>'+rows.map(x=>'<div class="list-tile"><div class="body"><strong>'+safe(x.label)+'</strong><div class="small">'+fmtDate(x.date)+'</div></div><div class="money">'+(x.type==='income'?'+':'−')+money(x.amount)+'</div><button class="text-btn" data-quick-delete="'+safe(x.id)+'">Delete</button></div>').join('')+'</section>';
 }
-function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!record&&(!l.digupLinked||!!record.paymentId);return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="EMI payment"><div class="modal-title"><h2>${record?'Payment details':'Mark EMI as paid'}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><div class="modal-summary"><div class="flex-between"><strong>${safe(l.name)}</strong><span class="badge">Cycle ${c.num} / ${l.tenure}</span></div><div style="font-size:30px;font-weight:850;margin:12px 0 5px">${money(c.amount)}</div><div class="small">Due ${fmtDate(c.date)} · Closing ${closing(l)}</div></div>
+function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!record&&(!l.digupLinked||!!record.paymentId);return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="EMI payment"><div class="modal-title"><h2>${record?'Payment details':'Mark EMI as paid'}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>${emiLoanPicker(l)}<div class="modal-summary"><div class="flex-between"><strong>${safe(l.name)}</strong><span class="badge">Cycle ${c.num} / ${l.tenure}</span></div><div style="font-size:30px;font-weight:850;margin:12px 0 5px">${money(c.amount)}</div><div class="small">Due ${fmtDate(c.date)} · Closing ${closing(l)}</div></div>
  ${record?`<div class="notice">${ico('check')}${record.origin==='historical-estimate'?'This older cycle was imported as paid from your earlier details. Verify it against your bank statement.':'Marked paid on '+fmtDate(record.date)+'. '+(record.deducted?'Local bank balance deducted.':'No local bank deduction was recorded.')}</div>${undoable?`<button class="button danger full" data-undo="${l.id}:${c.num}" style="margin-top:14px">${ico('refresh')} ${record.origin==='historical-estimate'?'Unmark imported paid':'Undo payment'}</button>`:''}`:
  `<form data-form="payment"><input type="hidden" name="loanId" value="${l.id}"/><input type="hidden" name="cycle" value="${c.num}"/><div class="field"><label for="paid-date">Date paid *</label><input id="paid-date" name="paidDate" type="date" required value="${today()}" /></div><div class="field"><label for="pay-bank">Paid from bank *</label><select id="pay-bank" name="bankId">${state.banks.map(b=>`<option value="${b.id}" ${b.id===l.bankId?'selected':''}>${safe(b.name)}${b.reserved?' · reserved for trip':''}</option>`).join('')}</select></div><label class="toggle-row" style="border:1px solid #d5e8e7;border-radius:13px;margin-bottom:15px;cursor:pointer"><div class="body"><strong>Record local bank deduction</strong><div class="small">Subtract this EMI once from the selected local balance and add a ledger entry.</div></div><input style="width:20px;height:20px;accent-color:#0baf8c" type="checkbox" name="deduct" checked /></label><div class="notice warn" style="margin-bottom:15px">${ico('info')} This never sends real money. On the same GitHub Pages domain, a linked DIG UP record is updated once. Otherwise, local balance only. Turn off deduction if already recorded elsewhere.</div><button class="button full" type="submit">${ico('check')} Confirm paid</button></form>`}</div></div>`}
 function infoModal(title,body){return `<div class="modal-shade"><div class="modal" role="dialog" aria-modal="true" aria-label="${safe(title)}"><div class="modal-title"><h2>${safe(title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>${body}<button class="button secondary full" style="margin-top:16px" data-action="close-modal">Close</button></div></div>`}
@@ -1774,11 +1777,24 @@ async function undoLinkedEmi(loan, payment){
  const {undoEmi}=await import('../finance-sync/linked-emi.mjs');
  await saveLinkedChange(null,ledger=>undoEmi(ledger,loan.digupLoanId,payment.paymentId),'EMI marked unpaid');
 }
+function emiLoanChoices(current){
+ return state.loans.map(loan=>{
+  const schedule=cycles(loan);
+  return {loan, next:schedule.find(cycle=>!cycle.paid), hasSchedule:schedule.length>0,
+   selected:loan.id===current.id};
+ });
+}
+function emiLoanPicker(current){
+ return `<div class="field d47-emi-loan-picker"><label for="emi-loan-choice">Select loan</label>
+  <select id="emi-loan-choice">${emiLoanChoices(current).map(({loan,next,hasSchedule,selected})=>
+   `<option value="${safe(loan.id)}"${selected?' selected':''}${!selected&&!next?' disabled':''}>${safe(loan.name)}${next?'':hasSchedule?' · All EMIs paid':' · Set first EMI date'}</option>`
+  ).join('')}</select></div>`;
+}
 function linkedEmiForm(loan, cycle, banks){
  return `<div class="modal-shade"><div class="modal d47-emi-sheet" role="dialog" aria-modal="true" aria-labelledby="linked-emi-title">
   <div class="modal-title"><h2 id="linked-emi-title">Pay EMI</h2><button type="button" class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>
+  ${emiLoanPicker(loan)}
   <div class="d47-emi-summary">
-   <span class="d47-emi-name">${safe(loan.name)}</span>
    <strong class="d47-emi-amount">${money(cycle.amount)}</strong>
    <span class="d47-emi-due">Due ${fmtDate(cycle.date)} · EMI ${cycle.num} of ${loan.tenure}</span>
   </div>
@@ -1803,10 +1819,10 @@ function markPayment(lid,n){
  const ledger=d4Store();
  const source=ledger?.loans?.find(x=>String(x.id)===String(loan.digupLoanId));
  if(!source||(!digUpStorage.getItem(D4_LOCAL_KEY)&&!localStorage.getItem('d4-pair-link-v1'))){
-  modal=infoModal('Linked EMI','Open DIG UP or reconnect pairing to record this payment.');
+  modal=infoModal('Linked EMI',emiLoanPicker(loan)+'<p>Open DIG UP or reconnect pairing to record this payment.</p>');
  }else{
   const banks=ledger.banks.filter(x=>x&&x.id!=null&&!/pluxee/i.test(x.name||''));
-  modal=banks.length?linkedEmiForm(loan,cycle,banks):infoModal('Linked EMI','Add a bank account in DIG UP to record this payment.');
+  modal=banks.length?linkedEmiForm(loan,cycle,banks):infoModal('Linked EMI',emiLoanPicker(loan)+'<p>Add a bank account in DIG UP to record this payment.</p>');
  }
  render();
 }
@@ -1997,6 +2013,13 @@ document.addEventListener('error',e=>{const img=e.target;if(img&&img.matches?.('
 window.__d47PairReload=()=>{state=load();syncLocalBalances();render()};
 window.addEventListener('d4-pair-status',e=>{window.__d47PairState=e.detail;render()});
 document.addEventListener('d4-pair-ledger-refresh',()=>{syncLocalBalances();render()});
+document.addEventListener('change',event=>{
+ if(event.target.id!=='emi-loan-choice')return;
+ const loan=state.loans.find(row=>row.id===event.target.value);
+ const next=loan&&cycles(loan).find(cycle=>!cycle.paid);
+ if(next)markPayment(loan.id,next.num);
+ document.getElementById('emi-loan-choice')?.focus();
+});
 document.addEventListener('change',e=>{if(e.target?.id==='salary-month'&&validSalaryMonth(e.target.value)){salarySelectedMonth=e.target.value;render()}});
 document.addEventListener('click',handleClick);document.addEventListener('submit',handleSubmit);document.addEventListener('click',e=>{if(e.target.classList.contains('modal-shade'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal)closeModal()});
 syncLocalBalances();render();setTimeout(setupNotifications,1300);
