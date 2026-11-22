@@ -360,10 +360,10 @@
     }).join('');
     return '<section class="ref-expense-cover"><span class="ref-overline">✦ TRIP EXPENSES</span><h2>Expenses</h2><p>'+html(t.name)+'</p>'+
       '<div class="ref-expense-sum"><span>💼</span><div><small>Total spent</small><strong>'+money(c.total)+'</strong></div></div></section>'+
-      '<section class="ref-card"><div class="ref-section-title"><h3>Spending Categories</h3><span>'+rows.length+' categories</span></div>'+
-      (cards||'<p class="ref-empty">No expenses recorded yet.</p>')+'</section>'+
-      (isTripAdmin(t)?'<button class="ref-primary ref-wide" data-action="quick-expense">＋ Add Expense</button>':'<p class="ref-readonly">🔒 Members can view expenses.</p>')+
-      '<section class="ref-existing-expenses">'+previous.expensesPage()+'</section>';
+      (isTripAdmin(t)?'<button class="neon-add-member" data-action="quick-expense">＋ Add Expense</button>':'')+
+      '<section class="ref-existing-expenses">'+previous.expensesPage()+'</section>'+
+      '<details class="ref-card"><summary>Spending categories</summary>'+
+      (cards||'<p class="ref-empty">No expenses recorded yet.</p>')+'</details>';
   };
   adminPage=function(){
     if(!isMain())return previous.adminPage();

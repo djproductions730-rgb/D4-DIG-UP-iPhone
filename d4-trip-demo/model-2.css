@@ -341,3 +341,15 @@ body.d4-premium .d4-ticket-v62 .d4-ticket-hero-caption{margin:0}
 .neon-report-cash label{display:grid;gap:4px;flex:1 1 120px}
 .neon-report-cash input{min-width:0;background:#182a36;color:#fff;border:1px solid #587782;border-radius:8px;padding:8px}
 #neonPdfPreview{color:#122038;background:#fff;overflow:auto}
+
+.neon-memory-head,.neon-report-page{background:#0b1723;color:#f4fbff;border:1px solid #365f71;border-radius:17px;padding:12px}
+.neon-memory-head h2,.neon-report-page h2{margin:0 0 10px;font-size:23px}
+.neon-memory-cover{display:flex;align-items:end;min-height:155px;border-radius:13px;padding:12px;background:linear-gradient(0deg,#06111ddd,transparent 65%),url('./goa-aurora.png') center 60%/cover}
+.neon-memory-cover strong{font-size:24px;text-shadow:0 2px 8px #000}
+.neon-memory-album{margin-top:10px}
+.neon-report-page header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.neon-report-page header h2{margin:0}
+.neon-report-cash-controls{margin:10px 0}
+.neon-report-cash-controls summary{cursor:pointer;color:#aaf0ed;padding:6px 0}
+.neon-report-page #neonPdfPreview{border-radius:8px}
+.neon-report-page .btn.mint{background:#c4ff55!important;color:#142012!important}
