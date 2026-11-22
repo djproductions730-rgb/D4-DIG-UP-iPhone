@@ -62,12 +62,12 @@
  const total=rows=>rows.reduce((sum,row)=>sum+Math.round(row.amount*100),0)/100;
  function line(label,amount){return '<div class="fp-line"><span>'+tidy(label)+'</span><b>'+fmt(amount)+'</b></div>'}
  function card(p,i){
-  const {budget,spent,status,ratio}=planBudgetState(p),diff=Math.round((budget-spent)*100)/100;
+  const base=planBudgetState(p),budget=base.budget,linkedSpent=data.entries.filter(e=>e.tripLinked===true&&e.type==='Expense'&&String(e.tripPlanId)===String(p.tripPlanId||'plan-index-'+i)).reduce((sum,e)=>sum+Number(e.amount||0),0),spent=Math.round((base.spent+linkedSpent)*100)/100,ratio=budget>0?spent/budget:0,status=!budget?'unset':spent>budget?'over':spent===budget?'limit':spent>=budget*.8?'near':'safe',diff=Math.round((budget-spent)*100)/100;
   const expenses=log(p).filter(r=>r.kind==='expense'),savings=log(p).filter(r=>r.kind==='saving');
   const opening=Math.round((spent-total(expenses))*100)/100;
   const groups=new Map();
   if(opening>0)groups.set('Previously recorded',opening);
-  for(const r of expenses)groups.set(r.category,(groups.get(r.category)||0)+Number(r.amount));
+  for(const r of expenses)groups.set(r.category,(groups.get(r.category)||0)+Number(r.amount));\n  for(const e of data.entries.filter(e=>e.tripLinked===true&&e.type==='Expense'&&String(e.tripPlanId)===String(p.tripPlanId||'plan-index-'+i)))groups.set(e.tripCategory||'Other',(groups.get(e.tripCategory||'Other')||0)+Number(e.amount));
   const timeline=rows=>rows.slice().reverse().map(r=>line(r.date+' · '+(r.note||r.category),r.amount)).join('');
   return `<article class="fp"><div class="fp-head"><div><small>${tidy(category(p))}</small><h2>${tidy(p.name)}</h2><button class="button ghost" onclick="openPlanEditor(${i})">Edit plan</button></div><img src="${picture(p)}" alt=""></div><div class="fp-stats"><div><small>Target</small><b>${fmt(budget)}</b></div><div><small>Actual spent</small><b>${fmt(spent)}</b></div></div>${status==='over'?'<div class="fp-state over">Exceeded by '+fmt(-diff)+'</div>':''}${p.dueDate||p.targetDate?'<p>Target date · '+tidy(String(p.dueDate||p.targetDate).slice(0,10))+'</p>':''}${p.note?'<p>'+tidy(p.note)+'</p>':''}<details><summary>Category breakdown</summary>${[...groups].map(([name,n])=>line(name,n)).join('')||'No expenses yet.'}</details><details><summary>Spend timeline</summary>${timeline(expenses)}${opening>0?line('Previously recorded',opening):''}${!expenses.length&&!opening?'No expenses yet.':''}</details>${p.saved||savings.length?'<details><summary>Plan savings · '+fmt(p.saved||0)+'</summary>'+timeline(savings)+(Number(p.saved)>total(savings)?line('Previously saved',p.saved-total(savings)):'')+'</details>':''}<div class="fp-actions"><button class="button" onclick="openPlanEntry(${i},'expense')">+ Add expense</button><button class="button ghost" onclick="openPlanEntry(${i},'saving')">+ Add savings</button></div></article>`;
  }
