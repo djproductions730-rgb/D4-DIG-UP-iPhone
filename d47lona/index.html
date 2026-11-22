@@ -697,6 +697,7 @@ function syncLocalBalances(){
  }
  if(syncDigupLoans(d))changed=true;
  if(applyIphonePdfSchedule())changed=true;
+ if(applyHdfcHomePdfSchedule())changed=true;
  if(changed)save();
  return true
 }
@@ -960,7 +961,7 @@ function applyIphonePdfSchedule(){
  return true;
 }
 
-if(applyIphonePdfSchedule())save();
+if(applyIphonePdfSchedule()||applyHdfcHomePdfSchedule())save();
 
 function amountFor(loan,n){return Number(loan.schedule?.[n-1]?.emi ?? loan.emi)}
 
@@ -975,6 +976,18 @@ function hdfc172144641Schedule(){
   remaining-=principal;
   return {emi,principal,interest:emi-principal,principalLeft:remaining};
  });
+}
+function applyHdfcHomePdfSchedule(){
+ const matches=state.loans.filter(l=>/home/i.test(String(l.name||''))&&
+   (Math.abs(Number(l.principal||0)-260000)<1||l.pdfScheduleId==='HDFC-172144641-20261122'));
+ if(matches.length!==1)return false;
+ const l=matches[0];
+ if(l.pdfScheduleId==='HDFC-172144641-20261122'&&l.schedule?.length===60&&l.firstDue==='2026-12-07'&&l.schedule[1]?.emi===5916)return false;
+ l.schedule=hdfc172144641Schedule();
+ l.pdfScheduleId='HDFC-172144641-20261122';
+ l.pdfProductType='PERSONAL LOAN';
+ l.principal=260000;l.emi=5916;l.tenure=60;l.firstDue='2026-12-07';
+ return true;
 }
 function importHdfc172144641(){
  const loan=selectedLoan();
