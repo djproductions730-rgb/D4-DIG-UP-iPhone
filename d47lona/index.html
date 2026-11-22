@@ -700,7 +700,7 @@ function syncLocalBalances(){
  return true
 }
 // DIG UP loans are not in Lona's native schema: DIG UP stores months/payments,
-// while Lona uses tenure/paid cycles. Mirror one way, never write to DIG UP.
+// while Lona uses tenure/paid cycles. Translate source fields for display.
 function syncDigupLoans(d){
  if(!Array.isArray(d?.loans))return false;
  let changed=false;
@@ -726,7 +726,7 @@ function syncDigupLoans(d){
    if(candidates.length===1)loan=candidates[0];
   }
   if(!loan){loan={id:defaultId,paid:[]};state.loans.push(loan);changed=true}
-  const db=d.banks.find(b=>norm(b.name)===norm(src.bank));
+  const db=src.bank?d.banks.find(b=>norm(b.name)===norm(src.bank)):null;
   const bank=db?state.banks.find(b=>String(b.digupBankId)===String(db.id)):null;
   const payments=(Array.isArray(src.payments)?src.payments:[])
     .filter(p=>p&&/^\d{4}-\d{2}-\d{2}$/.test(String(p.date||'').slice(0,10))
@@ -744,7 +744,8 @@ function syncDigupLoans(d){
   const freshLoan={
    digupLoanId:externalId,digupLinked:true,
    name:String(src.name).slice(0,60),lender:String(src.lender||src.bank||'').slice(0,80),
-   kind:loan.kind||'personal',bankId:bank?.id||loan.bankId||'',
+   kind:src.kind||loan.kind||'personal',bankId:bank?.id||(Object.hasOwn(src,'bank')?'':loan.bankId||''),
+   credited:Object.hasOwn(src,'credited')?src.credited:loan.credited??null,
    principal:Number.isFinite(principal)&&principal>0?principal:null,
    emi,tenure,
    firstDue:/^\d{4}-\d{2}-\d{2}$/.test(String(src.firstDue||'').slice(0,10))
@@ -1231,7 +1232,75 @@ function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#f
  <div class="glass form-card"><h2>Install on your phone</h2><p class="sub" style="margin:7px 0 14px">Android: open the secure hosted link in Chrome and choose Install App. iPhone: open it in Safari, tap Share, then Add to Home Screen. This file must be hosted on HTTPS to install as a PWA.</p><button class="button secondary" data-action="install-help">${ico('download')} Install instructions</button></div><div class="glass form-card"><h2>Data and backups</h2><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="export">${ico('download')} Export backup</button><button class="button secondary" data-action="import">${ico('upload')} Restore backup</button><button class="button secondary" data-action="export-digup">${ico('download')} DIG UP entries</button></div><p class="footnote" style="margin-top:12px">Local-first storage. Browser data deletion will remove it unless backed up. Never share backup files publicly.</p></div>
  <div class="glass form-card"><h2>D4 DIG UP Auto Sync</h2><div class="strip" style="margin:14px 0">${ico('shield')} ${d4BrowserLinked()?'Connected · Same browser':'Not connected in this browser'}</div><p class="sub">${d4BrowserLinked()?'Bank accounts: '+d4SyncStats().banks+' · Linked: '+d4SyncStats().linked+' · Recorded transactions: '+d4SyncStats().transactions+'. Same Safari/browser changes appear automatically after opening or switching back.':'Not connected live. '+(state.digupBackupMeta?'Last DIG UP snapshot: '+new Date(state.digupBackupMeta.importedAt).toLocaleDateString('en-IN')+'. Import a newer backup to update.':'Open DIG UP in this same Safari browser or import its backup manually.')}</p><div class="button-group" style="margin-top:14px"><button class="button secondary" data-action="sync-now">${ico('refresh')} Sync Now</button><button class="button secondary" data-action="import-digup">${ico('upload')} Import DIG UP Backup</button><button class="button secondary" data-action="open-digup">Open D4 DIG UP</button></div><p class="footnote" style="margin-top:12px">Same-origin Safari tabs: automatic bank balance & Salary income refresh. Backup imports: snapshots, not live. No automatic cross-browser, Home Screen app, or device sync without an authenticated cloud service. DIG UP loan payments are not automatically marked Paid here.</p><div style="margin-top:12px"><button class="text-btn" data-action="sync-info">How sync works ${ico('right')}</button></div></div>
  <div class="glass form-card"><h2>Privacy and maintenance</h2><div class="button-group" style="margin-top:13px"><button class="button secondary" data-action="privacy">${ico('eye')} ${state.hideMoney?'Show balances':'Hide balances'}</button><button class="button secondary" data-action="reset">${ico('refresh')} Reset local data</button></div></div></div>`}
-function addForm(l=null){let title=l?'Edit loan':'Add new loan';let banks=state.banks.map(b=>`<option value="${b.id}" ${l?.bankId===b.id?'selected':''}>${safe(b.name)}${b.reserved?' (reserved)':''}</option>`).join('');return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="${title}"><div class="modal-title"><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><form data-form="loan"><input type="hidden" name="id" value="${safe(l?.id||'')}"/><div class="field"><label for="loan-name">Loan name *</label><input id="loan-name" name="name" maxlength="60" required placeholder="e.g., Home Loan" value="${safe(l?.name||'')}" /></div><div class="fields"><div class="field"><label for="loan-kind">Loan category</label><select id="loan-kind" name="kind">${[['personal','Personal Loan'],['home','Home Loan'],['gadget','Phone / Gadget'],['vehicle','Vehicle Loan'],['education','Education Loan'],['other','Other']].map(([v,s])=>`<option value="${v}" ${l?.kind===v?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label for="loan-bank">EMI bank</label><select id="loan-bank" name="bankId">${banks}</select></div></div>
+let linkedLoanEdit=null;
+let savingLinkedLoan=false;
+
+function applyLinkedLoanPatch(ledger, edit, patch, bankId) {
+ const source=ledger?.loans?.find(x=>String(x.id)===edit.loan.digupLoanId);
+ if(!source)throw Error('This loan is no longer available in DIG UP.');
+ if(bankId!==undefined){
+  const bank=bankId===''?null:ledger.banks.find(b=>String(b.id)===bankId);
+  if(bankId!==''&&!bank)throw Error('That bank is no longer available in DIG UP.');
+  patch={...patch,bank:bank?.name||''};
+ }
+ for(const [key,value] of Object.entries(patch)){
+  if(source[key]!==edit.source[key]&&source[key]!==value)
+   throw Error('This loan changed in DIG UP. Reopen it and try again.');
+ }
+ const changed=Object.entries(patch).some(([key,value])=>source[key]!==value);
+ if(changed)Object.assign(source,patch);
+ return changed;
+}
+
+async function saveLinkedLoanEdit(form, values, id) {
+ if(savingLinkedLoan)return;
+ const edit=linkedLoanEdit;
+ if(edit?.loan.id!==id)return notify('Reopen the loan and try again.');
+ const {bankId,...fields}=values;
+ const patch={};
+ for(const [key,value] of Object.entries(fields))
+  if(value!==(edit.loan[key]??(key==='credited'||key==='principal'?null:'')))
+   patch[key==='tenure'?'months':key]=value;
+ if((patch.principal!==undefined&&(!Number.isFinite(patch.principal)||patch.principal<=0))||
+    (patch.credited!=null&&(!Number.isFinite(patch.credited)||patch.credited<0))||
+    !Number.isFinite(values.emi))return notify('Check the loan amounts.');
+ const bank=bankId===edit.loan.bankId||!bankId?null:state.banks.find(b=>b.id===bankId);
+ if(bankId!==edit.loan.bankId&&bankId&&(bank?.digupBankId==null||bank.digupInactive))
+  return notify('Choose a linked DIG UP bank.');
+ const preferredBank=bankId===edit.loan.bankId?undefined:String(bank?.digupBankId??'');
+ const apply=ledger=>applyLinkedLoanPatch(ledger,edit,patch,preferredBank);
+ const button=form.querySelector('button[type="submit"]');
+ savingLinkedLoan=true;
+ if(button)button.disabled=true;
+ try{
+  const currentLink=digUpHost?null:localStorage.getItem('d4-pair-link-v1');
+  if(currentLink!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
+  if(edit.pairLink){
+   const {updatePairedDigupLedger}=await import('../finance-sync/pair-sync.mjs?v=lona-loan-edit-1');
+   if(localStorage.getItem('d4-pair-link-v1')!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
+   await updatePairedDigupLedger(apply);
+  }else{
+   const ledger=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
+   if(apply(ledger))digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(ledger));
+   syncLocalBalances();
+  }
+  if(linkedLoanEdit===edit&&selectedLoan()?.id===id){
+   linkedLoanEdit=null;
+   modal=null;
+   render();
+  }
+  notify('Loan changes saved to DIG UP');
+ }catch(error){
+  const message=String(error?.message||'');
+  notify(/^(This loan|That bank|Pairing changed|Waiting for DIG UP|DIG UP sync data)/.test(message)
+   ?message:'Could not save to DIG UP. Check sync and try again.');
+ }finally{
+  savingLinkedLoan=false;
+  if(button)button.disabled=false;
+ }
+}
+
+function addForm(l=null){let title=l?'Edit loan':'Add new loan';let banks=(l?.digupLinked?'<option value="">No preferred bank</option>':'')+state.banks.map(b=>`<option value="${b.id}" ${l?.bankId===b.id?'selected':''}>${safe(b.name)}${b.reserved?' (reserved)':''}</option>`).join('');return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="${title}"><div class="modal-title"><h2>${title}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><form data-form="loan"><input type="hidden" name="id" value="${safe(l?.id||'')}"/><div class="field"><label for="loan-name">Loan name *</label><input id="loan-name" name="name" maxlength="60" required placeholder="e.g., Home Loan" value="${safe(l?.name||'')}" /></div><div class="fields"><div class="field"><label for="loan-kind">Loan category</label><select id="loan-kind" name="kind">${[['personal','Personal Loan'],['home','Home Loan'],['gadget','Phone / Gadget'],['vehicle','Vehicle Loan'],['education','Education Loan'],['other','Other']].map(([v,s])=>`<option value="${v}" ${l?.kind===v?'selected':''}>${s}</option>`).join('')}</select></div><div class="field"><label for="loan-bank">EMI bank</label><select id="loan-bank" name="bankId">${banks}</select></div></div>
  <div class="field"><label for="loan-lender">Lender / provider</label><input id="loan-lender" name="lender" placeholder="e.g., HDFC Bank" maxlength="80" value="${safe(l?.lender||'')}" /></div><div class="fields"><div class="field"><label for="loan-principal">Loan principal (₹) (optional)</label><input id="loan-principal" type="number" min="0" step="0.01" name="principal" placeholder="Original sanctioned amount" value="${l?.principal??''}" /></div><div class="field"><label for="loan-credited">Amount credited (₹)</label><input id="loan-credited" type="number" min="0" step="0.01" name="credited" placeholder="After fees, optional" value="${l?.credited??''}" /></div><div class="field"><label for="loan-emi">EMI per month (₹) *</label><input id="loan-emi" type="number" min="1" step="0.01" required name="emi" value="${l?.emi??''}" /></div><div class="field"><label for="loan-tenure">Number of EMIs *</label><input id="loan-tenure" type="number" min="1" max="480" step="1" required name="tenure" value="${l?.tenure??''}" /></div><div class="field span-all"><label for="loan-start">First EMI due date (can set later)</label><input id="loan-start" type="date" name="firstDue" value="${safe(l?.firstDue||'')}" /></div></div><div class="notice" style="margin:16px 0">${ico('info')} No loan is added automatically. Actual loan terms should match your lender's agreement.</div><button class="button full" type="submit">${ico('check')} ${l?'Save changes':'Add loan'}</button></form></div></div>`}
 function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!record;return `<div class="modal-shade" role="presentation"><div class="modal" role="dialog" aria-modal="true" aria-label="EMI payment"><div class="modal-title"><h2>${record?'Payment details':'Mark EMI as paid'}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div><div class="modal-summary"><div class="flex-between"><strong>${safe(l.name)}</strong><span class="badge">Cycle ${c.num} / ${l.tenure}</span></div><div style="font-size:30px;font-weight:850;margin:12px 0 5px">${money(c.amount)}</div><div class="small">Due ${fmtDate(c.date)} · Closing ${closing(l)}</div></div>
  ${record?`<div class="notice">${ico('check')}${record.origin==='historical-estimate'?'This older cycle was imported as paid from your earlier details. Verify it against your bank statement.':'Marked paid on '+fmtDate(record.date)+'. '+(record.deducted?'Local bank balance deducted.':'No local bank deduction was recorded.')}</div>${undoable?`<button class="button danger full" data-undo="${l.id}:${c.num}" style="margin-top:14px">${ico('refresh')} ${record.origin==='historical-estimate'?'Unmark imported paid':'Undo payment'}</button>`:''}`:
@@ -1278,7 +1347,21 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  switch(el.dataset.action){
  case 'salary-manage':salarySelectedMonth=today().slice(0,7);goto('settings');setTimeout(()=>document.getElementById('salary-journal')?.scrollIntoView({behavior:'smooth',block:'start'}),80);break;
  case 'add-loan':modal=addForm();render();break;
- case 'edit-loan':if(selectedLoan()?.digupLinked){notify('Edit this linked loan in DIG UP.');break}modal=addForm(selectedLoan());render();break;
+ case 'edit-loan':{
+  const loan=selectedLoan();if(!loan)break;
+  linkedLoanEdit=null;
+  if(loan.digupLinked){
+   const pairLink=digUpHost?null:localStorage.getItem('d4-pair-link-v1');
+   const ledger=d4Store();
+   const source=ledger?.loans?.find(x=>String(x.id)===loan.digupLoanId);
+   if(!source||(!pairLink&&!digUpStorage.getItem(D4_LOCAL_KEY))||
+      (pairLink&&!localStorage.getItem(D4_CLOUD_COPY_KEY))){
+    notify('Sync with DIG UP before editing this loan.');break;
+   }
+   linkedLoanEdit={loan:{...loan},source,pairLink};
+  }
+  modal=addForm(loan);render();break;
+ }
  case 'close-modal':closeModal();break;
  case 'back-loans':goto('loans');break;
  case 'privacy':state.hideMoney=!state.hideMoney;save();render();break;
@@ -1335,9 +1418,12 @@ function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)r
  salarySelectedMonth=ym;save();render();notify('Salary for '+monthName(ym)+' saved');return
 }
  if(form.dataset.form==='loan'){
- if(state.loans.some(x=>x.id===obj.id&&x.digupLinked)){notify('Edit linked loans in DIG UP.');return}
  let principal=obj.principal!==''?Number(obj.principal):null,credited=obj.credited!==''?Number(obj.credited):null,emi=Number(obj.emi),tenure=Number(obj.tenure);if(!obj.name.trim()||!(emi>0)||!Number.isInteger(tenure)||tenure<1||tenure>480)return notify('Please check name, EMI and duration');
- const old=state.loans.find(x=>x.id===obj.id);if(old&&old.paid.length&&((old.firstDue||'')!==(obj.firstDue||'')||old.tenure!==tenure||old.emi!==emi)){if(!confirm('Changing schedule details can make past payment dates or amounts inconsistent. Continue?'))return}
+ const old=state.loans.find(x=>x.id===obj.id);if(obj.id&&!old)return notify('This loan is no longer available.');if(old&&old.paid.length&&((old.firstDue||'')!==(obj.firstDue||'')||old.tenure!==tenure||old.emi!==emi)){if(!confirm('Changing schedule details can make past payment dates or amounts inconsistent. Continue?'))return}
+ if(old?.digupLinked){
+  void saveLinkedLoanEdit(form,{name:obj.name.trim(),lender:obj.lender.trim(),kind:obj.kind,bankId:obj.bankId,principal,credited,emi,tenure,firstDue:obj.firstDue||''},old.id);
+  return;
+ }
  const newLoan={id:old?.id||`loan-${Date.now()}`,name:obj.name.trim().slice(0,60),kind:obj.kind,bankId:obj.bankId,lender:obj.lender.trim(),principal,credited,emi,tenure,firstDue:obj.firstDue||'',source:old?.source||'Manually entered',schedule:old?.schedule||undefined,paid:old?.paid||[]};
  if(old){state.loans=state.loans.map(x=>x.id===old.id?newLoan:x)}else state.loans.push(newLoan);save();modal=null;openLoan(newLoan.id);notify(old?'Loan details updated':'Loan added');return}
  if(form.dataset.form==='payment'){
