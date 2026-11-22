@@ -537,7 +537,7 @@ body.d47-model-a .loan-icon.loan-icon-illustrated { background: #101b32; }
 body.d47-model-a .loan-icon.loan-icon-illustrated .loan-art { filter: none; object-fit: cover; }
 
 </style>
-</head>
+<style id="d47-next-month-styles">.d47-next-month{padding:16px!important;border:1px solid #48c3d6!important;background:linear-gradient(125deg,#102d43,#1b163e)!important;color:#fff!important}.d47-next-head,.d47-next-row{display:flex;align-items:center;justify-content:space-between;gap:10px}.d47-next-head span{font-size:12px;font-weight:800;color:#8cf3e9}.d47-next-head strong{font-size:24px}.d47-next-row{padding:10px 0;border-top:1px solid #ffffff22;font-size:12px}.d47-next-row b{white-space:nowrap}.d47-cycle-months{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}.d47-cycle-month{border:1px solid #65729b;border-radius:12px;padding:10px;background:#ffffff0b;display:flex;flex-direction:column;gap:4px}.d47-cycle-month b{font-size:12px}.d47-cycle-month small{font-size:11px;color:#b9d5e9}.d47-cycle-month strong{font-size:18px;color:#9cf8e0}</style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -1224,19 +1224,26 @@ function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(coun
  <div class="section-title"><h2>Payment history</h2></div><div class="glass">${l.paid.length?l.paid.slice().sort((a,b)=>b.cycle-a.cycle).slice(0,8).map(p=>`<div class="list-tile" style="border-bottom:1px solid #e3edf0"><div class="loan-icon" style="height:35px;width:35px">${ico('check')}</div><div class="body"><strong>Cycle ${p.cycle} · ${fmtDate(p.date)}</strong><div class="small">${p.origin==='historical-estimate'?'Imported as paid — verify':'Recorded in this app'}</div></div><div class="money">${money(p.amount)}</div></div>`).join(''):`<div class="empty"><p class="sub">No payments recorded yet.</p></div>`}</div>
  <div class="button-group"><button class="button secondary" data-action="edit-loan">${ico('edit')} Edit loan</button><button class="button secondary" data-action="delete-loan">${ico('trash')} Delete loan</button></div></div>`}
 function cycleList(l,cs){let filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid)),max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);return `<div class="stack" style="gap:8px">${pageItems.length?pageItems.map(c=>`<div class="glass cycle-row"><div class="cycle-num ${c.paid?'is-paid':''}">${c.paid?ico('check'):c.num}</div><div class="cycle-main"><strong>Cycle ${c.num} · ${fmtDate(c.date)}</strong><span class="small">${c.paid?'Paid'+(c.paid.origin==='historical-estimate'?' (imported)':''):c.date<today()?'Past due — check status':'Upcoming'}${c.interest!=null?` · Interest ${money(c.interest)}`:''}</span></div><div class="cycle-right"><strong>${money(c.amount)}</strong><button class="text-btn" data-pay="${l.id}:${c.num}">${c.paid&&c.paid.origin!=='historical-estimate'?'Undo':c.paid?'View':'Mark paid'}</button></div></div>`).join(''):`<div class="date-note">No cycles match this filter.</div>`}<div class="pagination"><button class="button secondary mini" data-cycle-page="${p-1}" ${p===0?'disabled':''}>${ico('back')} Previous</button><span>${filtered.length?`${p*6+1}–${Math.min(filtered.length,p*6+6)} / ${filtered.length}`:'0 cycles'}</span><button class="button secondary mini" data-cycle-page="${p+1}" ${p>=max?'disabled':''}>Next ${ico('right')}</button></div></div>`}
+function nextCalendarMonth(){const d=new Date(today()+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);return d.toISOString().slice(0,7)}
+function nextMonthDueCard(){
+ const ym=nextCalendarMonth();
+ const rows=state.loans.flatMap(l=>cycles(l).filter(c=>c.date.slice(0,7)===ym&&!c.paid).map(c=>({l,c})));
+ const total=rows.reduce((n,x)=>n+Number(x.c.amount||0),0);
+ return '<section class="glass d47-next-month"><div class="d47-next-head"><span>📅 NEXT MONTH · '+monthName(ym)+'</span><strong>'+money(total)+'</strong></div><p class="sub">Scheduled EMI to pay (unpaid cycles only)</p>'+rows.map(({l,c})=>'<div class="d47-next-row"><span>'+safe(l.name)+' · '+fmtDate(c.date)+' · Cycle '+c.num+'</span><b>'+money(c.amount)+'</b></div>').join('')+(rows.length?'':'<div class="sub">No unpaid EMI scheduled.</div>')+'</section>';
+}
 function cyclesView(){
  const loans=state.loans.slice(),active=loans.filter(l=>paidCount(l)<l.tenure);
  const total=loans.reduce((n,l)=>n+Number(l.tenure||0),0),paid=loans.reduce((n,l)=>n+paidCount(l),0);
  return header('EACH LOAN · SEPARATE TIMELINE','Loan Cycles')+
- '<div class="stack d47-cycles-page"><button class="button secondary" data-nav="loans">‹ All loans</button>'+
+ '<div class="stack d47-cycles-page"><button class="button secondary" data-nav="loans">‹ All loans</button>'+nextMonthDueCard()+
  '<section class="glass d47-cycles-overview"><div><span>Active loan cycles</span><strong>'+active.length+'</strong></div><div><span>EMIs paid</span><strong>'+paid+'</strong></div><div><span>Remaining cycles</span><strong>'+Math.max(0,total-paid)+'</strong></div></section>'+
  (loans.length?loans.map(l=>{
  const p=paidCount(l),t=Math.max(1,Number(l.tenure)||1),pct=Math.min(100,Math.round(p/t*100));
  const upcoming=cycles(l).find(c=>!c.paid&&c.date>=today())||cycles(l).find(c=>!c.paid);
  return '<article class="glass d47-cycle-card">'+
  '<div class="d47-cycle-top">'+loanIcon(l)+'<div><strong>'+safe(l.name)+'</strong><span>'+safe(l.lender||'Loan')+'</span></div><div class="d47-cycle-ring" style="--progress:'+pct+'%"><b>'+pct+'%</b></div></div>'+
- '<div class="d47-cycle-stats"><div><small>Monthly EMI</small><b>'+money(l.emi)+'</b></div><div><small>Paid cycles</small><b>'+p+' / '+t+'</b></div><div><small>Next EMI</small><b>'+(upcoming?fmtDate(upcoming.date):'Completed')+'</b></div></div>'+
- '<div class="d47-cycle-track"><span style="width:'+pct+'%"></span></div>'+
+ '<div class="d47-cycle-stats"><div><small>Next EMI Amount</small><b>'+(upcoming?money(upcoming.amount):'Completed')+'</b></div><div><small>Paid cycles</small><b>'+p+' / '+t+'</b></div><div><small>Next EMI Date</small><b>'+(upcoming?fmtDate(upcoming.date):'Completed')+'</b></div></div>'+
+ '<div class="d47-cycle-months">'+cycles(l).filter(c=>c.date>=today()&&!c.paid).slice(0,4).map(c=>'<div class="d47-cycle-month"><span><b>Cycle '+c.num+'</b><small>'+fmtDate(c.date)+'</small></span><strong>'+money(c.amount)+'</strong><small>Pending</small></div>').join('')+'</div>'+'<div class="d47-cycle-track"><span style="width:'+pct+'%"></span></div>'+
  '<div class="d47-cycle-foot"><span>'+safe(l.firstDue?fmtDate(l.firstDue):'Start date not set')+' → '+safe(closing(l))+'</span><button type="button" class="button secondary" data-open-loan="'+safe(l.id)+'">View cycles ›</button></div>'+
  '</article>'
  }).join(''):'<div class="glass empty"><h2>No loan cycles yet</h2><p class="sub">Add a loan and first EMI date to track its cycles.</p></div>')+
