@@ -597,7 +597,39 @@ body.d47-model-a .d47-emerald-cycles .cycle-row .cycle-main .small{color:#455e51
 body.d47-model-a .d47-emerald-cycles .cycle-row .cycle-right strong{color:#075c36!important}
 @media(prefers-contrast:more){body.d47-model-a .loan-compact .caption,body.d47-model-a .loan-compact .small{font-weight:700!important}}
 </style>
-</head>
+<style id="d47-emerald-reference-v46">
+/* Emerald Minimal reference layout: month selector + compact white EMI cards. */
+body.d47-emerald-cycles .emerald-month-strip{display:flex;gap:9px;overflow-x:auto;padding:8px 2px 15px;scroll-snap-type:x mandatory;scrollbar-width:none}
+body.d47-emerald-cycles .emerald-month-strip::-webkit-scrollbar{display:none}
+body.d47-emerald-cycles .emerald-month{flex:0 0 91px;min-height:112px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;border:1px solid #e0e8e5;border-radius:20px;background:#fff;color:#182e29;box-shadow:0 5px 16px #113f2c12;scroll-snap-align:start}
+body.d47-emerald-cycles .emerald-month b{font-size:19px}
+body.d47-emerald-cycles .emerald-month small{font-size:14px;color:#596a64}
+body.d47-emerald-cycles .emerald-month span{font-size:12px;font-weight:750;color:#62766b}
+body.d47-emerald-cycles .emerald-month.is-paid{background:#e6faee;border-color:#b2e6c8;color:#09653a}
+body.d47-emerald-cycles .emerald-month.is-paid span{color:#087343}
+body.d47-emerald-cycles .emerald-month.is-next{background:linear-gradient(150deg,#00975a,#00532f);color:white;border-color:#07834d}
+body.d47-emerald-cycles .emerald-month.is-next small,body.d47-emerald-cycles .emerald-month.is-next span{color:white}
+body.d47-emerald-cycles .emerald-cycle-list{display:flex;flex-direction:column;gap:10px}
+body.d47-emerald-cycles .emerald-emi-card{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:12px;align-items:center;background:#fff;color:#152b24;border:1px solid #dbe5df;border-radius:23px;padding:14px;box-shadow:0 5px 18px #092d1b10}
+body.d47-emerald-cycles .emerald-emi-card.is-paid{background:#eaf9f0;border-color:#b5e5c9}
+body.d47-emerald-cycles .emerald-emi-card.is-next{background:#f4fff8;border:2px solid #087c49}
+body.d47-emerald-cycles .emerald-cycle-id{min-height:92px;background:#f0f2f3;border-radius:17px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#18372a;gap:3px}
+body.d47-emerald-cycles .emerald-cycle-id small{font-size:12px;font-weight:750}
+body.d47-emerald-cycles .emerald-cycle-id b{font-size:29px;line-height:1.1}
+body.d47-emerald-cycles .emerald-cycle-id span{font-size:11px;font-weight:800}
+body.d47-emerald-cycles .is-paid .emerald-cycle-id{background:#d9f5e5;color:#087243}
+body.d47-emerald-cycles .is-next .emerald-cycle-id{background:linear-gradient(150deg,#008d54,#005f38);color:white}
+body.d47-emerald-cycles .emerald-cycle-info{min-width:0;display:flex;flex-direction:column;gap:5px}
+body.d47-emerald-cycles .emerald-cycle-info strong{font-size:17px;color:#122b21}
+body.d47-emerald-cycles .emerald-cycle-info span{font-size:13px;color:#40584c}
+body.d47-emerald-cycles .emerald-cycle-info p{margin:0;font-size:12px;line-height:1.45;color:#253c32}
+body.d47-emerald-cycles .emerald-cycle-info i{font-style:normal;color:#a2b8aa}
+body.d47-emerald-cycles .emerald-cycle-pay{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+body.d47-emerald-cycles .emerald-cycle-pay strong{font-size:19px;color:#075c36;background:#e5f8ec;padding:7px 11px;border-radius:30px;white-space:nowrap}
+body.d47-emerald-cycles .emerald-cycle-pay button{font-size:12px;min-height:40px;border-radius:22px;background:#e6f7ed;color:#07683e;padding:7px 12px;font-weight:800;border:1px solid #b8e6cc}
+body.d47-emerald-cycles .is-next .emerald-cycle-pay button{background:#fff0b9;color:#6c4b00;border-color:#ffe29b}
+@media(max-width:600px){body.d47-emerald-cycles .emerald-emi-card{grid-template-columns:67px minmax(0,1fr);gap:10px;padding:11px}body.d47-emerald-cycles .emerald-cycle-id{min-height:86px}body.d47-emerald-cycles .emerald-cycle-pay{grid-column:2;flex-direction:row;justify-content:space-between;align-items:center;gap:5px}body.d47-emerald-cycles .emerald-cycle-pay strong{font-size:16px}body.d47-emerald-cycles .emerald-cycle-pay button{font-size:11px;max-width:165px}body.d47-emerald-cycles .emerald-cycle-info strong{font-size:16px}}
+</style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -1332,10 +1364,36 @@ function loanDetail(originalLoan){const l=officialLoanForDisplay(originalLoan);c
  ${!l.firstDue?`<div class="notice warn">${ico('info')}First EMI date not supplied. Edit this loan to enable the full 60-month calendar and due date reminders.</div>`:''}
  ${l.id==='iphone'?`<p class="footnote">*iPhone principal by the original HDFC schedule (not a live bank statement). The final scheduled EMI is ₹2,877. Actual overdue charges or prepayments are not included.</p>`:''}
  <div class="section-title"><h2>EMI cycle schedule</h2>${cs.length?`<span class="small">${cs.length} cycles</span>`:''}</div>
- ${cs.length?`<div class="tabbar">${[['all','All'],['paid','Paid'],['upcoming','Not paid']].map(([id,label])=>`<button data-cycle-filter="${id}" class="${cycleFilter===id?'selected':''}">${label}</button>`).join('')}</div>${cycleList(l,cs)}`:`<div class="date-note">Add the first due date to generate the full payment-cycle schedule.</div>`}
+ ${cs.length?`${emeraldMonthStrip(cs)}<div class="tabbar">${[['all','All'],['paid','Paid'],['upcoming','Not paid']].map(([id,label])=>`<button data-cycle-filter="${id}" class="${cycleFilter===id?'selected':''}">${label}</button>`).join('')}</div>${cycleList(l,cs)}`:`<div class="date-note">Add the first due date to generate the full payment-cycle schedule.</div>`}
  <div class="section-title"><h2>Payment history</h2></div><div class="glass">${l.paid.length?l.paid.slice().sort((a,b)=>b.cycle-a.cycle).slice(0,8).map(p=>`<div class="list-tile" style="border-bottom:1px solid #e3edf0"><div class="loan-icon" style="height:35px;width:35px">${ico('check')}</div><div class="body"><strong>Cycle ${p.cycle} · ${fmtDate(p.date)}</strong><div class="small">${p.origin==='historical-estimate'?'Imported as paid — verify':'Recorded in this app'}</div></div><div class="money">${money(p.amount)}</div></div>`).join(''):`<div class="empty"><p class="sub">No payments recorded yet.</p></div>`}</div>
  ${quickMoneySection()} <div class="button-group"><button class="button secondary" data-action="edit-loan">${ico('edit')} Edit loan</button><button class="button secondary" data-action="delete-loan">${ico('trash')} Delete loan</button></div></div>`}
-function cycleList(l,cs){let filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid)),max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);return `<div class="stack" style="gap:8px">${pageItems.length?pageItems.map(c=>`<div class="glass cycle-row"><div class="cycle-num ${c.paid?'is-paid':''}">${c.paid?ico('check'):c.num}</div><div class="cycle-main"><strong>Cycle ${c.num} · ${fmtDate(c.date)}</strong><span class="small">${c.paid?'Paid'+(c.paid.origin==='historical-estimate'?' (imported)':''):c.date<today()?'Past due — check status':'Upcoming'}${c.interest!=null?` · Interest ${money(c.interest)} · Principal ${money(l.schedule?.[c.num-1]?.principal??0)} · O/s ${money(c.principalLeft)}`:''}</span></div><div class="cycle-right"><strong>${money(c.amount)}</strong><button class="text-btn" data-pay="${l.id}:${c.num}">${c.paid?'✓ Paid · Change':'○ Unpaid · Mark paid'}</button></div></div>`).join(''):`<div class="date-note">No cycles match this filter.</div>`}<div class="pagination"><button class="button secondary mini" data-cycle-page="${p-1}" ${p===0?'disabled':''}>${ico('back')} Previous</button><span>${filtered.length?`${p*6+1}–${Math.min(filtered.length,p*6+6)} / ${filtered.length}`:'0 cycles'}</span><button class="button secondary mini" data-cycle-page="${p+1}" ${p>=max?'disabled':''}>Next ${ico('right')}</button></div></div>`}
+function emeraldMonthStrip(cs){
+ const next=cs.find(c=>!c.paid&&c.date>=today());
+ const pivot=next?cs.indexOf(next):Math.max(0,cs.length-1);
+ const from=Math.max(0,pivot-1),visible=cs.slice(from,from+6);
+ return '<div class="emerald-month-strip" aria-label="EMI months">'+visible.map(c=>{
+  const month=new Date(c.date+'T12:00:00').toLocaleDateString('en-IN',{month:'short'});
+  const year=c.date.slice(0,4);
+  const active=next&&c.num===next.num;
+  return '<button type="button" class="emerald-month '+(c.paid?'is-paid ':active?'is-next ':'')+'" data-cycle-jump="'+c.num+'"><b>'+month+'</b><small>'+year+'</small><span>'+(c.paid?'✓ Paid':active?'▣ Next':'▢')+'</span></button>';
+ }).join('')+'</div>';
+}
+function cycleList(l,cs){
+ const filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid));
+ const max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);
+ const next=cs.find(c=>!c.paid&&c.date>=today());
+ return '<div class="emerald-cycle-list">'+(pageItems.length?pageItems.map(c=>{
+ const label=new Date(c.date+'T12:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+ const active=next&&next.num===c.num;
+ const principal=l.schedule?.[c.num-1]?.principal;
+ return '<article class="emerald-emi-card '+(c.paid?'is-paid':active?'is-next':'')+'">'+
+ '<div class="emerald-cycle-id"><small>Cycle</small><b>'+String(c.num).padStart(2,'0')+'</b><span>'+(c.paid?'✓ Paid':active?'Next':'')+'</span></div>'+
+ '<div class="emerald-cycle-info"><strong>'+label+'</strong><span>Due: '+fmtDate(c.date)+'</span>'+
+ (c.interest!=null?'<p>Principal: '+money(principal??0)+' <i>│</i> Interest: '+money(c.interest)+'</p><p>Outstanding: '+money(c.principalLeft)+'</p>':'')+'</div>'+
+ '<div class="emerald-cycle-pay"><strong>'+money(c.amount)+'</strong><button type="button" data-pay="'+safe(l.id)+':'+c.num+'">'+(c.paid?'✓ Paid · Change':active?'◷ Upcoming · Pay':'○ Unpaid · Mark paid')+'</button></div></article>';
+ }).join(''):'<div class="date-note">No cycles match this filter.</div>')+
+ '<div class="pagination"><button class="button secondary mini" data-cycle-page="'+(p-1)+'" '+(p===0?'disabled':'')+'>Previous</button><span>'+(filtered.length?(p*6+1)+'–'+Math.min(filtered.length,p*6+6)+' / '+filtered.length:'0 cycles')+'</span><button class="button secondary mini" data-cycle-page="'+(p+1)+'" '+(p>=max?'disabled':'')+'>Next</button></div></div>';
+}
 function nextCalendarMonth(){const d=new Date(today()+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);return d.toISOString().slice(0,7)}
 function nextMonthDueCard(){
  const ym=nextCalendarMonth();
@@ -1526,6 +1584,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
   if(!confirm('Delete the recorded salary for '+monthName(ym)+'? This does not affect loan payments or bank balances.'))return;
   delete state.salaries[ym];save();render();notify('Salary record deleted');return
  }
+ if(el.dataset.cycleJump){const loan=selectedLoan();if(loan){const all=cycles(loan).filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid));const index=all.findIndex(c=>c.num===Number(el.dataset.cycleJump));if(index>=0){cyclePage=Math.floor(index/6);render();}}return}
  if(el.dataset.quickDelete){const row=state.ledger.find(x=>x.id===el.dataset.quickDelete);if(!row||!['income','expense'].includes(row.type))return;if(!confirm('Delete this Lona entry?'))return;state.ledger=state.ledger.filter(x=>x.id!==row.id);save();render();return}
  if(el.dataset.pay){let [id,n]=el.dataset.pay.split(':');markPayment(id,Number(n));return}
  if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(l.digupLinked){notify('Undo linked payments in DIG UP.');return}if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
