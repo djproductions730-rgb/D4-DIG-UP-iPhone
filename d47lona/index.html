@@ -1549,7 +1549,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
 function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)return;e.preventDefault();let fd=new FormData(form);const obj=Object.fromEntries(fd);
  if(form.dataset.form==='quick-money'){
  const amount=Number(obj.amount),type=String(obj.type||'');
- if(!['income','expense'].includes(type)||!Number.isFinite(amount)||amount<=0||amount>100000000||!String(obj.label||'').trim()||!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(obj.date||'')))return notify('Check the transaction details');
+ if(!['income','expense'].includes(type)||!Number.isFinite(amount)||amount<=0||amount>100000000||!String(obj.label||'').trim()||!/^\d{4}-\d{2}-\d{2}$/.test(String(obj.date||'')))return notify('Check the transaction details');
  state.ledger.push({id:'manual-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),type,amount:Math.round(amount*100)/100,label:String(obj.label).trim().slice(0,80),date:obj.date,bankId:obj.bankId||'',origin:'lona-local'});
  save();modal=null;render();notify(type==='income'?'Income recorded':'Expense recorded');return;
  }
