@@ -16,7 +16,7 @@
   if(!isTrip(p))return '';
   const rows=linked(p,i);
   return '<details class="trip-linked"><summary>🔗 Linked Trip Expenses · '+money(rows.reduce((s,e)=>s+Number(e.amount||0),0))+'</summary>'+
-   (rows.length?rows.slice().reverse().map(e=>'<div class="trip-linked-row"><span>'+escape(e.tripCategory||'Other')+' · '+escape(e.note||'Expense')+'<small>'+escape(String(e.date||e.created||'').slice(0,10))+'</small></span><span><b>'+money(e.amount)+'</b> <button class="button ghost mini" type="button" onclick="openLinkedTripExpense(\''+escape(e.id)+'\')">✎</button></span></div>').join(''):'<p class="muted">New linked trip expenses will appear here.</p>')+
+   (rows.length?rows.slice().reverse().map(e=>'<div class="trip-linked-row"><span>'+escape(e.tripCategory||'Other')+' · '+escape(e.note||'Expense')+'<small>'+escape(String(e.date||e.created||'').slice(0,10))+'</small></span><span><b>'+money(e.amount)+'</b> <button class="button ghost mini" type="button" onclick="openLinkedTripExpense(\''+escape(e.id)+'\')">✎</button> <button class="button ghost mini" type="button" onclick="deleteLinkedTripExpense(\''+escape(e.id)+'\')">🗑</button></span></div>').join(''):'<p class="muted">New linked trip expenses will appear here.</p>')+
    '</details><button class="button trip-link-btn" type="button" onclick="openLinkedTripExpense(undefined,'+i+')">＋ Trip Expense · Bank linked</button>';
  }
  const previousPlans=plans;
@@ -30,6 +30,27 @@
  const css=document.createElement('style');
  css.textContent='.trip-link-btn{margin-top:12px;width:100%;background:linear-gradient(115deg,#e8b985,#b891e9)!important;color:#24172e!important;font-weight:850!important;border:0!important}.trip-linked{margin-top:13px;padding:9px 12px;border:1px solid #85638d;border-radius:13px;background:#271b39;color:#f9f0ff}.trip-linked summary{cursor:pointer;font-size:13px;font-weight:750}.trip-linked-row{display:flex;justify-content:space-between;align-items:center;gap:10px;border-top:1px solid #ffffff20;padding:10px 0;font-size:12px}.trip-linked-row small{display:block;color:#d4bedf;margin-top:4px}.trip-linked-row .button{min-width:34px;padding:6px!important}.trip-edit-form .field{display:block;margin:12px 0;color:#f8eaff}.trip-edit-form select,.trip-edit-form input{width:100%;min-height:44px;background:#2b1f3b;color:white;border:1px solid #9774a8;border-radius:10px;padding:10px;font-size:16px}.trip-edit-form .trip-note{color:#dfc7e9;font-size:12px;line-height:1.6}';
  document.head.appendChild(css);
+ window.deleteLinkedTripExpense=function(entryId){
+  const original=JSON.stringify(data),stored=localStorage.getItem(KEY);
+  const entry=data.entries.find(x=>String(x.id)===String(entryId)&&x.tripLinked===true&&x.type==='Expense');
+  if(!entry){alert('Linked trip expense not found.');return}
+  const bank=data.banks.find(b=>String(b.id)===String(entry.bankId));
+  const amount=Number(entry.amount);
+  if(!bank||!validAmount(amount)||!Number.isFinite(Number(bank.balance))){alert('Bank or amount missing. No changes made.');return}
+  if(!confirm('Delete '+money(amount)+' trip expense and return '+money(amount)+' to '+bank.name+'?'))return;
+  try{
+   if(JSON.stringify(data)!==original||localStorage.getItem(KEY)!==stored)throw Error('Records changed. Reopen and retry.');
+   const next=JSON.parse(original),b=next.banks.find(x=>String(x.id)===String(entry.bankId));
+   if(!b)throw Error('Original bank missing.');
+   b.balance=round(Number(b.balance)+amount);
+   if(!Number.isFinite(b.balance)||Math.abs(b.balance)>1e12)throw Error('Bank balance outside supported range.');
+   const index=next.entries.findIndex(x=>String(x.id)===String(entry.id)&&x.tripLinked===true);
+   if(index<0)throw Error('Expense missing.');
+   next.entries.splice(index,1);
+   localStorage.setItem(KEY,JSON.stringify(next));
+   data=next;closeSheet();render();
+  }catch(error){alert(error.message||'Could not delete expense.')}
+ };
  window.openLinkedTripExpense=function(entryId,planIndex){
   const existing=entryId!==undefined&&entryId!==null;
   const e=existing?data.entries.find(x=>String(x.id)===String(entryId)&&x.tripLinked===true):null;
@@ -47,10 +68,11 @@
     '<label class="field">Amount (₹)<input name="amount" type="number" min="0.01" max="100000000000" step="0.01" required value="'+(existing?Number(e.amount):'')+'"></label>'+
     '<label class="field">Date<input name="date" type="date" required value="'+escape(existing?(e.date||stamp()):stamp())+'"></label>'+
     '<label class="field">Description / Note<input name="note" maxlength="200" placeholder="e.g. Lunch at Calangute" value="'+escape(existing?e.note:'')+'"></label>'+
-    '<div class="error" role="alert"></div><button class="button" type="submit" style="width:100%;min-height:48px;background:linear-gradient(105deg,#ff83ac,#c84bf5);color:#20112c;font-weight:850">Save Trip Expense</button></form>');
+    '<div class="error" role="alert"></div>'+(existing?'<button class="button ghost" type="button" id="trip-delete-btn" style="width:100%;margin-bottom:10px;border:1px solid #ff7499;color:#ffc0ce">🗑 Delete Expense & Refund Bank</button>':'')+'<button class="button" type="submit" style="width:100%;min-height:48px;background:linear-gradient(105deg,#ff83ac,#c84bf5);color:#20112c;font-weight:850">Save Trip Expense</button></form>');
   const form=document.getElementById('trip-linked-form');
   form.elements.plan.value=String(selectedPlan);
   if(existing){const cat=form.querySelector('input[name=category][value="'+(CATEGORIES.includes(e.tripCategory)?e.tripCategory:'Other')+'"]');if(cat)cat.checked=true;form.elements.bank.value=String(e.bankId)}
+  if(existing)form.querySelector('#trip-delete-btn').onclick=()=>window.deleteLinkedTripExpense(e.id);
   form.onsubmit=ev=>{
    ev.preventDefault();
    const error=form.querySelector('[role=alert]');
