@@ -1513,11 +1513,10 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
     window.addEventListener('pageshow',checkUpdate);
     checkUpdate();
   }).catch(()=>{});
+  let reloadingForUpdate=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    // Reload only when a new worker takes control; avoid repeated refreshes.
-    const stamp='d47lona-sw-reload-v32';
-    if(sessionStorage.getItem(stamp)==='1')return;
-    sessionStorage.setItem(stamp,'1');
+    if(reloadingForUpdate)return;
+    reloadingForUpdate=true;
     location.reload();
   });
 }
