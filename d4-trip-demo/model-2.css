@@ -122,3 +122,41 @@ body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action[data-view="expenses
   --tile-tone: #31574f;
   --tile-edge: #75a391;
 }
+
+/* Member payment row controls and current amounts in the editor. */
+body.d4-premium .ref-home-balances .ref-balance-person .ref-edit-paid {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 !important;
+  border-radius: 14px !important;
+  border: 1px solid #667b8c !important;
+  color: #ffe0a4 !important;
+  background: linear-gradient(145deg, #293d4d, #14212d) !important;
+  box-shadow: inset 0 1px #fff2 !important;
+}
+body.d4-premium .ref-home-balances .ref-edit-paid:focus-visible {
+  outline: 2px solid #ffe0a4;
+  outline-offset: 2px;
+}
+body.d4-premium .ref-edit-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+body.d4-premium .ref-edit-preview > span {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  color: #e8eff6;
+  background: #152533;
+  border: 1px solid #425d70;
+  border-radius: 12px;
+  overflow-wrap: anywhere;
+}
+body.d4-premium .ref-edit-preview strong { color: #bdf0d7; }
+body.d4-premium .ref-edit-preview > span + span strong { color: #ffdcaa; }

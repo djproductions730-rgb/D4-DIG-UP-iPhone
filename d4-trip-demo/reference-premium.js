@@ -119,7 +119,7 @@
       '<span class="ref-balance-initial" aria-hidden="true">'+html(String(row.member).slice(0,1).toUpperCase())+'</span>'+
       '<div class="ref-balance-details"><b>'+html(row.member)+'</b><small class="ref-balance-status">'+html(row.status)+'</small>'+
       '<div><span>Paid <strong>'+money(row.paid)+'</strong></span><span>Due <strong>'+money(row.pending)+'</strong></span></div></div>'+
-      (canEdit?'<button type="button" class="ref-edit-paid" data-action="collection-member-total" data-member="'+html(row.member)+'" aria-label="Edit paid amount for '+html(row.member)+'">✎ Edit</button>':'')+'</article>';
+      (canEdit?'<button type="button" class="ref-edit-paid" data-action="collection-member-total" data-member="'+html(row.member)+'" aria-label="Edit paid amount for '+html(row.member)+'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m14 6 4 4M5 19l4-.8L19 8a2.8 2.8 0 0 0-4-4L5.8 15Z"/></svg></button>':'')+'</article>';
     const first=c.rows.slice(0,4).map(entry).join('');
     const rest=c.rows.slice(4).map(entry).join('');
     return '<section class="ref-home-balances" aria-label="Live member payment balances">'+
