@@ -677,6 +677,15 @@ body.d47-model-a.d47-emerald-cycles .cycle-row:has(.cycle-num) .cycle-main *,
 body.d47-model-a.d47-emerald-cycles .cycle-row:has(.cycle-num) .cycle-right strong,
 body.d47-model-a.d47-emerald-cycles .cycle-row:has(.cycle-num) .cycle-num{color:#173529!important;-webkit-text-fill-color:#173529!important;opacity:1!important}
 body.d47-model-a.d47-emerald-cycles .cycle-row:has(.cycle-num) .cycle-right button{color:#fff!important;-webkit-text-fill-color:#fff!important}
+</style><style id="d47-swipe-cycles-v51">
+body.d47-emerald-cycles .emerald-cycle-navigation{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 14px}
+body.d47-emerald-cycles .emerald-cycle-navigation button{border:1px solid #0b8351;background:#0b774a;color:white;-webkit-text-fill-color:white;border-radius:18px;min-height:46px;padding:9px 14px;font-size:14px;font-weight:800}
+body.d47-emerald-cycles .emerald-cycle-navigation button:disabled{background:#d7e5de;color:#4d675b;-webkit-text-fill-color:#4d675b;border-color:#aebfb6;opacity:1}
+body.d47-emerald-cycles .emerald-cycle-navigation span{font-weight:800;color:inherit;font-size:13px;white-space:nowrap}
+body.d47-emerald-cycles .emerald-cycle-track{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;padding:4px 2px 12px}
+body.d47-emerald-cycles .emerald-cycle-track>.emerald-emi-card{flex:0 0 calc(100% - 4px);min-width:0;scroll-snap-align:start;box-sizing:border-box}
+body.d47-emerald-cycles .emerald-swipe-hint{font-size:12px;text-align:center;color:#b9e8d2;margin:8px 0 14px;font-weight:700}
+body.d47-emerald-cycles .emerald-cycle-list{display:block}
 </style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
@@ -1428,21 +1437,25 @@ function emeraldMonthStrip(cs){
   return '<button type="button" class="emerald-month '+(c.paid?'is-paid ':active?'is-next ':'')+'" data-cycle-jump="'+c.num+'"><b>'+month+'</b><small>'+year+'</small><span>'+(c.paid?'✓ Paid':active?'▣ Next':'▢')+'</span></button>';
  }).join('')+'</div>';
 }
+let cycleFocusNum=0;
 function cycleList(l,cs){
  const filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid));
- const max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);
+ const pageItems=filtered;
+ const firstNext=filtered.find(c=>!c.paid&&c.date>=today())||filtered.find(c=>!c.paid)||filtered[filtered.length-1];
+ const focusIndex=Math.max(0,filtered.findIndex(c=>c.num===(cycleFocusNum||firstNext?.num)));
+ const focus=filtered[focusIndex];
  const next=cs.find(c=>!c.paid&&c.date>=today());
- return '<div class="emerald-cycle-list">'+(pageItems.length?pageItems.map(c=>{
+ return '<div class="emerald-cycle-list"><div class="emerald-cycle-navigation"><button type="button" data-cycle-step="-1" '+(focusIndex===0?'disabled':'')+'>‹ Previous</button><span>Cycle '+(focus?.num||0)+' / '+cs.length+'</span><button type="button" data-cycle-step="1" '+(focusIndex>=filtered.length-1?'disabled':'')+'>Next ›</button></div><div class="emerald-cycle-track" id="emerald-cycle-track" data-focus-cycle="'+(focus?.num||0)+'">'+(pageItems.length?pageItems.map(c=>{
  const label=new Date(c.date+'T12:00:00').toLocaleDateString('en-IN',{month:'long',year:'numeric'});
  const active=next&&next.num===c.num;
  const principal=l.schedule?.[c.num-1]?.principal;
- return '<article style="background:'+(c.paid?'#eaf9f0':active?'#f4fff8':'#ffffff')+'!important;color:#153426!important;-webkit-text-fill-color:#153426!important;border:2px solid '+(active?'#087c49':'#dbe5df')+'!important" class="emerald-emi-card '+(c.paid?'is-paid':active?'is-next':'')+'">'+
+ return '<article data-cycle-num="'+c.num+'" style="background:'+(c.paid?'#eaf9f0':active?'#f4fff8':'#ffffff')+'!important;color:#153426!important;-webkit-text-fill-color:#153426!important;border:2px solid '+(active?'#087c49':'#dbe5df')+'!important" class="emerald-emi-card '+(c.paid?'is-paid':active?'is-next':'')+'">'+
  '<div class="emerald-cycle-id" style="background:'+(active?'#007849':'#e6f3ea')+'!important;color:'+(active?'#fff':'#123d29')+'!important;-webkit-text-fill-color:'+(active?'#fff':'#123d29')+'!important"><small style="color:inherit!important;-webkit-text-fill-color:inherit!important">Cycle</small><b style="color:inherit!important;-webkit-text-fill-color:inherit!important">'+String(c.num).padStart(2,'0')+'</b><span>'+(c.paid?'✓ Paid':active?'Next':'')+'</span></div>'+
  '<div class="emerald-cycle-info" style="color:#153426!important;-webkit-text-fill-color:#153426!important"><strong style="color:#122b21!important;-webkit-text-fill-color:#122b21!important">'+label+'</strong><span style="color:#40584c!important;-webkit-text-fill-color:#40584c!important">Due: '+fmtDate(c.date)+'</span>'+
  (c.interest!=null?'<p style="color:#253c32!important;-webkit-text-fill-color:#253c32!important">Principal: '+money(principal??0)+' <i>│</i> Interest: '+money(c.interest)+'</p><p style="color:#253c32!important;-webkit-text-fill-color:#253c32!important">Outstanding: '+money(c.principalLeft)+'</p>':'')+'</div>'+
  '<div class="emerald-cycle-pay"><strong style="color:#075c36!important;-webkit-text-fill-color:#075c36!important">'+money(c.amount)+'</strong><button type="button" data-pay="'+safe(l.id)+':'+c.num+'">'+(c.paid?'✓ Paid · Change':active?'◷ Upcoming · Pay':'○ Unpaid · Mark paid')+'</button></div></article>';
  }).join(''):'<div class="date-note">No cycles match this filter.</div>')+
- '<div class="pagination"><button class="button secondary mini" data-cycle-page="'+(p-1)+'" '+(p===0?'disabled':'')+'>Previous</button><span>'+(filtered.length?(p*6+1)+'–'+Math.min(filtered.length,p*6+6)+' / '+filtered.length:'0 cycles')+'</span><button class="button secondary mini" data-cycle-page="'+(p+1)+'" '+(p>=max?'disabled':'')+'>Next</button></div></div>';
+ '</div><div class="emerald-swipe-hint">← Swipe to view previous and upcoming EMIs →</div></div>';
 }
 function nextCalendarMonth(){const d=new Date(today()+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);return d.toISOString().slice(0,7)}
 function nextMonthDueCard(){
@@ -1615,9 +1628,9 @@ function payForm(l,c){let record=l.paid.find(x=>x.cycle===c.num);let undoable=!!
  ${record?`<div class="notice">${ico('check')}${record.origin==='historical-estimate'?'This older cycle was imported as paid from your earlier details. Verify it against your bank statement.':'Marked paid on '+fmtDate(record.date)+'. '+(record.deducted?'Local bank balance deducted.':'No local bank deduction was recorded.')}</div>${undoable?`<button class="button danger full" data-undo="${l.id}:${c.num}" style="margin-top:14px">${ico('refresh')} ${record.origin==='historical-estimate'?'Unmark imported paid':'Undo payment'}</button>`:''}`:
  `<form data-form="payment"><input type="hidden" name="loanId" value="${l.id}"/><input type="hidden" name="cycle" value="${c.num}"/><div class="field"><label for="paid-date">Date paid *</label><input id="paid-date" name="paidDate" type="date" required value="${today()}" /></div><div class="field"><label for="pay-bank">Paid from bank *</label><select id="pay-bank" name="bankId">${state.banks.map(b=>`<option value="${b.id}" ${b.id===l.bankId?'selected':''}>${safe(b.name)}${b.reserved?' · reserved for trip':''}</option>`).join('')}</select></div><label class="toggle-row" style="border:1px solid #d5e8e7;border-radius:13px;margin-bottom:15px;cursor:pointer"><div class="body"><strong>Record local bank deduction</strong><div class="small">Subtract this EMI once from the selected local balance and add a ledger entry.</div></div><input style="width:20px;height:20px;accent-color:#0baf8c" type="checkbox" name="deduct" checked /></label><div class="notice warn" style="margin-bottom:15px">${ico('info')} This never sends real money. On the same GitHub Pages domain, a linked DIG UP record is updated once. Otherwise, local balance only. Turn off deduction if already recorded elsewhere.</div><button class="button full" type="submit">${ico('check')} Confirm paid</button></form>`}</div></div>`}
 function infoModal(title,body){return `<div class="modal-shade"><div class="modal" role="dialog" aria-modal="true" aria-label="${safe(title)}"><div class="modal-title"><h2>${safe(title)}</h2><button class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>${body}<button class="button secondary full" style="margin-top:16px" data-action="close-modal">Close</button></div></div>`}
-function render(){document.body.dataset.d47Section=view==='detail'?'loans':view;document.body.classList.remove('d47-neon-mode');document.body.classList.add('d47-model-a');document.body.classList.toggle('d47-emerald-cycles',view==='detail'||view==='cycles');document.documentElement.dataset.theme=state.theme;const browserThemeColors={crystal:'#edf9f8',midnight:'#07172D',emerald:'#051F1B',royal:'#1A0B2E',gold:'#201809'};document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#eef5ff');let body=view==='home'?home():view==='loans'?loansView():view==='cycles'?cyclesView():view==='schedule'?scheduleView():view==='reminders'?remindersView():view==='settings'?settingsView():view==='detail'&&selectedLoan()?loanDetail(selectedLoan()):home();$('#app').innerHTML=`<div class="shell"><aside class="rail"><div class="brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div></div><div class="rail-label">YOUR FINANCES</div>${navItems()}<div class="rail-footer">${ico('shield')} Offline-first app<br/>App data stays on this device.<br/>${d4BrowserLinked()?'DIG UP data link available.':'DIG UP cloud sync not connected.'}</div></aside><main class="main"><div class="mobile-brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div><span class="sync-indicator d47-sync-indicator d47-sync-${d47SyncState().color}" title="${safe(d47SyncState().description)}">${ico('shield')} ${safe(d47SyncState().label)}</span></div>${body}<div class="footspace"></div></main><nav class="mobile-nav" aria-label="Main navigation">${navItems(true)}</nav></div>${modal||''}`}
+function render(){document.body.dataset.d47Section=view==='detail'?'loans':view;document.body.classList.remove('d47-neon-mode');document.body.classList.add('d47-model-a');document.body.classList.toggle('d47-emerald-cycles',view==='detail'||view==='cycles');document.documentElement.dataset.theme=state.theme;const browserThemeColors={crystal:'#edf9f8',midnight:'#07172D',emerald:'#051F1B',royal:'#1A0B2E',gold:'#201809'};document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#eef5ff');let body=view==='home'?home():view==='loans'?loansView():view==='cycles'?cyclesView():view==='schedule'?scheduleView():view==='reminders'?remindersView():view==='settings'?settingsView():view==='detail'&&selectedLoan()?loanDetail(selectedLoan()):home();$('#app').innerHTML=`<div class="shell"><aside class="rail"><div class="brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div></div><div class="rail-label">YOUR FINANCES</div>${navItems()}<div class="rail-footer">${ico('shield')} Offline-first app<br/>App data stays on this device.<br/>${d4BrowserLinked()?'DIG UP data link available.':'DIG UP cloud sync not connected.'}</div></aside><main class="main"><div class="mobile-brand"><div class="logo"><b>D47</b><small>LONA</small></div><div class="brand-text"><b>D47<em>Lona</em></b><small>Smart Loan Manager</small></div><span class="sync-indicator d47-sync-indicator d47-sync-${d47SyncState().color}" title="${safe(d47SyncState().description)}">${ico('shield')} ${safe(d47SyncState().label)}</span></div>${body}<div class="footspace"></div></main><nav class="mobile-nav" aria-label="Main navigation">${navItems(true)}</nav></div>${modal||''}`};if(view==='detail'){const track=document.getElementById('emerald-cycle-track');const focus=track?.querySelector('[data-cycle-num="'+track.dataset.focusCycle+'"]');if(track&&focus)track.scrollLeft=focus.offsetLeft-track.offsetLeft}
 function goto(name){view=name;detailId=null;modal=null;render();window.scrollTo({top:0,behavior:'instant'})}
-function openLoan(id){detailId=id;view='detail';cycleFilter='all';let l=selectedLoan();let next=cycles(l).findIndex(c=>!c.paid);cyclePage=next>=0?Math.floor(next/6):0;render();window.scrollTo({top:0,behavior:'instant'})}
+function openLoan(id){detailId=id;view='detail';cycleFocusNum=0;cycleFilter='all';let l=selectedLoan();let next=cycles(l).findIndex(c=>!c.paid);cyclePage=next>=0?Math.floor(next/6):0;render();window.scrollTo({top:0,behavior:'instant'})}
 function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}if(l.digupLinked){notify('Linked EMI: record payments in DIG UP. Lona updates automatically.');return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
 function closeModal(){modal=null;render()}
 function exportJson(name,content,type='application/json'){const a=document.createElement('a'),blob=new Blob([content],{type}),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
@@ -1634,8 +1647,9 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
   if(!confirm('Delete the recorded salary for '+monthName(ym)+'? This does not affect loan payments or bank balances.'))return;
   delete state.salaries[ym];save();render();notify('Salary record deleted');return
  }
- if(el.dataset.cycleJump){const loan=selectedLoan();if(loan){const all=cycles(loan).filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid));const index=all.findIndex(c=>c.num===Number(el.dataset.cycleJump));if(index>=0){cyclePage=Math.floor(index/6);render();}}return}
- if(el.dataset.quickDelete){const row=state.ledger.find(x=>x.id===el.dataset.quickDelete);if(!row||!['income','expense'].includes(row.type))return;if(!confirm('Delete this Lona entry?'))return;state.ledger=state.ledger.filter(x=>x.id!==row.id);save();render();return}
+ if(el.dataset.cycleStep){const l=selectedLoan();if(l){const filtered=cycles(l).filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid));const current=filtered.findIndex(c=>c.num===Number(document.getElementById('emerald-cycle-track')?.dataset.focusCycle));const target=filtered[Math.min(filtered.length-1,Math.max(0,current+Number(el.dataset.cycleStep)))];if(target){cycleFocusNum=target.num;render();}}return}
+ if(el.dataset.cycleJump){cycleFocusNum=Number(el.dataset.cycleJump);cycleFilter='all';render();return}
+  if(el.dataset.quickDelete){const row=state.ledger.find(x=>x.id===el.dataset.quickDelete);if(!row||!['income','expense'].includes(row.type))return;if(!confirm('Delete this Lona entry?'))return;state.ledger=state.ledger.filter(x=>x.id!==row.id);save();render();return}
  if(el.dataset.pay){let [id,n]=el.dataset.pay.split(':');markPayment(id,Number(n));return}
  if(el.dataset.undo){let[id,n]=el.dataset.undo.split(':'),l=state.loans.find(x=>x.id===id),p=l?.paid.find(x=>x.cycle===Number(n));if(!p)return;if(l.digupLinked){notify('Undo linked payments in DIG UP.');return}if(!confirm(p.origin==='historical-estimate'?'Remove imported paid status for cycle '+n+'?':'Undo this EMI and restore linked balances?'))return;
  let bank=state.banks.find(x=>x.id===p.bankId),restored=false;
@@ -1653,7 +1667,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
   return;
  }
  if(el.dataset.filter){filter=el.dataset.filter;render();return}
- if(el.dataset.cycleFilter){cycleFilter=el.dataset.cycleFilter;cyclePage=0;render();return}
+ if(el.dataset.cycleFilter){cycleFilter=el.dataset.cycleFilter;cycleFocusNum=0;cyclePage=0;render();return}
  if(el.dataset.cyclePage!==undefined){cyclePage=Math.max(0,Number(el.dataset.cyclePage));render();return}
  switch(el.dataset.action){
  case 'salary-manage':salarySelectedMonth=today().slice(0,7);goto('settings');setTimeout(()=>document.getElementById('salary-journal')?.scrollIntoView({behavior:'smooth',block:'start'}),80);break;
@@ -1764,7 +1778,7 @@ function handleSubmit(e){let form=e.target.closest('form[data-form]');if(!form)r
   state.ledger.push({id:'emi:'+l.id+':'+n,type:'emi',loanId:l.id,bankId:b.id,amount:c.amount,date:obj.paidDate,label:l.name+' EMI '+n+'/'+l.tenure,linkedD4:!!linked.linked});
  }
  l.paid.push({cycle:n,date:obj.paidDate,bankId:b.id,amount:c.amount,deducted:deduct,d4Id:linked?.linked?linked.id:null,origin:'app'});
- save();modal=null;render();
+ cycleFocusNum=0;save();modal=null;render();
  notify(linked?.linked?'Paid · D4 DIG UP same-browser balance updated':'Paid · local balance updated');return
 }
 }
