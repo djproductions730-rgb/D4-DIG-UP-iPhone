@@ -1006,8 +1006,17 @@ function importHdfc172144641(){
 
 if([applyIphonePdfSchedule(),applyHdfcHomePdfSchedule()].some(Boolean))save();
 
-function cycles(loan){if(!loan.firstDue)return [];return Array.from({length:loan.tenure},(_,i)=>({num:i+1,date:datePlusMonths(loan.firstDue,i),amount:amountFor(loan,i+1),paid:loan.paid.find(x=>x.cycle===i+1),principalLeft:loan.schedule?.[i]?.principalLeft??null,interest:loan.schedule?.[i]?.interest??null}))}
-function closing(loan){return loan.firstDue?fmtDate(datePlusMonths(loan.firstDue,loan.tenure-1)):'Add first EMI date'}
+function officialLoanForDisplay(loan){
+ if(/home/i.test(String(loan.name||''))&&Math.abs(Number(loan.principal||0)-260000)<1){
+  return {...loan,firstDue:'2026-12-07',tenure:60,emi:5916,schedule:hdfc172144641Schedule()};
+ }
+ if(/\bi[ -]?phone\b/i.test(String(loan.name||''))&&Math.abs(Number(loan.principal||0)-105808)<1){
+  return {...loan,firstDue:'2025-10-07',tenure:48,emi:2878,schedule:IPHONE_HDFC_PDF_ROWS.map(([principal,interest,principalLeft])=>({emi:principal+interest,principal,interest,principalLeft}))};
+ }
+ return loan;
+}
+function cycles(loan){const l=officialLoanForDisplay(loan);if(!l.firstDue)return [];return Array.from({length:l.tenure},(_,i)=>({num:i+1,date:datePlusMonths(l.firstDue,i),amount:amountFor(l,i+1),paid:(loan.paid||[]).find(x=>x.cycle===i+1),principalLeft:l.schedule?.[i]?.principalLeft??null,interest:l.schedule?.[i]?.interest??null}))}
+function closing(loan){const l=officialLoanForDisplay(loan);return l.firstDue?fmtDate(datePlusMonths(l.firstDue,l.tenure-1)):'Add first EMI date'}
 function activeLoans(){return state.loans.filter(x=>paidCount(x)<x.tenure)}
 function monthly(){const ym=today().slice(0,7);return scheduledEmiForMonth(ym)}
 
@@ -1249,7 +1258,7 @@ function loansView(){
  
  </div>`
 }
-function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
+function loanDetail(originalLoan){const l=officialLoanForDisplay(originalLoan);const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
  <section class="glass detail-top loan-detail-kind-${loanDisplayKind(l)}"><div class="loan-top">${loanIcon(l)}<div class="loan-top-copy"><div class="loan-title">${safe(l.name)}</div><div class="small">${safe(l.lender||'Loan')}</div></div><span class="badge">${count>=l.tenure?'Closed':'Active'}</span></div><div class="detail-progress"><div class="progress-ring" style="--pct:${pct}%"><span>${pct}%<small>Paid cycles</small></span></div><div style="flex:1"><h2>${count} of ${l.tenure} cycles</h2><p class="sub">${l.tenure-count} remaining · ${end}</p><div class="button-group" style="margin-top:12px"><button class="button secondary mini" data-action="edit-loan">${ico('edit')} Edit</button>${/home/i.test(l.name||'')&&/hdfc/i.test(l.lender||l.name||'')?'<button class="button secondary mini" data-action="import-hdfc-schedule">📄 HDFC 60 EMI PDF</button>':''}${upcoming?`<button class="button mini" data-pay="${l.id}:${upcoming.num}">${ico('check')} Mark paid</button>`:''}</div></div></div></section>
  <div class="detail-grid"><div class="mini-panel"><span class="small">Next EMI amount</span><div class="val">${money(upcoming?.amount??l.emi)}</div></div><div class="mini-panel"><span class="small">Closing date</span><div class="val" style="font-size:15px">${end}</div></div><div class="mini-panel"><span class="small">${l.id==='iphone'?'Outstanding principal*':l.principal!=null?'Original principal':'Credited amount'}</span><div class="val">${l.id==='iphone'?money(outstanding):l.principal!=null?money(l.principal):l.credited!=null?money(l.credited):'Not set'}</div></div><div class="mini-panel"><span class="small">Next EMI due</span><div class="val" style="font-size:15px">${upcoming?fmtDate(upcoming.date):l.firstDue?'All cycles paid':'Date not set'}</div></div></div>
  ${l.productType&&l.productType.toLowerCase()!==l.name.toLowerCase()?`<p class="footnote">Bank's official loan product: <strong>${safe(l.productType)}</strong>. “${safe(l.name)}” is your display name only.</p>`:''}
@@ -1268,9 +1277,9 @@ function nextMonthDueCard(){
  return '<section class="glass d47-next-month"><div class="d47-next-head"><span>📅 NEXT MONTH · '+monthName(ym)+'</span><strong>'+money(total)+'</strong></div><p class="sub">Scheduled EMI to pay (unpaid cycles only)</p>'+rows.map(({l,c})=>'<div class="d47-next-row"><span>'+safe(l.name)+' · '+fmtDate(c.date)+' · Cycle '+c.num+'</span><b>'+money(c.amount)+'</b></div>').join('')+(rows.length?'':'<div class="sub">No unpaid EMI scheduled.</div>')+'</section>';
 }
 function cyclesView(){
- const loans=state.loans.slice(),active=loans.filter(l=>paidCount(l)<l.tenure);
+ const loans=state.loans.map(officialLoanForDisplay),active=loans.filter(l=>paidCount(l)<l.tenure);
  const total=loans.reduce((n,l)=>n+Number(l.tenure||0),0),paid=loans.reduce((n,l)=>n+paidCount(l),0);
- return header('EACH LOAN · SEPARATE TIMELINE','Loan Cycles')+
+ return header('EACH LOAN · SEPARATE TIMELINE','Loan Cycles · PDF v40')+
  '<div class="stack d47-cycles-page"><button class="button secondary" data-nav="loans">‹ All loans</button>'+nextMonthDueCard()+
  '<section class="glass d47-cycles-overview"><div><span>Active loan cycles</span><strong>'+active.length+'</strong></div><div><span>EMIs paid</span><strong>'+paid+'</strong></div><div><span>Remaining cycles</span><strong>'+Math.max(0,total-paid)+'</strong></div></section>'+
  (loans.length?loans.map(l=>{
