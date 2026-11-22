@@ -556,6 +556,47 @@ body.d47-model-a .loan-icon.loan-icon-illustrated .loan-art { filter: none; obje
 .d47-emerald-cycles .pagination .button{background:#e5f7ed!important;color:#075e37!important}
 @media(max-width:410px){.d47-emerald-cycles .cycle-row{grid-template-columns:48px minmax(0,1fr)!important;gap:9px!important;padding:12px!important}.d47-emerald-cycles .cycle-num{width:46px!important;height:54px!important}.d47-emerald-cycles .cycle-right{grid-column:2!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;min-width:0!important}.d47-emerald-cycles .cycle-right strong{font-size:18px!important}.d47-emerald-cycles .cycle-right button{max-width:150px!important}}
 </style>
+<style id="d47-accessible-contrast-v45">
+/* Theme-aware contrast correction for labels, summaries, loan cards and controls. */
+html[data-theme="midnight"],html[data-theme="emerald"],html[data-theme="royal"],html[data-theme="gold"]{--d47-readable:#f5fbff;--d47-secondary:#d4e3f2;--d47-card-text:#f7fbff;--d47-control-text:#fff}
+html[data-theme="crystal"]{--d47-readable:#142c42;--d47-secondary:#40576b;--d47-card-text:#132b3e;--d47-control-text:#fff}
+body.d47-model-a .loan-compact .loan-compact-head-copy small,
+body.d47-model-a .loan-compact .caption,
+body.d47-model-a .loan-compact .small,
+body.d47-model-a .d47-cycles-overview span,
+body.d47-model-a .d47-cycle-stats small,
+body.d47-model-a .d47-cycle-top span,
+body.d47-model-a .d47-neon-overview .caption,
+body.d47-model-a .d47-neon-overview .small,
+body.d47-model-a .d47-money-quick .small,
+body.d47-model-a .d47-money-quick .sub,
+body.d47-model-a .d47-cycle-card .small,
+body.d47-model-a .d47-cycle-month small,
+body.d47-model-a .detail-top .small,
+body.d47-model-a .detail-top .sub{color:var(--d47-secondary)!important;opacity:1!important;text-shadow:none!important}
+body.d47-model-a .loan-compact .loan-compact-main strong,
+body.d47-model-a .loan-compact .loan-compact-head-copy strong,
+body.d47-model-a .d47-cycles-overview strong,
+body.d47-model-a .d47-cycle-stats b,
+body.d47-model-a .d47-cycle-top strong,
+body.d47-model-a .d47-money-quick h2,
+body.d47-model-a .d47-neon-overview h2,
+body.d47-model-a .d47-neon-overview strong{color:var(--d47-card-text)!important;opacity:1!important}
+body.d47-model-a .loan-compact .loan-compact-status{background:#d8f8e8!important;color:#075a37!important;border:1px solid #8cd7b1!important;opacity:1!important}
+body.d47-model-a .loan-compact .loan-compact-status.closed{background:#e4ebf2!important;color:#30465b!important;border-color:#aab8c7!important}
+body.d47-model-a .loan-compact .loan-compact-progress{background:rgba(155,185,215,.3)!important}
+body.d47-model-a .d47-neon-overview .button:disabled,
+body.d47-model-a .d47-neon-overview button:disabled{opacity:.65!important;color:#24384e!important}
+body.d47-model-a .d47-money-quick .button,
+body.d47-model-a .loan-compact-open,
+body.d47-model-a .d47-cycle-card .button{color:#fff!important;font-weight:750!important}
+body.d47-model-a .d47-money-quick .button.secondary{background:#24618b!important}
+body.d47-model-a .d47-money-quick .button:not(.secondary){background:#1767a9!important}
+body.d47-model-a .d47-emerald-cycles .cycle-row .cycle-main strong{color:#163c2a!important}
+body.d47-model-a .d47-emerald-cycles .cycle-row .cycle-main .small{color:#455e51!important}
+body.d47-model-a .d47-emerald-cycles .cycle-row .cycle-right strong{color:#075c36!important}
+@media(prefers-contrast:more){body.d47-model-a .loan-compact .caption,body.d47-model-a .loan-compact .small{font-weight:700!important}}
+</style>
 </head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
