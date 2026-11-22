@@ -595,7 +595,6 @@ function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.versio
  }}catch(e){}return fresh()}
 let state=load();let salarySelectedMonth=today().slice(0,7);let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
-if(applyIphonePdfSchedule())save();
 
 const D4_LOCAL_KEY='d4webv15';
 const D4_CLOUD_COPY_KEY='d47lona-digup-cloud-copy';
@@ -697,6 +696,7 @@ function syncLocalBalances(){
   if(Boolean(b.digupInactive)!==missing){b.digupInactive=missing;changed=true}
  }
  if(syncDigupLoans(d))changed=true;
+ if(applyIphonePdfSchedule())changed=true;
  if(changed)save();
  return true
 }
@@ -947,8 +947,7 @@ function paidCount(loan){return loan.paid.length}
    paid, change DIG UP, or debit a bank account. */
 const IPHONE_HDFC_PDF_ROWS=[[1666,849,104142],[1685,1193,102457],[1704,1174,100753],[1724,1154,99029],[1743,1135,97286],[1763,1115,95523],[1784,1094,93739],[1804,1074,91935],[1825,1053,90110],[1846,1032,88264],[1867,1011,86397],[1888,990,84509],[1910,968,82599],[1932,946,80667],[1954,924,78713],[1976,902,76737],[1999,879,74738],[2022,856,72716],[2045,833,70671],[2068,810,68603],[2092,786,66511],[2116,762,64395],[2140,738,62255],[2165,713,60090],[2190,688,57900],[2215,663,55685],[2240,638,53445],[2266,612,51179],[2292,586,48887],[2318,560,46569],[2344,534,44225],[2371,507,41854],[2398,480,39456],[2426,452,37030],[2454,424,34576],[2482,396,32094],[2510,368,29584],[2539,339,27045],[2568,310,24477],[2598,280,21879],[2627,251,19252],[2657,221,16595],[2688,190,13907],[2719,159,11188],[2750,128,8438],[2781,97,5657],[2813,65,2844],[2844,33,0]];
 function applyIphonePdfSchedule(){
- const matching=state.loans.filter(l=>/iphone|i[ -]?phone/i.test(String(l.name||'')) &&
-    /hdfc/i.test(String(l.lender||'')+' '+String(l.bankId||'')));
+ const matching=state.loans.filter(l=>String(l.id||'').toLowerCase()==='iphone'||/\bi[ -]?phone\b/i.test(String(l.name||'')));
  if(matching.length!==1)return false;
  const l=matching[0];
  if(l.pdfScheduleId==='IPHONE-HDFC-20261122'&&l.schedule?.length===48)return false;
@@ -960,6 +959,8 @@ function applyIphonePdfSchedule(){
  l.productType='PERSONAL LOAN';
  return true;
 }
+
+if(applyIphonePdfSchedule())save();
 
 function amountFor(loan,n){return Number(loan.schedule?.[n-1]?.emi ?? loan.emi)}
 
