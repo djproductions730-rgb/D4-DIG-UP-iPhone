@@ -548,3 +548,15 @@ body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-fill{
 }
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-needle{stroke:#fff0d6}
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-number{color:#ffe2ad!important}
+
+body.d4-premium .ref-luxe-home .neon-meter :is(.neon-meter-track,.neon-meter-fill){stroke-width:13}
+body.d4-premium .bottom-nav.ref-bottom-nav:has(.ref-nav-item){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+body.d4-premium .ref-bottom-nav .ref-nav-item small{font-size:clamp(9px,2.65vw,12px)!important}
+body.d4-premium .ref-bottom-nav .ref-more-backdrop{
+ position:fixed;inset:0;z-index:1;background:#02040ab0;border:0;width:100%;height:100%;cursor:pointer;
+}
+body.d4-premium .ref-bottom-nav .ref-nav-overlay{
+ position:fixed!important;inset:auto!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;
+ width:min(90vw,420px)!important;max-height:75dvh!important;overflow:auto!important;z-index:2!important;margin:0!important;
+ background:linear-gradient(145deg,#1a3343,#111723 76%)!important;border:1px solid #68bfc0!important;border-radius:19px!important;
+}

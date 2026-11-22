@@ -148,7 +148,7 @@ context.view='profile';
 assert.match(context.topBar(),/Back to Trip Dashboard/,'settings back leads to trip dashboard');
 context.view='trip';
 const nav = context.bottomNav();
-assert.equal((nav.match(/<button /g)||[]).length,3,'Reference layout displays three mobile navigation buttons');
+assert.equal((nav.match(/<button /g)||[]).length,4,'Reference layout displays four mobile navigation buttons');
 assert.match(nav,/class="bottom-nav ref-bottom-nav"/,'Navigation uses the approved bottom bar');
 for(const label of ['Home','Day Plan','More'])assert.ok(nav.includes(label),label+' missing');
 assert.doesNotMatch(nav,/data-ref-action="toggle-plus"/,'Section navigation has no global plus control');

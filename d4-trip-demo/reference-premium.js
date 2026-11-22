@@ -409,6 +409,7 @@
     const items=[
       mobileItem(navSvg('home'),'Home','open-tab','data-ctx="overview"',view==='trip'&&tripTab==='overview'),
       mobileItem(navSvg('calendar'),'Day Plan','open-tab','data-ctx="plan"',view==='trip'&&tripTab==='plan'),
+      mobileItem(navSvg('calendar'),'Expense History','open-tab','data-ctx="expenses"',view==='trip'&&tripTab==='expenses'),
       '<button type="button" class="ref-nav-item'+(quickPanel==='more'?' active':'')+'" data-ref-action="toggle-more" aria-label="More sections" aria-expanded="'+(quickPanel==='more')+'"><span class="ref-nav-icon">'+navSvg('more')+'</span><small>More</small></button>'
     ];
     let overlay='';
@@ -431,7 +432,7 @@
           ['↑','Update App','update-trip-app',''],
           ...(isMain()?[['👑','Main Admin','d4-admin-panel','']]:[])
         ];
-      overlay='<div class="ref-nav-overlay" role="group" aria-label="'+(quickPanel==='plus'?'Quick actions':'More trip sections')+'">'+
+      overlay='<button type="button" class="ref-more-backdrop" data-ref-action="close-panel" aria-label="Dismiss More"></button><div class="ref-nav-overlay" role="dialog" aria-label="'+(quickPanel==='plus'?'Quick actions':'More trip sections')+'">'+
         '<div class="ref-nav-overlay-title">'+(quickPanel==='plus'?(canEdit?'Quick Add':'Explore'):'More Sections')+
         '<button type="button" data-ref-action="close-panel" aria-label="Close menu">✕</button></div>'+
         links.map(([emoji,label,action,attr])=>'<button class="ref-menu-link" type="button" data-action="'+action+'" '+attr+'><span>'+emoji+'</span>'+label+'<b>›</b></button>').join('')+
@@ -449,6 +450,9 @@
       render();
     } else if(event.target.closest('.ref-menu-link')){
       quickPanel='';
+      event.target.closest('.ref-nav-overlay')?.remove();
+      document.querySelector('.ref-more-backdrop')?.remove();
+      document.querySelector('[data-ref-action="toggle-more"]')?.setAttribute('aria-expanded','false');
     }
   },true);
   document.addEventListener('input',function(event){
