@@ -1235,6 +1235,20 @@ function settingsView(){let themeOpts=[{id:'crystal',name:'Crystal Glossy',a:'#f
 let linkedLoanEdit=null;
 let savingLinkedLoan=false;
 
+const linkedLoanFieldLabels={
+ name:'Loan name',lender:'Lender',kind:'Category',principal:'Principal',
+ credited:'Amount credited',emi:'Monthly EMI',months:'Number of EMIs',
+ firstDue:'First EMI due date',bank:'Preferred bank'
+};
+
+function sameLinkedLoanField(key, a, b) {
+ if(a===b)return true;
+ if(key==='firstDue')return String(a??'').slice(0,10)===String(b??'').slice(0,10);
+ if(['principal','credited','emi','months'].includes(key))
+  return a!=null&&b!=null&&a!==''&&b!==''&&Number.isFinite(Number(a))&&Number(a)===Number(b);
+ return String(a??'')===String(b??'');
+}
+
 function applyLinkedLoanPatch(ledger, edit, patch, bankId) {
  const source=ledger?.loans?.find(x=>String(x.id)===edit.loan.digupLoanId);
  if(!source)throw Error('This loan is no longer available in DIG UP.');
@@ -1243,11 +1257,14 @@ function applyLinkedLoanPatch(ledger, edit, patch, bankId) {
   if(bankId!==''&&!bank)throw Error('That bank is no longer available in DIG UP.');
   patch={...patch,bank:bank?.name||''};
  }
- for(const [key,value] of Object.entries(patch)){
-  if(source[key]!==edit.source[key]&&source[key]!==value)
-   throw Error('This loan changed in DIG UP. Reopen it and try again.');
+ const conflicts=Object.entries(patch).filter(([key,value])=>
+  !sameLinkedLoanField(key,source[key],edit.source[key])&&!sameLinkedLoanField(key,source[key],value));
+ if(conflicts.length){
+  const error=Error('This loan changed in DIG UP. Review the latest values before saving.');
+  error.loanConflicts=conflicts.map(([key,value])=>({key,current:source[key],proposed:value}));
+  throw error;
  }
- const changed=Object.entries(patch).some(([key,value])=>source[key]!==value);
+ const changed=Object.entries(patch).some(([key,value])=>!sameLinkedLoanField(key,source[key],value));
  if(changed)Object.assign(source,patch);
  return changed;
 }
@@ -1268,21 +1285,36 @@ async function saveLinkedLoanEdit(form, values, id) {
  if(bankId!==edit.loan.bankId&&bankId&&(bank?.digupBankId==null||bank.digupInactive))
   return notify('Choose a linked DIG UP bank.');
  const preferredBank=bankId===edit.loan.bankId?undefined:String(bank?.digupBankId??'');
- const apply=ledger=>applyLinkedLoanPatch(ledger,edit,patch,preferredBank);
  const button=form.querySelector('button[type="submit"]');
  savingLinkedLoan=true;
  if(button)button.disabled=true;
  try{
-  const currentLink=digUpHost?null:localStorage.getItem('d4-pair-link-v1');
-  if(currentLink!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
+  let updatePairedDigupLedger;
   if(edit.pairLink){
-   const {updatePairedDigupLedger}=await import('../finance-sync/pair-sync.mjs?v=lona-loan-edit-1');
-   if(localStorage.getItem('d4-pair-link-v1')!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
-   await updatePairedDigupLedger(apply);
-  }else{
-   const ledger=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
-   if(apply(ledger))digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(ledger));
-   syncLocalBalances();
+   ({updatePairedDigupLedger}=await import('../finance-sync/pair-sync.mjs?v=lona-loan-edit-1'));
+  }
+  async function saveAgainst(source){
+   const currentLink=digUpHost?null:localStorage.getItem('d4-pair-link-v1');
+   if(currentLink!==edit.pairLink)throw Error('Pairing changed. Reopen the loan and try again.');
+   const apply=ledger=>applyLinkedLoanPatch(ledger,{...edit,source},patch,preferredBank);
+   if(updatePairedDigupLedger){
+    await updatePairedDigupLedger(apply);
+   }else{
+    const ledger=JSON.parse(digUpStorage.getItem(D4_LOCAL_KEY)||'null');
+    if(apply(ledger))digUpStorage.setItem(D4_LOCAL_KEY,JSON.stringify(ledger));
+    syncLocalBalances();
+   }
+  }
+  try{
+   await saveAgainst(edit.source);
+  }catch(error){
+   if(!error.loanConflicts||linkedLoanEdit!==edit||!form.isConnected)throw error;
+   const changes=error.loanConflicts.map(({key,current,proposed})=>
+    linkedLoanFieldLabels[key]+': DIG UP '+(current??'—')+' → your edit '+(proposed??'—'));
+   if(!confirm('DIG UP has different values for these fields. Save your edits?\n\n'+changes.join('\n')))return;
+   const reviewed={...edit.source};
+   for(const {key,current} of error.loanConflicts)reviewed[key]=current;
+   await saveAgainst(reviewed);
   }
   if(linkedLoanEdit===edit&&selectedLoan()?.id===id){
    linkedLoanEdit=null;
