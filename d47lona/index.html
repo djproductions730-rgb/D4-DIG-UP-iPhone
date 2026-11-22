@@ -752,6 +752,9 @@ function syncDigupLoans(d){
      ?String(src.firstDue).slice(0,10):'',
    source:'DIG UP auto-sync',paid
   };
+  if(loan.pdfScheduleId==='HDFC-172144641-20261122'){
+   freshLoan.principal=260000;freshLoan.emi=5916;freshLoan.tenure=60;freshLoan.firstDue='2026-12-07';
+  }
   for(const [key,value] of Object.entries(freshLoan))
    if(JSON.stringify(loan[key])!==JSON.stringify(value)){loan[key]=value;changed=true}
  }
@@ -938,6 +941,35 @@ function initialPaid(loan){return loan.paid.filter(p=>p.origin==='historical-est
 function isPaid(loan,num){return loan.paid.some(p=>p.cycle===num)}
 function paidCount(loan){return loan.paid.length}
 function amountFor(loan,n){return Number(loan.schedule?.[n-1]?.emi ?? loan.emi)}
+
+/* HDFC official repayment schedule, 22 Nov 2026, agreement 172144641.
+   User confirmed their existing Home Loan is this personal-loan product.
+   Import is explicit; never auto-charge EMI or create a duplicate loan. */
+const HDFC_172144641_PRINCIPALS=[3099,3133,3167,3201,3236,3271,3306,3342,3378,3415,3452,3489,3527,3565,3604,3643,3682,3722,3762,3803,3844,3886,3928,3971,4014,4057,4101,4146,4191,4236,4282,4328,4375,4423,4470,4519,4568,4617,4667,4718,4769,4821,4873,4926,4979,5033,5088,5143,5198,5255,5312,5369,5427,5486,5546,5606,5666,5728,5790,5847];
+function hdfc172144641Schedule(){
+ let remaining=260000;
+ return HDFC_172144641_PRINCIPALS.map((principal,i)=>{
+  const emi=i===0?4695:i===59?5910:5916;
+  remaining-=principal;
+  return {emi,principal,interest:emi-principal,principalLeft:remaining};
+ });
+}
+function importHdfc172144641(){
+ const loan=selectedLoan();
+ if(!loan||!/home/i.test(loan.name||'')||!/hdfc/i.test(loan.lender||loan.name||'')){
+  notify('Open your existing HDFC Home Loan first.');return;
+ }
+ if(loan.pdfScheduleId==='HDFC-172144641-20261122'){notify('Official 60-EMI schedule is already loaded.');return}
+ if(!confirm('Apply HDFC official 60-EMI schedule (₹2,60,000) to '+loan.name+'? Existing paid records stay unchanged. No bank deduction.'))return;
+ const target=state.loans.find(x=>x.id===loan.id);
+ if(!target)return;
+ target.schedule=hdfc172144641Schedule();
+ target.pdfScheduleId='HDFC-172144641-20261122';
+ target.pdfProductType='PERSONAL LOAN';
+ target.principal=260000;target.emi=5916;target.tenure=60;target.firstDue='2026-12-07';
+ save();render();notify('HDFC official 60-EMI schedule saved. No payment charged.');
+}
+
 function cycles(loan){if(!loan.firstDue)return [];return Array.from({length:loan.tenure},(_,i)=>({num:i+1,date:datePlusMonths(loan.firstDue,i),amount:amountFor(loan,i+1),paid:loan.paid.find(x=>x.cycle===i+1),principalLeft:loan.schedule?.[i]?.principalLeft??null,interest:loan.schedule?.[i]?.interest??null}))}
 function closing(loan){return loan.firstDue?fmtDate(datePlusMonths(loan.firstDue,loan.tenure-1)):'Add first EMI date'}
 function activeLoans(){return state.loans.filter(x=>paidCount(x)<x.tenure)}
@@ -1182,7 +1214,7 @@ function loansView(){
  </div>`
 }
 function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
- <section class="glass detail-top loan-detail-kind-${loanDisplayKind(l)}"><div class="loan-top">${loanIcon(l)}<div class="loan-top-copy"><div class="loan-title">${safe(l.name)}</div><div class="small">${safe(l.lender||'Loan')}</div></div><span class="badge">${count>=l.tenure?'Closed':'Active'}</span></div><div class="detail-progress"><div class="progress-ring" style="--pct:${pct}%"><span>${pct}%<small>Paid cycles</small></span></div><div style="flex:1"><h2>${count} of ${l.tenure} cycles</h2><p class="sub">${l.tenure-count} remaining · ${end}</p><div class="button-group" style="margin-top:12px"><button class="button secondary mini" data-action="edit-loan">${ico('edit')} Edit</button>${upcoming?`<button class="button mini" data-pay="${l.id}:${upcoming.num}">${ico('check')} Mark paid</button>`:''}</div></div></div></section>
+ <section class="glass detail-top loan-detail-kind-${loanDisplayKind(l)}"><div class="loan-top">${loanIcon(l)}<div class="loan-top-copy"><div class="loan-title">${safe(l.name)}</div><div class="small">${safe(l.lender||'Loan')}</div></div><span class="badge">${count>=l.tenure?'Closed':'Active'}</span></div><div class="detail-progress"><div class="progress-ring" style="--pct:${pct}%"><span>${pct}%<small>Paid cycles</small></span></div><div style="flex:1"><h2>${count} of ${l.tenure} cycles</h2><p class="sub">${l.tenure-count} remaining · ${end}</p><div class="button-group" style="margin-top:12px"><button class="button secondary mini" data-action="edit-loan">${ico('edit')} Edit</button>${/home/i.test(l.name||'')&&/hdfc/i.test(l.lender||l.name||'')?'<button class="button secondary mini" data-action="import-hdfc-schedule">📄 HDFC 60 EMI PDF</button>':''}${upcoming?`<button class="button mini" data-pay="${l.id}:${upcoming.num}">${ico('check')} Mark paid</button>`:''}</div></div></div></section>
  <div class="detail-grid"><div class="mini-panel"><span class="small">Monthly EMI</span><div class="val">${money(l.emi)}</div></div><div class="mini-panel"><span class="small">Closing date</span><div class="val" style="font-size:15px">${end}</div></div><div class="mini-panel"><span class="small">${l.id==='iphone'?'Outstanding principal*':l.principal!=null?'Original principal':'Credited amount'}</span><div class="val">${l.id==='iphone'?money(outstanding):l.principal!=null?money(l.principal):l.credited!=null?money(l.credited):'Not set'}</div></div><div class="mini-panel"><span class="small">Next EMI due</span><div class="val" style="font-size:15px">${upcoming?fmtDate(upcoming.date):l.firstDue?'All cycles paid':'Date not set'}</div></div></div>
  ${l.productType&&l.productType.toLowerCase()!==l.name.toLowerCase()?`<p class="footnote">Bank's official loan product: <strong>${safe(l.productType)}</strong>. “${safe(l.name)}” is your display name only.</p>`:''}
  ${!l.firstDue?`<div class="notice warn">${ico('info')}First EMI date not supplied. Edit this loan to enable the full 60-month calendar and due date reminders.</div>`:''}
@@ -1390,6 +1422,7 @@ function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[d
  switch(el.dataset.action){
  case 'salary-manage':salarySelectedMonth=today().slice(0,7);goto('settings');setTimeout(()=>document.getElementById('salary-journal')?.scrollIntoView({behavior:'smooth',block:'start'}),80);break;
  case 'add-loan':modal=addForm();render();break;
+ case 'import-hdfc-schedule':importHdfc172144641();break;
  case 'edit-loan':{
   const loan=selectedLoan();if(!loan)break;
   linkedLoanEdit=null;
