@@ -93,12 +93,13 @@
      if(!oldBank)throw Error('Original bank missing.');
      oldBank.balance=round(Number(oldBank.balance)+Number(old.amount));
     }
+    const balanceBefore=Number(bank.balance);
     bank.balance=round(Number(bank.balance)-amount);
     if(!Number.isFinite(bank.balance)||Math.abs(bank.balance)>1e12)throw Error('Bank balance outside supported range.');
     if(bank.balance<0&&!confirm('This expense makes '+bank.name+' balance negative. Continue?'))return;
     const id=existing?e.id:'trip-linked-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
     const oldCreated=existing?e.created:null;
-    const entry={...(existing?e:{}),id,tripLinked:true,tripPlanId:identity(next.plans[pi],pi),tripCategory:f.category,type:'Expense',category:'Trip Expense',bankId:bank.id,bank:bank.name,amount:round(amount),date:f.date,created:oldCreated&&String(oldCreated).slice(0,10)===f.date?oldCreated:f.date+'T12:00:00',note:String(f.note||'').trim().slice(0,200),updatedAt:new Date().toISOString()};
+    const entry={...(existing?e:{}),id,tripLinked:true,tripPlanId:identity(next.plans[pi],pi),tripCategory:f.category,type:'Expense',category:'Trip Expense',bankId:bank.id,bank:bank.name,balanceBefore,balanceAfter:bank.balance,amount:round(amount),date:f.date,created:oldCreated&&String(oldCreated).slice(0,10)===f.date?oldCreated:f.date+'T12:00:00',note:String(f.note||'').trim().slice(0,200),updatedAt:new Date().toISOString()};
     if(existing)next.entries[next.entries.findIndex(x=>String(x.id)===String(e.id))]=entry;else next.entries.push(entry);
     // The plan's opening amount and older plan-only entries remain untouched.
     // Linked bank-backed expenses are derived from entries and displayed separately.
