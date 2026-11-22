@@ -41,11 +41,11 @@ test('Add activity no longer resets to 8:00 AM',()=>{
   assert.equal(api.suggestDayTime(x.t,x.date),'10:00');
   assert.equal(api.suggestDayTime({...x.t,plans:[]},x.date),'');
 });
-test('All milestones have Add Below and Edit Time and the day ends with Add Next',()=>{
+test('All milestones have Add Below and Edit Time and the day ends with Add Stop',()=>{
   const x=setup(),markup=x.context.tripPlan(x.t);
   assert.match(markup,/data-goa-action="time"/);
   assert.match(markup,/data-goa-action="add"/);
-  assert.match(markup,/＋ Add Next Milestone/);
+  assert.match(markup,/＋ Add Stop/);
   x.events.click({target:{closest:()=>({dataset:{goaAction:'add',id:'start'}})},preventDefault(){},stopPropagation(){}});
   const expanded=x.context.tripPlan(x.t);
   assert.match(expanded,/data-goa-editor-form="add"/);
