@@ -467,7 +467,74 @@ html[data-theme]:not([data-theme="crystal"]) .bank-brand.bank-icon{border-color:
 @media(max-width:430px){.bank-row{gap:9px;padding:13px 11px}.bank-amount{font-size:13px}.bank-brand.bank-icon{width:44px;height:44px;flex-basis:44px}.bank-chevron{font-size:19px}}
 
 </style><link rel="stylesheet" href="./intro.css"><link rel="stylesheet" href="./liquid-glass.css"><link rel="stylesheet" href="./loans-clean.css"><link rel="stylesheet" href="./loans-neon.css"><link rel="stylesheet" href="./app-topbar.css"><link rel="stylesheet" href="./model-a-ios.css">
-<link rel="stylesheet" href="./contrast-v25.css?v=28"><link rel="preload" as="image" href="./art/home-crystal-3d.svg"></head>
+<link rel="stylesheet" href="./contrast-v25.css?v=28"><link rel="preload" as="image" href="./art/home-crystal-3d.svg">
+<style id="lona-graphics">
+/* Use the existing theme foregrounds and finance-status colours. */
+body.d47-model-a {
+  --lona-light: #b9eaff;
+  --lona-metal: #427fbb;
+  --lona-shadow: #183859;
+}
+html[data-theme="midnight"] body.d47-model-a { --lona-light:#b2f2ff; --lona-metal:#3287bd; --lona-shadow:#103558; }
+html[data-theme="emerald"] body.d47-model-a { --lona-light:#bafce4; --lona-metal:#3da687; --lona-shadow:#123d36; }
+html[data-theme="royal"] body.d47-model-a { --lona-light:#e8d4ff; --lona-metal:#9270c6; --lona-shadow:#392361; }
+html[data-theme="gold"] body.d47-model-a { --lona-light:#fff0ba; --lona-metal:#a57632; --lona-shadow:#503116; }
+
+body.d47-model-a .d47-universal-header {
+  background-image: radial-gradient(ellipse at 6% 0%, color-mix(in srgb, var(--lona-metal) 19%, transparent), transparent 64%);
+}
+body.d47-model-a .d47-page-symbol,
+body.d47-model-a .empty-icon {
+  position: relative;
+  isolation: isolate;
+  color: #fff;
+  background: radial-gradient(ellipse at 25% 12%, var(--lona-light), transparent 46%),
+    linear-gradient(145deg, var(--lona-metal), var(--lona-shadow) 78%);
+  border: 1px solid color-mix(in srgb, var(--lona-light) 50%, transparent);
+  box-shadow: inset 0 1px 1px #fff9, inset 0 -4px 8px #0003, 0 5px 12px #07172935;
+}
+body.d47-model-a .d47-page-symbol svg,
+body.d47-model-a .empty-icon svg {
+  color: #fff;
+  filter: drop-shadow(0 1px 2px #081a36) drop-shadow(0 2px 3px #081a3680);
+}
+body.d47-model-a .hero,
+body.d47-model-a .kpi,
+body.d47-model-a .d47-cycle-card,
+body.d47-model-a .bank-row,
+body.d47-model-a .form-card,
+body.d47-model-a .loan-clean-empty,
+body.d47-model-a[data-d47-section="schedule"] .stack > .glass,
+body.d47-model-a[data-d47-section="reminders"] .stack > .glass,
+body.d47-model-a[data-d47-section="settings"] .stack > .glass {
+  background-image: radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--lona-metal) 13%, transparent), transparent 68%),
+    linear-gradient(145deg, #ffffff22, transparent 48%);
+  box-shadow: inset 0 1px 0 #ffffff2e, 0 5px 18px #08172916;
+}
+body.d47-model-a .hero-art,
+body.d47-model-a .loan-art {
+  filter: drop-shadow(0 7px 9px color-mix(in srgb, var(--lona-shadow) 36%, transparent));
+}
+body.d47-model-a .loan-icon {
+  box-shadow: inset 0 1px 0 #fff7, inset 0 -3px 6px #0002, 0 4px 10px #08172928;
+}
+body.d47-model-a .d47-cycle-ring {
+  box-shadow: inset 0 0 0 1px #ffffff43, 0 4px 10px #08172928;
+}
+body.d47-model-a .d47-cycle-track > span {
+  box-shadow: inset 0 1px 0 #ffffff55, 0 1px 6px #0002;
+}
+body.d47-model-a[data-d47-section="schedule"] .day.today,
+body.d47-model-a[data-d47-section="schedule"] .day.due,
+body.d47-model-a .swatch {
+  box-shadow: inset 0 1px 0 #ffffff44, 0 3px 8px #08172920;
+}
+body.d47-model-a .quick svg,
+body.d47-model-a .d47-top-sync svg {
+  filter: drop-shadow(0 1px 1px #08172930);
+}
+</style>
+</head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
