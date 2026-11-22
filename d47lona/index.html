@@ -595,6 +595,7 @@ function load(){try{let v=JSON.parse(localStorage.getItem(STORE));if(v&&v.versio
  }}catch(e){}return fresh()}
 let state=load();let salarySelectedMonth=today().slice(0,7);let view='home',detailId=null,filter='active',cycleFilter='all',cyclePage=2,modal=null,calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),toastTimeout=null;
 function save(){localStorage.setItem(STORE,JSON.stringify(state))}
+if(applyIphonePdfSchedule())save();
 
 const D4_LOCAL_KEY='d4webv15';
 const D4_CLOUD_COPY_KEY='d47lona-digup-cloud-copy';
@@ -760,7 +761,7 @@ function syncDigupLoans(d){
  }
  const oldLength=state.loans.length;
  state.loans=state.loans.filter(x=>!x.digupLinked||ids.has(String(x.digupLoanId)));
- return changed||state.loans.length!==oldLength;
+ return applyIphonePdfSchedule()||changed||state.loans.length!==oldLength;
 }
 function d4SyncStats(){
  const d=d4Store();if(!d)return {connected:false,banks:0,linked:0,transactions:state.digupBackupMeta?.entryCount||0,snapshot:!!state.digupBackupMeta};
@@ -940,6 +941,26 @@ function balance(bankId){return state.banks.find(x=>x.id===bankId)?.balance||0}
 function initialPaid(loan){return loan.paid.filter(p=>p.origin==='historical-estimate').length}
 function isPaid(loan,num){return loan.paid.some(p=>p.cycle===num)}
 function paidCount(loan){return loan.paid.length}
+
+/* Exact 48-cycle HDFC repayment schedule from the user's 22-Nov-2026 PDF.
+   Only update an existing iPhone loan. Never create a duplicate, mark an EMI
+   paid, change DIG UP, or debit a bank account. */
+const IPHONE_HDFC_PDF_ROWS=[[1666,849,104142],[1685,1193,102457],[1704,1174,100753],[1724,1154,99029],[1743,1135,97286],[1763,1115,95523],[1784,1094,93739],[1804,1074,91935],[1825,1053,90110],[1846,1032,88264],[1867,1011,86397],[1888,990,84509],[1910,968,82599],[1932,946,80667],[1954,924,78713],[1976,902,76737],[1999,879,74738],[2022,856,72716],[2045,833,70671],[2068,810,68603],[2092,786,66511],[2116,762,64395],[2140,738,62255],[2165,713,60090],[2190,688,57900],[2215,663,55685],[2240,638,53445],[2266,612,51179],[2292,586,48887],[2318,560,46569],[2344,534,44225],[2371,507,41854],[2398,480,39456],[2426,452,37030],[2454,424,34576],[2482,396,32094],[2510,368,29584],[2539,339,27045],[2568,310,24477],[2598,280,21879],[2627,251,19252],[2657,221,16595],[2688,190,13907],[2719,159,11188],[2750,128,8438],[2781,97,5657],[2813,65,2844],[2844,33,0]];
+function applyIphonePdfSchedule(){
+ const matching=state.loans.filter(l=>/iphone|i[ -]?phone/i.test(String(l.name||'')) &&
+    /hdfc/i.test(String(l.lender||'')+' '+String(l.bankId||'')));
+ if(matching.length!==1)return false;
+ const l=matching[0];
+ if(l.pdfScheduleId==='IPHONE-HDFC-20261122'&&l.schedule?.length===48)return false;
+ l.schedule=IPHONE_HDFC_PDF_ROWS.map(([principal,interest,principalLeft])=>({
+  emi:principal+interest,principal,interest,principalLeft
+ }));
+ l.pdfScheduleId='IPHONE-HDFC-20261122';
+ l.principal=105808;l.emi=2878;l.tenure=48;l.firstDue='2025-10-07';
+ l.productType='PERSONAL LOAN';
+ return true;
+}
+
 function amountFor(loan,n){return Number(loan.schedule?.[n-1]?.emi ?? loan.emi)}
 
 /* HDFC official repayment schedule, 22 Nov 2026, agreement 172144641.
@@ -1215,7 +1236,7 @@ function loansView(){
 }
 function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(count/l.tenure*1000)/10, end=closing(l), cur=cs.slice(cyclePage*6,cyclePage*6+6);let upcoming=cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid);let consecutive=0;while(consecutive<l.tenure&&isPaid(l,consecutive+1))consecutive++;let outstanding=l.schedule?(consecutive?l.schedule[consecutive-1]?.principalLeft:l.principal):l.principal;return `${header('LOANS','Loan Details')}<div class="stack d47-neon-detail"><button class="text-btn" data-action="back-loans">${ico('back')} All loans</button>
  <section class="glass detail-top loan-detail-kind-${loanDisplayKind(l)}"><div class="loan-top">${loanIcon(l)}<div class="loan-top-copy"><div class="loan-title">${safe(l.name)}</div><div class="small">${safe(l.lender||'Loan')}</div></div><span class="badge">${count>=l.tenure?'Closed':'Active'}</span></div><div class="detail-progress"><div class="progress-ring" style="--pct:${pct}%"><span>${pct}%<small>Paid cycles</small></span></div><div style="flex:1"><h2>${count} of ${l.tenure} cycles</h2><p class="sub">${l.tenure-count} remaining · ${end}</p><div class="button-group" style="margin-top:12px"><button class="button secondary mini" data-action="edit-loan">${ico('edit')} Edit</button>${/home/i.test(l.name||'')&&/hdfc/i.test(l.lender||l.name||'')?'<button class="button secondary mini" data-action="import-hdfc-schedule">📄 HDFC 60 EMI PDF</button>':''}${upcoming?`<button class="button mini" data-pay="${l.id}:${upcoming.num}">${ico('check')} Mark paid</button>`:''}</div></div></div></section>
- <div class="detail-grid"><div class="mini-panel"><span class="small">Monthly EMI</span><div class="val">${money(l.emi)}</div></div><div class="mini-panel"><span class="small">Closing date</span><div class="val" style="font-size:15px">${end}</div></div><div class="mini-panel"><span class="small">${l.id==='iphone'?'Outstanding principal*':l.principal!=null?'Original principal':'Credited amount'}</span><div class="val">${l.id==='iphone'?money(outstanding):l.principal!=null?money(l.principal):l.credited!=null?money(l.credited):'Not set'}</div></div><div class="mini-panel"><span class="small">Next EMI due</span><div class="val" style="font-size:15px">${upcoming?fmtDate(upcoming.date):l.firstDue?'All cycles paid':'Date not set'}</div></div></div>
+ <div class="detail-grid"><div class="mini-panel"><span class="small">Next EMI amount</span><div class="val">${money(upcoming?.amount??l.emi)}</div></div><div class="mini-panel"><span class="small">Closing date</span><div class="val" style="font-size:15px">${end}</div></div><div class="mini-panel"><span class="small">${l.id==='iphone'?'Outstanding principal*':l.principal!=null?'Original principal':'Credited amount'}</span><div class="val">${l.id==='iphone'?money(outstanding):l.principal!=null?money(l.principal):l.credited!=null?money(l.credited):'Not set'}</div></div><div class="mini-panel"><span class="small">Next EMI due</span><div class="val" style="font-size:15px">${upcoming?fmtDate(upcoming.date):l.firstDue?'All cycles paid':'Date not set'}</div></div></div>
  ${l.productType&&l.productType.toLowerCase()!==l.name.toLowerCase()?`<p class="footnote">Bank's official loan product: <strong>${safe(l.productType)}</strong>. “${safe(l.name)}” is your display name only.</p>`:''}
  ${!l.firstDue?`<div class="notice warn">${ico('info')}First EMI date not supplied. Edit this loan to enable the full 60-month calendar and due date reminders.</div>`:''}
  ${l.id==='iphone'?`<p class="footnote">*iPhone principal by the original HDFC schedule (not a live bank statement). The final scheduled EMI is ₹2,877. Actual overdue charges or prepayments are not included.</p>`:''}
@@ -1223,7 +1244,7 @@ function loanDetail(l){const cs=cycles(l),count=paidCount(l),pct=Math.round(coun
  ${cs.length?`<div class="tabbar">${[['all','All'],['paid','Paid'],['upcoming','Not paid']].map(([id,label])=>`<button data-cycle-filter="${id}" class="${cycleFilter===id?'selected':''}">${label}</button>`).join('')}</div>${cycleList(l,cs)}`:`<div class="date-note">Add the first due date to generate the full payment-cycle schedule.</div>`}
  <div class="section-title"><h2>Payment history</h2></div><div class="glass">${l.paid.length?l.paid.slice().sort((a,b)=>b.cycle-a.cycle).slice(0,8).map(p=>`<div class="list-tile" style="border-bottom:1px solid #e3edf0"><div class="loan-icon" style="height:35px;width:35px">${ico('check')}</div><div class="body"><strong>Cycle ${p.cycle} · ${fmtDate(p.date)}</strong><div class="small">${p.origin==='historical-estimate'?'Imported as paid — verify':'Recorded in this app'}</div></div><div class="money">${money(p.amount)}</div></div>`).join(''):`<div class="empty"><p class="sub">No payments recorded yet.</p></div>`}</div>
  <div class="button-group"><button class="button secondary" data-action="edit-loan">${ico('edit')} Edit loan</button><button class="button secondary" data-action="delete-loan">${ico('trash')} Delete loan</button></div></div>`}
-function cycleList(l,cs){let filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid)),max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);return `<div class="stack" style="gap:8px">${pageItems.length?pageItems.map(c=>`<div class="glass cycle-row"><div class="cycle-num ${c.paid?'is-paid':''}">${c.paid?ico('check'):c.num}</div><div class="cycle-main"><strong>Cycle ${c.num} · ${fmtDate(c.date)}</strong><span class="small">${c.paid?'Paid'+(c.paid.origin==='historical-estimate'?' (imported)':''):c.date<today()?'Past due — check status':'Upcoming'}${c.interest!=null?` · Interest ${money(c.interest)}`:''}</span></div><div class="cycle-right"><strong>${money(c.amount)}</strong><button class="text-btn" data-pay="${l.id}:${c.num}">${c.paid&&c.paid.origin!=='historical-estimate'?'Undo':c.paid?'View':'Mark paid'}</button></div></div>`).join(''):`<div class="date-note">No cycles match this filter.</div>`}<div class="pagination"><button class="button secondary mini" data-cycle-page="${p-1}" ${p===0?'disabled':''}>${ico('back')} Previous</button><span>${filtered.length?`${p*6+1}–${Math.min(filtered.length,p*6+6)} / ${filtered.length}`:'0 cycles'}</span><button class="button secondary mini" data-cycle-page="${p+1}" ${p>=max?'disabled':''}>Next ${ico('right')}</button></div></div>`}
+function cycleList(l,cs){let filtered=cs.filter(c=>cycleFilter==='all'||(cycleFilter==='paid'?!!c.paid:!c.paid)),max=Math.max(0,Math.ceil(filtered.length/6)-1),p=Math.min(cyclePage,max),pageItems=filtered.slice(p*6,p*6+6);return `<div class="stack" style="gap:8px">${pageItems.length?pageItems.map(c=>`<div class="glass cycle-row"><div class="cycle-num ${c.paid?'is-paid':''}">${c.paid?ico('check'):c.num}</div><div class="cycle-main"><strong>Cycle ${c.num} · ${fmtDate(c.date)}</strong><span class="small">${c.paid?'Paid'+(c.paid.origin==='historical-estimate'?' (imported)':''):c.date<today()?'Past due — check status':'Upcoming'}${c.interest!=null?` · Interest ${money(c.interest)} · Principal ${money(l.schedule?.[c.num-1]?.principal??0)} · O/s ${money(c.principalLeft)}`:''}</span></div><div class="cycle-right"><strong>${money(c.amount)}</strong><button class="text-btn" data-pay="${l.id}:${c.num}">${c.paid&&c.paid.origin!=='historical-estimate'?'Undo':c.paid?'View':'Mark paid'}</button></div></div>`).join(''):`<div class="date-note">No cycles match this filter.</div>`}<div class="pagination"><button class="button secondary mini" data-cycle-page="${p-1}" ${p===0?'disabled':''}>${ico('back')} Previous</button><span>${filtered.length?`${p*6+1}–${Math.min(filtered.length,p*6+6)} / ${filtered.length}`:'0 cycles'}</span><button class="button secondary mini" data-cycle-page="${p+1}" ${p>=max?'disabled':''}>Next ${ico('right')}</button></div></div>`}
 function nextCalendarMonth(){const d=new Date(today()+'T12:00:00Z');d.setUTCMonth(d.getUTCMonth()+1);return d.toISOString().slice(0,7)}
 function nextMonthDueCard(){
  const ym=nextCalendarMonth();
