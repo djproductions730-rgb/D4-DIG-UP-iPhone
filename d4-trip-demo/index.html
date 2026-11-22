@@ -382,7 +382,7 @@ body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-wid
 #modalRoot .d4-expense-popup .modal-footer{flex:none;position:static!important;padding:9px 14px!important;background:#27203e!important;border-top:1px solid #79569e!important}
 #modalRoot .d4-expense-popup .modal-footer button{min-height:44px;background:linear-gradient(105deg,#a33ae7,#7024d5)!important;color:#fff!important}
 </style>
-  <link rel="stylesheet" href="./model-2.css?build=91&revision=93">
+  <link rel="stylesheet" href="./model-2.css?build=91&revision=94">
 <style>html[data-trip-starting],html[data-trip-starting] body{background:#0b1119!important}html[data-trip-starting] #app{visibility:hidden}</style>
 </head>
 <body>
@@ -411,6 +411,12 @@ const today=()=>new Date().toLocaleDateString('en-CA');
 const catIcon={'Food & Dining':'🍽️','Petrol':'⛽','Stay':'🏨','Travel':'✈️','Tickets':'🎟️','Shopping':'🛍️','Activities':'🏄','Snacks':'🍧','Others':'🧾'};
 const quickExpenseCategories={'Food & Drinks':'🍔','Transport':'🚕','Stay':'🛏️','Activities':'🛶','Shopping':'🛍️','Trip Package':'🧳','Health':'🩹','Other':'•••'};
 Object.assign(catIcon,quickExpenseCategories);
+function expenseCategoryGraphic(category){
+ const aliases={'Food & Dining':'Food & Drinks',Snacks:'Food & Drinks',Petrol:'Transport',Travel:'Transport',Tickets:'Transport',Others:'Other'};
+ const names=Object.keys(quickExpenseCategories);
+ const index=names.indexOf(Object.hasOwn(aliases,category)?aliases[category]:category);
+ return '<i class="expense-category-art" data-art="'+(index<0?7:index)+'" aria-hidden="true"></i>';
+}
 const cats=Object.keys(catIcon);
 const planCategories=['Travel','Food','Sightseeing','Stay','Activity','Reminder','Shopping','Photos','Other'];
 const planPalette={
@@ -933,7 +939,7 @@ function mountExpenseSplit(form,t){
  form.addEventListener('change',refresh);
  refresh();
 }
-function tripExpenses(t){const total=calculations(t).total;const sorted=t.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date));return `${sec('All expenses',isTripAdmin(t)?'quick-expense':'',isTripAdmin(t)?'＋ Add Expense':'')}<div class="card"><div class="space-between"><div><p style="margin:0">Overall spend</p><div class="amount" style="font-size:31px;color:var(--mint)">${money(total)}</div></div><span style="font-size:38px">💳</span></div><div class="row" style="margin-top:14px"><span class="pill">${t.expenses.length} bills</span><span class="pill">🧾 Receipts ${t.expenses.filter(e=>e.receipt).length}</span></div></div>${sec('Day-wise records')}<div class="item-list">${sorted.map(e=>`<div class="list-row"><div class="leading"><span class="category-icon">${catIcon[e.category]||'🧾'}</span><div><strong>${esc(e.note||e.category)}</strong><small>${fmtDate(e.date)} · Paid by ${esc(e.paidBy)} · ${esc(e.method||'')}</small>${expenseSplitDetails(e)}</div></div><div style="text-align:right"><b class="amount">${money(e.amount)}</b>${e.receipt?`<button class="text-link" data-action="receipt" data-id="${e.id}" style="display:block;margin-left:auto">📎 Receipt</button>`:''}${isTripAdmin(t)?`<button class="text-link" style="color:#ffa7b1" data-action="delete-expense" data-id="${e.id}">Delete</button><button class="text-link" data-action="edit-expense" data-id="${esc(e.id)}">Edit</button>`:''}</div></div>`).join('')||'<div class="empty"><div class="emoji">🧾</div>No expenses yet. Admins can add expense notes.</div>'}</div>`}
+function tripExpenses(t){const total=calculations(t).total;const sorted=t.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date));return `${sec('All expenses',isTripAdmin(t)?'quick-expense':'',isTripAdmin(t)?'＋ Add Expense':'')}<div class="card"><div class="space-between"><div><p style="margin:0">Overall spend</p><div class="amount" style="font-size:31px;color:var(--mint)">${money(total)}</div></div><span style="font-size:38px">💳</span></div><div class="row" style="margin-top:14px"><span class="pill">${t.expenses.length} bills</span><span class="pill">🧾 Receipts ${t.expenses.filter(e=>e.receipt).length}</span></div></div>${sec('Day-wise records')}<div class="item-list">${sorted.map(e=>`<div class="list-row"><div class="leading"><span class="category-icon">${expenseCategoryGraphic(e.category)}</span><div><strong>${esc(e.note||e.category)}</strong><small>${fmtDate(e.date)} · Paid by ${esc(e.paidBy)} · ${esc(e.method||'')}</small>${expenseSplitDetails(e)}</div></div><div style="text-align:right"><b class="amount">${money(e.amount)}</b>${e.receipt?`<button class="text-link" data-action="receipt" data-id="${e.id}" style="display:block;margin-left:auto">📎 Receipt</button>`:''}${isTripAdmin(t)?`<button class="text-link" style="color:#ffa7b1" data-action="delete-expense" data-id="${e.id}">Delete</button><button class="text-link" data-action="edit-expense" data-id="${esc(e.id)}">Edit</button>`:''}</div></div>`).join('')||'<div class="empty"><div class="emoji">🧾</div>No expenses yet. Admins can add expense notes.</div>'}</div>`}
 function tripSettle(t){const c=calculations(t),m=t.members.length;return `${sec('Smart split & settle')}<div class="metric-grid">${metric('💰',money(c.total),'Trip spend')}${metric('👥',m,'Members')}${metric('📊',money(m?c.total/m:0),'Avg per member')}</div><div class="notice" style="margin-top:14px">Equal split is calculated per selected participants on each bill. Custom split is also supported; average per member is just an overview.</div>${sec('Paid vs share')}<div class="card">${Object.entries(c.memberBalances).map(([name,b])=>`<div class="settle-person"><div><strong>${esc(name)}</strong><div class="tiny">Paid ${money(b.paid/100)} · Share ${money(b.share/100)}</div></div><b class="${b.net>=0?'positive':'negative-text'}">${b.net>=0?'+':'−'}${money(Math.abs(b.net)/100)}</b></div>`).join('')}</div>${sec('Who pays whom?')}<div class="card">${c.settlements.map((s,i)=>`<div class="list-row" style="margin-bottom:9px"><div><strong>${esc(s.from)} ➜ ${esc(s.to)}</strong><small>Suggested outstanding</small></div><div style="text-align:right"><b style="color:var(--mint)">${money(s.amount)}</b>${isTripAdmin(t)?`<button class="text-link" style="display:block" data-action="settlement-paid" data-idx="${i}">✓ Mark paid</button>`:''}</div></div>`).join('')||'<div class="empty">✅ Everyone is settled!</div>'}</div>${(t.settlementsPaid||[]).length?`${sec('Recorded repayments')}<div class="card">${t.settlementsPaid.map(x=>`<div class="list-row"><div><strong>${esc(x.from)} paid ${esc(x.to)}</strong><small>${fmtDate(x.date)} · Recorded by ${esc(x.by||'Admin')}</small></div><div style="text-align:right"><b>${money(x.amount)}</b>${isTripAdmin(t)?`<button class="text-link negative-text" style="display:block" data-action="settlement-undo" data-id="${esc(x.id)}">Undo</button>`:''}</div></div>`).join('')}</div>`:''}<div class="row" style="margin-top:15px"><button class="btn" data-action="open-tab" data-ctx="report">📄 Include in PDF</button></div>`}
 
 function changeTripMember(t,oldName,newName,remove=false){
@@ -1109,7 +1115,7 @@ case 'expense':case 'expense-edit':{
   context.quickExpense=true;
   title='Quick Expense';
   body='<div class="d4-expense-amount">'+field('amount','Amount (₹)','','number','required min="0.01" max="100000000" step="0.01" inputmode="decimal" placeholder="0"')+'</div>'+
-   '<details class="neon-category-picker"><summary>🍔 Food &amp; Drinks</summary><fieldset class="neon-categories"><legend>Category</legend><div>'+Object.entries(quickExpenseCategories).map(([category,icon],i)=>'<label><input type="radio" name="category" value="'+esc(category)+'" '+(i===0?'checked':'')+'><span><b aria-hidden="true">'+icon+'</b>'+esc(category)+'</span></label>').join('')+'</div></fieldset></details>'+
+   '<details class="neon-category-picker"><summary>'+expenseCategoryGraphic('Food & Drinks')+' Food &amp; Drinks</summary><fieldset class="neon-categories"><legend>Category</legend><div>'+Object.keys(quickExpenseCategories).map((category,i)=>'<label><input type="radio" name="category" value="'+esc(category)+'" '+(i===0?'checked':'')+'><span>'+expenseCategoryGraphic(category)+esc(category)+'</span></label>').join('')+'</div></fieldset></details>'+
    expenseSplitFields(t,true)+
    field('date','Date',today(),'date','required')+
    field('note','Note (optional)','','text','maxlength="150"')+'<details><summary>Payment method</summary>'+selectField('method','Method','<option>Other</option><option>Cash</option><option>UPI</option><option>Card</option><option>Bank transfer</option>')+'</details>';
@@ -1166,9 +1172,9 @@ $('#modalRoot').innerHTML=`<div class="modal-backdrop${expensePopup?' d4-expense
  if(name==='expense'){
   const picker=$('#activeForm .neon-category-picker');
   picker?.addEventListener('change',event=>{
-   const icon=quickExpenseCategories[event.target.value];
-   if(!icon)return;
-   picker.querySelector('summary').textContent=icon+' '+event.target.value;
+   const category=event.target.value;
+   if(!Object.hasOwn(quickExpenseCategories,category))return;
+   picker.querySelector('summary').innerHTML=expenseCategoryGraphic(category)+' '+esc(category);
    picker.open=false;
   });
  }
@@ -1550,7 +1556,7 @@ render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibili
 <script src="./modern-card-pdf.js?build=46&revision=93"></script>
 <script src="./premium-production.js?build=45"></script>
 <script src="./goa-milestones.js?build=29"></script>
-<script src="./reference-premium.js?build=60&revision=93"></script>
+<script src="./reference-premium.js?build=60&revision=94"></script>
 <script>
 /* Tickets shortcut: attach to the visible premium Goa dashboard, not the legacy home. */
 (function(){

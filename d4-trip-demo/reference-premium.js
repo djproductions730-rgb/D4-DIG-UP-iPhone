@@ -100,6 +100,15 @@
     return '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
         '<strong class="neon-meter-number">'+pc+'% collected</strong>';
   }
+  function recentExpenses(t){
+    const rows=(t.expenses||[]).slice().reverse().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).slice(0,5);
+    return '<section class="home-expense-history" aria-label="Expense History"><header><h3>Expense History</h3>'+
+      '<button type="button" data-action="open-tab" data-ctx="expenses">View all ›</button></header>'+
+      (rows.map(e=>'<article class="home-expense-row">'+expenseCategoryGraphic(e.category)+
+        '<div><strong>'+html(e.note||e.category||'Expense')+'</strong><small>'+
+        [e.category,e.paidBy?'Paid by '+e.paidBy:'',e.date?shortDate(e.date):''].filter(Boolean).map(html).join(' · ')+'</small></div>'+
+        '<b>'+money(e.amount)+'</b></article>').join('')||'<p>No expenses recorded yet.</p>')+'</section>';
+  }
   function tripHero(t){
     const c=collectionTotals(t);
     const days=datesInTrip(t).length;
@@ -124,7 +133,7 @@
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
         paymentGauge(p)+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
-      '</button></nav><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
+      '</button></nav><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>'+recentExpenses(t);
 
   }
   function memberAmountPanel(t){

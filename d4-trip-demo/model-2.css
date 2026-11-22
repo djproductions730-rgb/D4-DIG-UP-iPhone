@@ -427,3 +427,21 @@ body.d4-premium .neon-members-toolbar .neon-add-member{width:auto;white-space:no
 body.d4-premium .neon-members-toolbar .ref-member-search{flex:1;min-width:0;margin:0}
 body.d4-premium .neon-members-toolbar input{width:100%;min-width:0}
 body.d4-premium .ref-members-head > p{display:none}
+
+.expense-category-art{display:inline-block;flex:none;width:38px;height:38px;background:url('./expense-category-icons.png') 0 0/400% 200% no-repeat;vertical-align:middle}
+.expense-category-art[data-art="1"],.expense-category-art[data-art="5"]{background-position-x:33.333333%}
+.expense-category-art[data-art="2"],.expense-category-art[data-art="6"]{background-position-x:66.666667%}
+.expense-category-art[data-art="3"],.expense-category-art[data-art="7"]{background-position-x:100%}
+.expense-category-art:is([data-art="4"],[data-art="5"],[data-art="6"],[data-art="7"]){background-position-y:100%}
+.neon-categories .expense-category-art{width:43px;height:43px}
+.neon-category-picker summary .expense-category-art{width:31px;height:31px;margin-right:5px}
+body.d4-premium .home-expense-history{margin:12px 0;padding:12px;border:1px solid #345864;border-radius:14px;background:#10202b;color:#f4fbff}
+.home-expense-history header,.home-expense-row{display:flex;align-items:center;gap:9px}
+.home-expense-history header{justify-content:space-between}
+.home-expense-history h3,.home-expense-history p{margin:0}
+.home-expense-history header button{color:#a6f4f3;background:transparent;border:0;min-height:44px;white-space:nowrap}
+.home-expense-row{padding:7px 0;border-top:1px solid #fff2}
+.home-expense-row>div{flex:1;min-width:0}
+.home-expense-row :is(strong,small){display:block;overflow-wrap:anywhere}
+.home-expense-row small{color:#b6ccd8}
+.home-expense-row>b{color:#ffcd91;white-space:nowrap}
