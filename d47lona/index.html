@@ -1273,18 +1273,20 @@ function loanCard(l,compact=false){
  const upcoming=nextUnpaidEmi(l),p=paidCount(l),total=Number(officialLoanForDisplay(l).tenure)||1,percent=Math.min(100,Math.max(0,Math.round(p/total*100)));
  const tone=loanDisplayKind(l);
  const finished=p>=total;
+ const labelColor=state.theme==='crystal'?'#1b3348':'#ffffff';
+ const labelStyle=`style="color:${labelColor}!important;-webkit-text-fill-color:${labelColor}!important;opacity:1!important;filter:none!important;font-weight:800!important;text-shadow:none!important"`;
  return `<article class="glass loan-compact loan-tone-${tone}">
   <div class="loan-compact-head">
    ${loanIcon(l)}
-   <div class="loan-compact-head-copy"><strong>${safe(l.name)}</strong><small>${safe(l.lender||'Loan')}</small></div>
+   <div class="loan-compact-head-copy"><strong>${safe(l.name)}</strong><small ${labelStyle}>${safe(l.lender||'Loan')}</small></div>
    <span class="loan-compact-status ${finished?'closed':''}">${finished?'Closed':'Active'}</span>
   </div>
   <div class="loan-compact-main">
-   <div><span class="caption">Upcoming EMI${upcoming?" · "+fmtDate(upcoming.date):""}</span><strong>${upcoming?money(upcoming.amount):"Completed"}</strong></div>
-   <div class="mini-paid"><span class="caption">EMIs paid</span><strong>${p}/${total}</strong></div>
+   <div><span class="caption" ${labelStyle}>Upcoming EMI${upcoming?" · "+fmtDate(upcoming.date):""}</span><strong>${upcoming?money(upcoming.amount):"Completed"}</strong></div>
+   <div class="mini-paid"><span class="caption" ${labelStyle}>EMIs paid</span><strong>${p}/${total}</strong></div>
   </div>
   <div class="loan-compact-progress" aria-label="${percent}% of EMI cycles paid"><span style="width:${percent}%"></span></div>
-  <div class="loan-compact-actions"><span class="small">${percent}% completed</span><button type="button" class="loan-compact-open" data-open-loan="${safe(l.id)}">View Details ${ico('right')}</button></div>
+  <div class="loan-compact-actions"><span class="small" ${labelStyle}>${percent}% completed</span><button type="button" class="loan-compact-open" data-open-loan="${safe(l.id)}">View Details ${ico('right')}</button></div>
  </article>`
 }
 const D47_BANK_LOGOS={"hdfc bank":"../assets/banks/hdfc.ico","hdfc":"../assets/banks/hdfc.ico","axis bank":"../assets/banks/axis.ico","axis":"../assets/banks/axis.ico","icici bank":"../assets/banks/icici.ico","icici":"../assets/banks/icici.ico","state bank of india":"../assets/banks/sbi.ico","state bank of india (sbi)":"../assets/banks/sbi.ico","sbi":"../assets/banks/sbi.ico","indian bank":"../assets/banks/indian.png","canara bank":"../assets/banks/canara.png","kotak mahindra bank":"../assets/banks/kotak.ico","idfc first bank":"../assets/banks/idfc.ico","punjab national bank":"../assets/banks/pnb.ico","bank of baroda":"../assets/banks/baroda.png","union bank of india":"../assets/banks/union.png","bank of india":"../assets/banks/boi.png","indian overseas bank":"../assets/banks/iob.png","uco bank":"../assets/banks/uco.png","bank of maharashtra":"../assets/banks/maharashtra.png","punjab & sind bank":"../assets/banks/punjabsind.png","indusind bank":"../assets/banks/indusind.ico","yes bank":"../assets/banks/yes.png","rbl bank":"../assets/banks/rbl.png","bandhan bank":"../assets/banks/bandhan.png","dcb bank":"../assets/banks/dcb.ico","city union bank":"../assets/banks/cityunion.svg","tamilnad mercantile bank":"../assets/banks/tmb.png","south indian bank":"../assets/banks/southindian.png","karnataka bank":"../assets/banks/karnataka.svg","csb bank":"../assets/banks/csb.png","jammu & kashmir bank":"../assets/banks/jk.png","nainital bank":"../assets/banks/nainital.png","dhanlaxmi bank":"../assets/banks/dhanlaxmi.png","au small finance bank":"../assets/banks/au.png","equitas small finance bank":"../assets/banks/equitas.png","ujjivan small finance bank":"../assets/banks/ujjivan.ico","utkarsh small finance bank":"../assets/banks/utkarsh.png","suryoday small finance bank":"../assets/banks/suryoday.png","esaf small finance bank":"../assets/banks/esaf.png","jana small finance bank":"../assets/banks/jana.jpg","shivalik small finance bank":"../assets/banks/shivalik.png","capital small finance bank":"../assets/banks/capital.png","airtel payments bank":"../assets/banks/airtel.png","india post payments bank":"../assets/banks/ippb.png","fino payments bank":"../assets/banks/fino.svg","jio payments bank":"../assets/banks/jio.ico"};
