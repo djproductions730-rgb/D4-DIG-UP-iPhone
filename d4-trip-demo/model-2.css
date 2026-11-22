@@ -471,3 +471,34 @@ body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-number{font-size:19px}
 body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-values>span{font-size:13px}
 body.d4-premium .plan-ui .neon-stop-symbol{display:grid!important;place-items:center}
 body.d4-premium .plan-ui .neon-stop-symbol .expense-category-art{width:40px;height:40px}
+
+/* Liquid neon finishes across interactive surfaces. */
+body.d4-premium .d4-team-sync-guide .d4-upgrade-btn{display:none!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home:has(.d4-sync-minimal) > h2{padding-right:0}
+.trip-update-badge:not([hidden]){
+ display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:44px;min-height:44px;
+ color:#ceff6e;background:linear-gradient(155deg,#305044,#162936 58%);border:1px solid #74975b;border-radius:15px;font-weight:850;
+}
+body.d4-premium .trip-update-badge[hidden]{display:none!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action{
+  background:radial-gradient(ellipse at 18% 0%,#ffffff2e,transparent 57%),
+    linear-gradient(150deg,var(--trip-tile-base,#163645),#101726 80%)!important;
+  box-shadow:inset 0 1px #fff2,inset 0 -1px #ffffff18,0 5px 10px #0005!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action-ico{filter:drop-shadow(0 0 5px currentColor)}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payments{
+ background:radial-gradient(ellipse at 28% 0%,#34eece30,transparent 58%),linear-gradient(155deg,#182f47,#111c31 75%)!important;
+ box-shadow:inset 0 1px #a9ffed35,inset 0 0 18px #56e8ff1c,0 4px 15px #16bdc82a!important;
+}
+body.d4-premium .neon-meter-fill{filter:drop-shadow(0 0 4px #a4ff53)}
+body.d4-premium .plan-ui .d4-ms-track .d4-ms-card,
+body.d4-premium .ref-person-list .ref-person,
+body.d4-premium .d4-ticket-v62 .d4-ticket-entry{
+ background:radial-gradient(ellipse at 12% 0%,#4cc8d526,transparent 62%),linear-gradient(155deg,#1a2b40,#101d2a 85%)!important;
+ box-shadow:inset 0 1px #ffffff1a!important;
+}
+body.d4-premium .neon-stop-symbol{border-radius:10px;background:linear-gradient(150deg,#3c758740,#593a7044)!important}
+body.d4-premium .neon-memory-head,body.d4-premium .neon-report-page,
+body.d4-premium .neon-popup{
+ box-shadow:inset 0 1px #ffffff25,0 8px 25px #03081085!important;
+}

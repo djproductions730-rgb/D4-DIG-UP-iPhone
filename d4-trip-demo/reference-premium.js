@@ -426,6 +426,7 @@
           ['📸','Memories','nav','data-view="memories"'],
           ['🔔','Alerts','nav','data-view="alerts"'],
           ['⚙️','Settings','nav','data-view="profile"'],
+          ['↑','Update App','update-trip-app',''],
           ...(isMain()?[['👑','Main Admin','d4-admin-panel','']]:[])
         ];
       overlay='<div class="ref-nav-overlay" role="group" aria-label="'+(quickPanel==='plus'?'Quick actions':'More trip sections')+'">'+

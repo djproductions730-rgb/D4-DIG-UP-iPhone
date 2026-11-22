@@ -382,7 +382,7 @@ body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-wid
 #modalRoot .d4-expense-popup .modal-footer{flex:none;position:static!important;padding:9px 14px!important;background:#27203e!important;border-top:1px solid #79569e!important}
 #modalRoot .d4-expense-popup .modal-footer button{min-height:44px;background:linear-gradient(105deg,#a33ae7,#7024d5)!important;color:#fff!important}
 </style>
-  <link rel="stylesheet" href="./model-2.css?build=91&revision=95">
+  <link rel="stylesheet" href="./model-2.css?build=91&revision=96">
 <style>html[data-trip-starting],html[data-trip-starting] body{background:#0b1119!important}html[data-trip-starting] #app{visibility:hidden}</style>
 </head>
 <body>
@@ -672,7 +672,7 @@ function navButton(id,label,icon){return `<button class="nav-btn ${view===id?'ac
 function sidebar(){return `<aside class="side">${brand()}<div class="side-label">Explore</div>${navButton('home','Dashboard','🏠')}${navButton('collections','Trip Payments','💳')}${navButton('trips','My Trips','🗺️')}${navButton('expenses','Expenses','💸')}${navButton('reports','PDF Reports','📑')}${navButton('alerts','Local Reminders','⏰')}${navButton('memories','Trip Memories','📸')}${isMain()?`<div class="side-label" style="margin-top:12px">Owner only</div>${navButton('admin','Main Admin Console','👑')}`:''}<div class="side-label" style="margin-top:12px">Account</div>${navButton('profile','Settings & Profile','⚙️')}<div class="side-bottom"><span class="badge-demo">${window.D4TripCloud?.linked?'CLOUD SYNC':'DEVICE MODE'}</span><b style="font-size:13px">Your trips, your rules ✨</b><small class="tiny">${window.D4TripCloud?.linked?'Private account sync active.':'Connect your Firebase account in Settings.'}</small></div></aside>`}
 function bottomNav(){const items=[['home','🏠','Home',''],['trip','🗓️','Day Plan','plan'],['trip','👥','Members','members'],['collections','💳','Payments',''],['expenses','🧾','Expenses',''],['reports','📊','Reports',''],['alerts','🔔','Alerts',''],...(isMain()?[['admin','👑','Admin','']]:[]),['profile','⚙️','Settings','']];return `<nav class="bottom-nav d4-gold-rail" aria-label="D4 Trip compact navigation">${items.map(([id,emoji,name,tab])=>`<button data-action="nav" data-view="${id}" data-tab="${tab}" aria-label="${name}" class="bottom-btn ${view===id&&(!tab||tripTab===tab)?'active':''}"><span class="nav-emoji">${emoji}</span><span class="d4-rail-label">${name}</span></button>`).join('')}</nav>`}
 
-function topBar(){const pages={tickets:'Transport',home:'Your Travel Hub',collections:'Paid & Pending',trips:'My Trips',trip:'Trip Details',chat:'Trip Chats',expenses:'Expense Manager',reports:'Reports & PDF',alerts:'Local Reminders',memories:'Trip Memories',profile:'Profile & Settings',admin:'Main Admin Console'};return `<header class="topbar"><div><div class="mini-brand"><img src="${LOGO_URL}" width="31" height="31" alt="D4 Trip"><b>D4 <em>Trip</em></b><span>BETA v3</span></div><div class="greet">Hey ${esc(profile)} 👋 · ${esc(roleName())} <span class="badge-demo">${window.D4TripCloud?.linked?'SYNCED':'DEVICE'}</span></div><h1>${pages[view]||'D4 Trip'}</h1></div><div class="top-actions"><button class="icon-btn" aria-label="Reminders" data-action="nav" data-view="alerts">🔔</button><button class="avatar" data-action="nav" data-view="profile" aria-label="Profile">${esc(profile.slice(0,1))}</button></div></header>`}
+function topBar(){const pages={tickets:'Transport',home:'Your Travel Hub',collections:'Paid & Pending',trips:'My Trips',trip:'Trip Details',chat:'Trip Chats',expenses:'Expense Manager',reports:'Reports & PDF',alerts:'Local Reminders',memories:'Trip Memories',profile:'Profile & Settings',admin:'Main Admin Console'};return `<header class="topbar"><div><div class="mini-brand"><img src="${LOGO_URL}" width="31" height="31" alt="D4 Trip"><b>D4 <em>Trip</em></b><span>BETA v3</span></div><div class="greet">Hey ${esc(profile)} 👋 · ${esc(roleName())} <span class="badge-demo">${window.D4TripCloud?.linked?'SYNCED':'DEVICE'}</span></div><h1>${pages[view]||'D4 Trip'}</h1></div><div class="top-actions"><button type="button" class="trip-update-badge" data-action="update-trip-app" aria-label="Update D4 Trip" hidden>↑ <b>1</b></button><button class="icon-btn" aria-label="Reminders" data-action="nav" data-view="alerts">🔔</button><button class="avatar" data-action="nav" data-view="profile" aria-label="Profile">${esc(profile.slice(0,1))}</button></div></header>`}
 function metric(icon,number,title){return `<div class="metric"><div class="symbol">${graphicIcon(icon)}</div><div class="number">${number}</div><div class="name">${esc(title)}</div></div>`}
 function sec(title,action='',button=''){return `<div class="section-heading"><h2>${title}</h2>${action?`<button class="text-link" data-action="${action}">${button||'View all →'}</button>`:''}</div>`}
 function tile(icon,name,action,ctx=''){return `<button class="quick" data-action="${action}" ${ctx?`data-ctx="${esc(ctx)}"`:''}><span class="bubble">${graphicIcon(icon)}</span>${esc(name)}</button>`}
@@ -1374,7 +1374,34 @@ function printReport(t){
  $('#printMount').innerHTML=report;
  setTimeout(()=>window.print(),250);
 }
+const tripAppBuild=96;
+let tripUpdateBusy=false;
+function paintTripUpdate(available){
+ document.querySelectorAll('.trip-update-badge').forEach(button=>{button.hidden=!available;});
+}
+async function checkTripBuild(){
+ const response=await fetch('./trip-version.json',{cache:'no-store'});
+ if(!response.ok)throw Error('Could not check for updates');
+ const data=await response.json();
+ if(!Number.isInteger(data.build))throw Error('Could not check for updates');
+ return data.build;
+}
+async function updateTripApp(){
+ if(tripUpdateBusy)return;
+ tripUpdateBusy=true;
+ try{
+  const build=await checkTripBuild();
+  if(build<=tripAppBuild){toast('D4 Trip is up to date');return;}
+  const registration=await navigator.serviceWorker?.getRegistration();
+  await registration?.update();
+  const url=new URL(location.href);
+  url.searchParams.set('release',String(build));
+  location.replace(url.href);
+ }catch(_){toast('Could not check for updates. Try again online.');}
+ finally{tripUpdateBusy=false;}
+}
 function action(el){const id=el.dataset.action,t=current(),ctx=el.dataset.ctx;switch(id){
+case 'update-trip-app':updateTripApp();break;
 case 'install-help':{const ios=/iPad|iPhone|iPod/.test(navigator.userAgent);const msg=ios?'On iPhone: open this link in Safari, tap Share, then Add to Home Screen.':'On Android: open in Chrome, tap menu, then Install app or Add to Home screen.';alert('D4 Trip App Install\n\n'+msg+'\n\nTo sync between your own devices, open Settings and sign in to Firebase after it has been configured.');break;}
 case 'enter-app':go('home');break;
  case 'entry-select-trip':{const tt=trip(el.dataset.id);if(!canSee(tt))return toast('Trip access denied');activeTrip=tt.id;daySelected=datesInTrip(tt)[0];go('collections');break;}
@@ -1559,8 +1586,8 @@ render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibili
 </script>
 <script src="./modern-card-pdf.js?build=46&revision=93"></script>
 <script src="./premium-production.js?build=45"></script>
-<script src="./goa-milestones.js?build=29&revision=95"></script>
-<script src="./reference-premium.js?build=60&revision=95"></script>
+<script src="./goa-milestones.js?build=29&revision=96"></script>
+<script src="./reference-premium.js?build=60&revision=96"></script>
 <script>
 /* Tickets shortcut: attach to the visible premium Goa dashboard, not the legacy home. */
 (function(){
@@ -1586,6 +1613,9 @@ render();setInterval(checkLocalAlerts,20000);document.addEventListener('visibili
 <script>
 try { if (typeof render === 'function') render(); }
 finally { document.documentElement.removeAttribute('data-trip-starting'); }
+const checkUpdateBadge=()=>checkTripBuild().then(build=>paintTripUpdate(build>tripAppBuild)).catch(()=>{});
+checkUpdateBadge();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdateBadge();});
 </script>
 </body>
 </html>
