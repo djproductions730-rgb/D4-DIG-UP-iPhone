@@ -1,0 +1,47 @@
+/* D47 Lona v56: explicit high-contrast typography for all five themes.
+   Readability only: never modify loans, cycles, sync or balances. */
+html[data-theme="crystal"] body.d47-model-a{--read-main:#14243e;--read-secondary:#30435e;--read-accent:#164f9b;--read-onbutton:#ffffff}
+html[data-theme="midnight"] body.d47-model-a{--read-main:#ffffff;--read-secondary:#e1f3ff;--read-accent:#73eaff;--read-onbutton:#ffffff}
+html[data-theme="emerald"] body.d47-model-a{--read-main:#ffffff;--read-secondary:#d7fff0;--read-accent:#7cffca;--read-onbutton:#ffffff}
+html[data-theme="royal"] body.d47-model-a{--read-main:#ffffff;--read-secondary:#f0ddff;--read-accent:#f0a6ff;--read-onbutton:#ffffff}
+html[data-theme="gold"] body.d47-model-a{--read-main:#ffffff;--read-secondary:#fff0cf;--read-accent:#ffdf83;--read-onbutton:#ffffff}
+html[data-theme] body.d47-model-a :is(.header,.mobile-brand,.section-title,.kpi,.hero,.loan-compact,.detail-top,.list-tile,.bank-row,.salary-quick-line,.mini-panel,.calendar,.form-card,.modal,.glass,.notice,.quick-grid,.quick-money,.loan-clean-toolbar,.loan-clean-list,.d47-cycle-stats,.digup-legacy-loans,.settings-panel,.payment-history,.cycle-list){
+ --muted:var(--read-secondary);
+ --ui-muted:var(--read-secondary);
+ --lg-sub:var(--read-secondary);
+}
+html[data-theme] body.d47-model-a :is(.header,.mobile-brand,.section-title,.kpi,.hero,.loan-compact,.detail-top,.list-tile,.bank-row,.salary-quick-line,.mini-panel,.calendar,.form-card,.modal,.glass,.notice,.loan-clean-list,.digup-legacy-loans) :is(.sub,.small,.caption,.tiny-title,.eyebrow,.muted,.muted-line,.footnote,.date-note,.loan-bottom,.salary-from-digup,.loan-compact-head-copy small,.loan-compact-main .caption,.mini-paid .caption,.hero-bottom .sub,.loan-compact-actions .small){
+ color:var(--read-secondary)!important;-webkit-text-fill-color:var(--read-secondary)!important;opacity:1!important;filter:none!important;text-shadow:none!important;
+}
+html[data-theme] body.d47-model-a :is(.header,.mobile-brand,.section-title,.kpi,.hero,.loan-compact,.detail-top,.list-tile,.bank-row,.salary-quick-line,.mini-panel,.calendar,.form-card,.modal,.glass,.notice,.loan-clean-list) :is(h1,h2,h3,h4,.stat,.money,.hero-money,.loan-title,.loan-compact-head-copy strong,.loan-compact-main strong,.mini-paid strong,.bank-amount,.bank-name){
+ color:var(--read-main)!important;-webkit-text-fill-color:var(--read-main)!important;opacity:1!important;filter:none!important;
+}
+html[data-theme] body.d47-model-a :is(.mobile-nav,.rail) button,
+html[data-theme] body.d47-model-a :is(.mobile-nav,.rail) .nav-link{color:var(--read-main)!important;-webkit-text-fill-color:var(--read-main)!important;opacity:1!important}
+html[data-theme] body.d47-model-a :is(.mobile-nav,.rail) button span{color:inherit!important;-webkit-text-fill-color:inherit!important;opacity:1!important}
+html[data-theme] body.d47-model-a .sync-indicator,
+html[data-theme] body.d47-model-a .sync-pill{color:var(--read-accent)!important;-webkit-text-fill-color:var(--read-accent)!important;opacity:1!important}
+html[data-theme] body.d47-model-a .loan-compact-open{background:#dceaff!important;color:#113b6b!important;-webkit-text-fill-color:#113b6b!important;border:2px solid #8bb7ed!important;opacity:1!important;text-shadow:none!important}
+html[data-theme] body.d47-model-a .loan-compact-open :is(svg,span){color:#113b6b!important;-webkit-text-fill-color:#113b6b!important;stroke:#113b6b!important}
+html[data-theme] body.d47-model-a :is(.loan-compact-status,.badge):not(.closed){background:#d7ffe6!important;color:#07532f!important;-webkit-text-fill-color:#07532f!important;opacity:1!important}
+html[data-theme] body.d47-model-a .d47-home-actions button,
+html[data-theme] body.d47-model-a .d47-home-actions button span{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}
+/* Light surfaces always use dark ink, including highlighted upcoming EMI cards. */
+html[data-theme] body.d47-model-a :is(.emerald-emi-card,.emerald-emi-card.is-next,.emerald-emi-card.is-paid){
+ --read-main:#112e23;--read-secondary:#315144;color:#112e23!important;-webkit-text-fill-color:#112e23!important;
+}
+html[data-theme] body.d47-model-a .emerald-emi-card :is(.emerald-cycle-info,.emerald-cycle-info strong,.emerald-cycle-info span,.emerald-cycle-info p,.emerald-cycle-pay strong){
+ color:#12382a!important;-webkit-text-fill-color:#12382a!important;opacity:1!important;text-shadow:none!important;
+}
+html[data-theme] body.d47-model-a .emerald-emi-card.is-next .emerald-cycle-id,
+html[data-theme] body.d47-model-a .emerald-emi-card.is-next .emerald-cycle-id *{color:#fff!important;-webkit-text-fill-color:#fff!important}
+html[data-theme] body.d47-model-a .emerald-emi-card .emerald-cycle-pay button{color:#06492d!important;-webkit-text-fill-color:#06492d!important;opacity:1!important}
+html[data-theme] body.d47-model-a .emerald-emi-card.is-next .emerald-cycle-pay button{color:#5a3c00!important;-webkit-text-fill-color:#5a3c00!important}
+html[data-theme] body.d47-model-a .loan-top .badge{color:#07532f!important;-webkit-text-fill-color:#07532f!important}
+html[data-theme]:not([data-theme="crystal"]) body.d47-model-a .progress-ring span{color:#fff!important;-webkit-text-fill-color:#fff!important}
+html[data-theme]:not([data-theme="crystal"]) body.d47-model-a .progress-ring small{color:#e5f2ff!important;-webkit-text-fill-color:#e5f2ff!important}
+/* Inputs and dialogs: no faded grey placeholders or disabled-looking labels. */
+html[data-theme] body.d47-model-a :is(.field label,.modal label,.form-card label){color:var(--read-main)!important;-webkit-text-fill-color:var(--read-main)!important;opacity:1!important}
+html[data-theme] body.d47-model-a :is(input,select,textarea){color:var(--d47-fg)!important;-webkit-text-fill-color:var(--d47-fg)!important;opacity:1!important}
+html[data-theme] body.d47-model-a :is(input,textarea)::placeholder{color:var(--d47-muted)!important;-webkit-text-fill-color:var(--d47-muted)!important;opacity:1!important}
+@media(max-width:440px){html[data-theme] body.d47-model-a .d47-home-actions button span{font-size:10px!important}}
