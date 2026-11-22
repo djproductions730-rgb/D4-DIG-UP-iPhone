@@ -8,7 +8,7 @@ const css=fs.readFileSync(path.join(__dirname,'modern-card-pdf.css'),'utf8');
 const js=fs.readFileSync(path.join(__dirname,'modern-card-pdf.js'),'utf8');
 assert.match(html,/modern-card-pdf\.js\?build=46/);
 assert.match(html,/modern-card-pdf\.css\?build=46/);
-assert.match(html,/D4ModernCardPDF\.render\(t,calculations\(t\),collectionTotals\(t\),datesInTrip\(t\),reportCashAmounts\(\)\)/);
+assert.match(html,/D4ModernCardPDF\.renderSimple\(t,collectionTotals\(t\)\)/);
 assert.match(css,/@page\{size:A4/);
 assert.match(css,/display:table-header-group/);
 const env={window:{},Date};
@@ -29,3 +29,9 @@ trip.plans[0].done=true;
 assert.match(env.window.D4ModernCardPDF.render(trip,calc,col,['2026-11-24']),/Trip Completed!/);
 assert.equal(trip.expenses[0].amount,100,'PDF must not mutate trip data');
 console.log('PASS: Modern Card six-page report, real totals, escaping, incomplete vs complete status');
+
+const simple=env.window.D4ModernCardPDF.renderSimple(trip,col);
+assert.match(simple,/d4-simple-report/);
+assert.match(simple,/Total collected: ₹50/);
+assert.match(simple,/Breakfast/);
+assert.doesNotMatch(simple,/Final Day Cash|Trip Package|Pending|Itinerary/);

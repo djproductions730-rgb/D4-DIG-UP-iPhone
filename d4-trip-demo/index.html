@@ -382,7 +382,7 @@ body.d4-premium .ref-trip-hero .d4-upgrade-btn{min-height:44px!important;min-wid
 #modalRoot .d4-expense-popup .modal-footer{flex:none;position:static!important;padding:9px 14px!important;background:#27203e!important;border-top:1px solid #79569e!important}
 #modalRoot .d4-expense-popup .modal-footer button{min-height:44px;background:linear-gradient(105deg,#a33ae7,#7024d5)!important;color:#fff!important}
 </style>
-  <link rel="stylesheet" href="./model-2.css?build=89">
+  <link rel="stylesheet" href="./model-2.css?build=90">
 </head>
 <body>
   <div id="app"><div style="min-height:100dvh;padding:34px 20px;background:linear-gradient(170deg,#033d48,#087f7a 63%,#fd9b38);color:white;font-family:system-ui;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:16px"><div style="font-size:70px">✈️🌴</div><h1 style="font-size:48px;margin:0">D4 <span style="color:#ffba56">Trip</span></h1><p style="font-weight:700">Plan · Travel · Track · Split</p><h2 style="font-size:22px">Your Paid / Pending Trip Dashboard</h2><p>Collections • Paid & Pending • Trips • Day plans • Expenses • Memories • PDF • Local alerts</p><p style="font-size:12px;background:#ffffff25;padding:12px;border-radius:16px">If this welcome card stays visible, your file viewer blocked scripts. Open the full app in Safari from a hosted HTTPS link or use the ZIP files on a website.</p></div></div>
@@ -986,10 +986,8 @@ function tripReminders(t){return `${sec('Reminders & group alerts',isTripAdmin(t
 function tripNotes(t){return `${sec('Trip notes & checklists',isTripAdmin(t)?'quick-note':'',isTripAdmin(t)?'＋ Add Note':'')}<div class="item-list">${t.notes.map(n=>`<div class="card"><div class="space-between"><b>📝 ${fmtDate(n.date)}</b><span class="tiny">${esc(n.by)}</span></div><p style="white-space:pre-wrap;color:#eef3ff;font-size:13px">${esc(n.text)}</p></div>`).join('')||'<div class="empty">Add a plan note, shopping list, booking details or packing checklist.</div>'}</div>`}
 function tripFiles(t){const receipts=t.expenses.filter(e=>e.receipt).map(e=>({...e.receipt,extra: 'Bill · '+e.note}));const all=[...t.files.map(f=>({...f,extra:'Uploaded file'})),...receipts];return `${sec('Bills, photos & files',isTripAdmin(t)?'quick-file':'',isTripAdmin(t)?'＋ Upload File':'')}<div class="item-list">${all.map((f,i)=>`<div class="list-row"><div class="leading"><span class="category-icon">${f.type?.startsWith('image/')?'🖼️':'📄'}</span><div><strong>${esc(f.name)}</strong><small>${esc(f.extra)}</small></div></div><button class="btn small ghost" data-action="download-file" data-type="${i<t.files.length?'file':'expense'}" data-idx="${i<t.files.length?i:i-t.files.length}">Save</button></div>`).join('')||'<div class="empty">📎 No files yet. Upload receipts and trip documents.</div>'}</div><div class="notice" style="margin-top:12px">Image/PDF attachments up to 350 KB in this offline demo. Keep backups; phone storage can be cleared.</div>`}
 function tripReport(t){
- const calc=calculations(t),col=collectionTotals(t);
- const pdf=window.D4ModernCardPDF?.render(t,calc,col,datesInTrip(t));
- return `<section class="neon-report-page"><header><h2>Trip Report</h2><div class="row"><button class="btn ghost small" data-action="share-report">Share summary</button><button class="btn mint small" data-action="pdf">Save as PDF</button></div></header>
- <details class="neon-report-cash-controls"><summary>Final Day Cash</summary><div class="neon-report-cash"><label>Opening cash <input type="number" id="neonOpeningCash" min="0" step="0.01" inputmode="decimal" placeholder="Optional"></label><label>Closing cash <input type="number" id="neonClosingCash" min="0" step="0.01" inputmode="decimal" placeholder="Optional"></label><button type="button" class="btn small" data-action="refresh-pdf-preview">Update Preview</button></div></details>
+ const pdf=window.D4ModernCardPDF?.renderSimple(t,collectionTotals(t));
+ return `<section class="neon-report-page"><header><h2>Trip Report</h2><button class="btn mint small" data-action="pdf">Save as PDF</button></header>
  <div id="neonPdfPreview" class="neon-pdf-preview" aria-label="Trip Report PDF">${pdf||'<p class="notice">PDF template is loading.</p>'}</div></section>`;
 }
 function expensesPage(){const t=current();return t?`<section class="d4p-section">${tripExpenses(t)}</section>`:'<div class="empty">Choose a trip to view expense notes.</div>'}
@@ -1356,18 +1354,10 @@ function fileDownload(file){if(!file||!file.data)return toast('File not found');
 function downloadText(name,text,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function summary(t){const c=calculations(t);return `🧭 D4 Trip | ${t.name}\n📅 ${fmtDate(t.start)} – ${fmtDate(t.end)}\n👥 ${t.members.length} members\n💸 Total expenses: ${money(c.total)}\n🧾 ${t.expenses.length} bills\n\nGenerated from D4 Trip`}
 async function shareSummary(){const t=current();if(!t)return;const text=summary(t);try{if(navigator.share){await navigator.share({title:'D4 Trip - '+t.name,text});return}}catch(e){if(e.name==='AbortError')return}await navigator.clipboard?.writeText(text).catch(()=>{});toast('Summary copied (if permitted).')}
-function reportCashAmounts(){
- const amount=id=>{
-  const value=document.getElementById(id)?.value;
-  if(value===undefined||value===''||!Number.isFinite(Number(value))||Number(value)<0)return null;
-  return Math.round(Number(value)*100)/100;
- };
- return {opening:amount('neonOpeningCash'),closing:amount('neonClosingCash')};
-}
 function printReport(t){
  if(!t)return;
  if(!window.D4ModernCardPDF){toast('PDF template is loading. Please refresh and try again.');return;}
- const report=window.D4ModernCardPDF.render(t,calculations(t),collectionTotals(t),datesInTrip(t),reportCashAmounts());
+ const report=window.D4ModernCardPDF.renderSimple(t,collectionTotals(t));
  $('#printMount').innerHTML=report;
  setTimeout(()=>window.print(),250);
 }
@@ -1519,11 +1509,6 @@ case 'receipt':{let e=t.expenses.find(x=>x.id===el.dataset.id);if(e?.receipt)fil
 case 'download-file':{let f=el.dataset.type==='file'?t.files[Number(el.dataset.idx)]:t.expenses.filter(x=>x.receipt)[Number(el.dataset.idx)]?.receipt;fileDownload(f);break}
 case 'emoji':{const input=$('#messageText');if(input){input.value+=' 😊';input.focus()}break}
 case 'attach-chat':$('#chatAttachment').click();break;
-case 'refresh-pdf-preview':{
- const preview=document.getElementById('neonPdfPreview');
- if(t&&preview&&window.D4ModernCardPDF)preview.innerHTML=window.D4ModernCardPDF.render(t,calculations(t),collectionTotals(t),datesInTrip(t),reportCashAmounts());
- break;
-}
 case 'pdf':printReport(t);break;
 case 'report-trip':{const target=trip(el.dataset.id);if(canSee(target)){activeTrip=target.id;tripTab='report';go('trip')}break}
 case 'share-report':shareSummary();break;

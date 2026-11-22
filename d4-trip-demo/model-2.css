@@ -378,3 +378,20 @@ body.d4-premium .plan-ui .d4-ms-track .d4-ms-num{color:#b7ff68!important;border-
 .neon-stop-tools>summary{cursor:pointer;color:#a6eeee;font-size:12px;padding:5px 0}
 body.d4-premium .plan-ui .d4-ms-track .d4-ms-item{margin-bottom:6px!important}
 body.d4-premium .plan-ui .d4-ms-add-next button{background:#c4ff55!important;color:#10190b!important}
+
+/* Plain A4 preview and print content. Tables paginate with repeating headers. */
+body.d4-premium .d4-simple-report,body.d4-premium .d4-simple-report *{
+ color:#000!important;background:#fff!important;text-shadow:none!important;box-shadow:none!important;
+ font-family:Arial,Helvetica,sans-serif!important;
+}
+body.d4-premium .d4-simple-report{width:100%;max-width:210mm;box-sizing:border-box;margin:0 auto;padding:clamp(12px,4vw,20mm)!important;font-size:11pt}
+body.d4-premium .d4-simple-report h1{font-size:17pt;margin:0 0 12pt}
+body.d4-premium .d4-simple-report h2{font-size:13pt;margin:12pt 0 5pt}
+body.d4-premium .d4-simple-report .mc-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:0}
+body.d4-premium .d4-simple-report .mc-table :is(th,td){border:1px solid #000;padding:5pt;overflow-wrap:anywhere;text-align:left}
+body.d4-premium .d4-simple-report .mc-table :is(th,td):last-child{text-align:right}
+@media print{
+ body.d4-premium #printMount .d4-simple-report{padding:0!important;max-width:none}
+ .d4-simple-report thead{display:table-header-group}
+ .d4-simple-report tr{break-inside:avoid}
+}

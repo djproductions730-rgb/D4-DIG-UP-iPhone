@@ -12,6 +12,16 @@ const tr=(arr)=>'<tr>'+arr.map(x=>'<td>'+x+'</td>').join('')+'</tr>';
 const card=(name,value)=>'<div class="mc-stat"><small>'+safe(name)+'</small><strong>'+value+'</strong></div>';
 const title=(v)=>'<h2>'+safe(v)+'</h2>';
 window.D4ModernCardPDF={
+ renderSimple(t,col){
+  const members=Array.isArray(col?.rows)?col.rows:[];
+  const expenses=Array.isArray(t?.expenses)?t.expenses:[];
+  const memberRows=members.map(row=>tr([cell(row.member),cash(row.paid)]));
+  const expenseRows=expenses.map(entry=>tr([date(entry.date),cell(entry.note||entry.category||'Expense'),cash(entry.amount)]));
+  return '<article class="print-report d4-simple-report"><h1>'+cell(t?.name||'Trip Report')+'</h1>'+
+   '<h2>Collected Payments</h2>'+grid(['Member','Collected'],memberRows.length?memberRows:[tr(['No members','—'])])+
+   '<p><b>Total collected: '+cash(col?.paid)+'</b></p>'+
+   '<h2>Expenses</h2>'+grid(['Date','Expense','Amount'],expenseRows.length?expenseRows:[tr(['—','No expenses recorded','—'])])+'</article>';
+ },
  render(t,calc,col,days,reportCash={}){
   if(!t)return '';
   const members=Array.isArray(t.members)?t.members:[];
