@@ -1,76 +1,56 @@
-/* D4 Trip cinematic splash: no dependencies, replayable, skip-friendly and motion aware. */
+/* Five-second launch sequence. All state is local to this browser tab. */
 (() => {
   'use strict';
-  const KEY = 'd4_trip_cinema_seen_v1';
-  const RUN_MS = 6200;
-  const EXIT_MS = 420;
   const root = document.getElementById('d4Intro');
   if (!root) return;
-  const skip = root.querySelector('[data-d4-intro-skip]');
-  const reduced = () => typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const saved = () => {
-    try { return sessionStorage.getItem(KEY) === '1'; } catch (_) { return false; }
-  };
-  const markSeen = () => {
-    try { sessionStorage.setItem(KEY, '1'); } catch (_) { /* private browser */ }
-  };
-  let runTimer = null, exitTimer = null, lastFocus = null, running = false;
-  const cancelTimers = () => {
-    if (runTimer !== null) clearTimeout(runTimer);
-    if (exitTimer !== null) clearTimeout(exitTimer);
-    runTimer = null;
-    exitTimer = null;
-  };
-  const finish = () => {
-    cancelTimers();
+  const sessionKey = 'd4_trip_logo_reveal_seen_v2';
+  const duration = 5000;
+  const fade = 350;
+  let timers = [];
+  let previousFocus;
+  let inertElements = [];
+
+  function close() {
+    if (root.hidden) return;
+    timers.forEach(clearTimeout);
+    timers = [];
     root.hidden = true;
-    root.classList.remove('d4-cinema--closing','playing');
+    root.classList.remove('playing', 'd4-cinema--closing');
     document.body.classList.remove('d4-intro-playing');
-    running = false;
-    markSeen();
-    const target = lastFocus && lastFocus.isConnected ? lastFocus :
-      document.querySelector('#app h1, #app button');
-    if (target && typeof target.focus === 'function') {
-      if (target.matches('h1')) target.setAttribute('tabindex', '-1');
-      target.focus({ preventScroll: true });
-    }
-    lastFocus = null;
-  };
-  const close = (immediate = false) => {
-    if (!running) return;
-    if (immediate || reduced()) return finish();
-    clearTimeout(runTimer);
-    root.classList.add('d4-cinema--closing');
-    exitTimer = setTimeout(finish, EXIT_MS);
-  };
-  const play = ({ force = false } = {}) => {
-    if (!force && (saved() || reduced() ||
-      new URLSearchParams(location.search).has('noIntro'))) return false;
-    cancelTimers();
-    lastFocus = document.activeElement;
-    running = true;
-    root.classList.remove('d4-cinema--closing','playing');
+    inertElements.forEach(element => { element.inert = false; });
+    inertElements = [];
+    const target = previousFocus?.isConnected && previousFocus !== document.body
+      ? previousFocus
+      : document.querySelector('#app button');
+    target?.focus({ preventScroll: true });
+  }
+
+  function play({ force = false } = {}) {
+    if (!root.hidden) return false;
+    try {
+      if (!force && sessionStorage.getItem(sessionKey)) return false;
+      sessionStorage.setItem(sessionKey, '1');
+    } catch (_) { /* Storage can be unavailable in private browsing. */ }
+    previousFocus = document.activeElement;
+    inertElements = ['app', 'modalRoot'].map(id => document.getElementById(id))
+      .filter(element => element && !element.inert);
+    inertElements.forEach(element => { element.inert = true; });
     root.hidden = false;
     document.body.classList.add('d4-intro-playing');
-    // Restart CSS keyframes for the Replay action without rebuilding the app.
     void root.offsetHeight;
     root.classList.add('playing');
-    if (skip) skip.focus({ preventScroll: true });
-    runTimer = setTimeout(() => close(), reduced() ? 0 : RUN_MS);
+    root.focus({ preventScroll: true });
+    timers = [
+      setTimeout(() => root.classList.add('d4-cinema--closing'), duration - fade),
+      setTimeout(close, duration)
+    ];
     return true;
-  };
-  if (skip) skip.addEventListener('click', () => close(true));
+  }
+
   root.addEventListener('keydown', event => {
-    if (event.key === 'Escape' || event.key === 'Enter' && event.target === root) {
-      event.preventDefault();
-      close(true);
-    }
+    if (event.key === 'Tab') event.preventDefault();
   });
-  window.D4TripIntro = {
-    play, close,
-    get active() { return running; }
-  };
+  window.D4TripIntro = { play, close, get active() { return !root.hidden; } };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => play(), { once: true });
   } else {
