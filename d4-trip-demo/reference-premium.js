@@ -144,8 +144,8 @@
       '</section>';
   }
   home=function(){
-    const t=current(),legacy=previous.home();
-    return t?tripHero(t)+legacy:legacy;
+    const t=current();
+    return t?tripHero(t):previous.home();
   };
   // Keep all nine destinations visible by default; Hide only collapses the grid.
   // This preference lives locally and never writes to a trip or Firebase.
@@ -191,11 +191,7 @@
     try{localStorage.setItem(SECTIONS_KEY,sectionsOpen?'open':'closed')}catch(_){}
   },true);
   tripOverview=function(t){
-    if(!t)return previous.tripOverview(t);
-    const legacy=previous.tripOverview(t).replace(/<h3 class="d4p-title">Trip Sections<\/h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">[\s\S]*?<\/nav>/,'');
-    return tripHero(t)+
-      '<details class="ref-expand-tools"><summary>More Trip Tools <span>⌄</span></summary>'+tripSections()+
-      '<div class="ref-tool-body">'+legacy+'</div></details>';
+    return t?tripHero(t):previous.tripOverview(t);
   };
   // Every approved member is shown directly on Payments — no pagination or popup.
   // Paid, partial and unpaid are derived from the original collectionTotals records.
