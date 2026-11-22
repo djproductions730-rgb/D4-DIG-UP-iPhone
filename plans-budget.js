@@ -64,7 +64,7 @@
  function card(p,i){
   const base=planBudgetState(p),budget=base.budget,linkedSpent=data.entries.filter(e=>e.tripLinked===true&&e.type==='Expense'&&String(e.tripPlanId)===String(p.tripPlanId||'plan-index-'+i)).reduce((sum,e)=>sum+Number(e.amount||0),0),spent=Math.round((base.spent+linkedSpent)*100)/100,ratio=budget>0?spent/budget:0,status=!budget?'unset':spent>budget?'over':spent===budget?'limit':spent>=budget*.8?'near':'safe',diff=Math.round((budget-spent)*100)/100;
   const expenses=log(p).filter(r=>r.kind==='expense'),savings=log(p).filter(r=>r.kind==='saving');
-  const opening=Math.round((spent-total(expenses))*100)/100;
+  const opening=Math.round((spent-linkedSpent-total(expenses))*100)/100;
   const groups=new Map();
   if(opening>0)groups.set('Previously recorded',opening);
   for(const r of expenses)groups.set(r.category,(groups.get(r.category)||0)+Number(r.amount));\n  for(const e of data.entries.filter(e=>e.tripLinked===true&&e.type==='Expense'&&String(e.tripPlanId)===String(p.tripPlanId||'plan-index-'+i)))groups.set(e.tripCategory||'Other',(groups.get(e.tripCategory||'Other')||0)+Number(e.amount));
