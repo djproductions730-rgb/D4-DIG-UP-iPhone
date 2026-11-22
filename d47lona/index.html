@@ -746,7 +746,26 @@ body[data-d47-section="home"] .loan-list{gap:8px!important}
 body[data-d47-section="home"] .loan-compact{padding:13px!important}
 body[data-d47-section="home"] .loan-compact .loan-compact-progress{height:6px!important}
 body[data-d47-section="home"] .loan-compact .loan-compact-actions{margin-top:6px!important}
-</style><link rel="stylesheet" href="./readability-v56.css?v=56"></head>
+</style><link rel="stylesheet" href="./readability-v56.css?v=56"><style id="d47-subtle-summary-v57">
+/* Calm purple, teal and indigo summary palette; no neon outlines. */
+body.d47-model-a .kpis{gap:10px!important}
+body.d47-model-a .kpis .kpi{background:linear-gradient(145deg,#33264f,#231a3c)!important;border:1px solid #7957a7!important;border-radius:20px!important;box-shadow:0 5px 18px #10092333!important;min-width:0!important}
+body.d47-model-a .kpis .kpi .icon-wrap{width:43px!important;height:43px!important;border-radius:13px!important;background:linear-gradient(145deg,#385fe1,#263b94)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border:1px solid #7594ff!important;box-shadow:none!important}
+body.d47-model-a .kpis .kpi:nth-child(2) .icon-wrap{background:linear-gradient(145deg,#10a6a1,#086e7d)!important;border-color:#55d8cf!important}
+body.d47-model-a .kpis .kpi:nth-child(3) .icon-wrap{background:linear-gradient(145deg,#8344c9,#52219c)!important;border-color:#b77aff!important}
+body.d47-model-a .kpis .kpi .icon-wrap svg{stroke:#fff!important;color:#fff!important;opacity:1!important}
+body.d47-model-a .kpis .kpi .tiny-title{color:#f5edff!important;-webkit-text-fill-color:#f5edff!important;opacity:1!important;font-weight:750!important}
+body.d47-model-a .kpis .kpi .stat{color:#a8ffe0!important;-webkit-text-fill-color:#a8ffe0!important;opacity:1!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:clamp(18px,4.5vw,30px)!important}
+body.d47-model-a .d47-neon-summary{background:linear-gradient(130deg,#33264f,#211a3b)!important;border:1px solid #8059ae!important;border-radius:20px!important;box-shadow:none!important;padding:16px!important}
+body.d47-model-a .d47-neon-summary>div{min-width:0!important}
+body.d47-model-a .d47-neon-summary span{color:#f2e9ff!important;-webkit-text-fill-color:#f2e9ff!important;opacity:1!important;font-weight:750!important}
+body.d47-model-a .d47-neon-summary strong{color:#a8ffe0!important;-webkit-text-fill-color:#a8ffe0!important;opacity:1!important}
+body.d47-model-a .d47-neon-summary>div:first-child::before{content:'▱';display:inline-block;margin-right:8px;color:#8ea9ff;font-size:20px;font-weight:900}
+body.d47-model-a .d47-neon-summary>div:nth-child(2)::before{content:'▦';display:inline-block;margin-right:8px;color:#5fe0da;font-size:20px;font-weight:900}
+html[data-theme="crystal"] body.d47-model-a .kpis .kpi,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary{background:linear-gradient(140deg,#f5f0ff,#e8e5fa)!important;border-color:#b8a5dd!important}
+html[data-theme="crystal"] body.d47-model-a .kpis .kpi .tiny-title,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary span{color:#26344d!important;-webkit-text-fill-color:#26344d!important}
+html[data-theme="crystal"] body.d47-model-a .kpis .kpi .stat,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary strong{color:#006d59!important;-webkit-text-fill-color:#006d59!important}
+</style></head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -1453,7 +1472,7 @@ function loansView(){
  const listed=state.loans.filter(l=>filter==='closed'?paidCount(l)>=l.tenure:paidCount(l)<l.tenure);
  const activeCount=activeLoans().length,closedCount=state.loans.length-activeCount;
  return `${header('TRACK · PAY · CLOSE','Loans')}
- <div class="stack d47-neon-overview"><button class="button secondary" data-nav="cycles">View all loan cycles ›</button>${quickMoneySection()}
+ <div class="stack d47-neon-overview"><button class="button secondary" data-nav="cycles">View all loan cycles ›</button>
   <section class="glass d47-neon-summary" aria-label="Loan summary">
    <div><span>Active Loans</span><strong>${activeCount}</strong></div>
    <div><span>Total Upcoming EMI</span><strong>${money(totalUpcomingEmi())}</strong></div>
