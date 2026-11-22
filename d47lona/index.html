@@ -1299,7 +1299,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
   }).catch(()=>{});
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     // Reload only when a new worker takes control; avoid repeated refreshes.
-    const stamp='d47lona-sw-reload-v31';
+    const stamp='d47lona-sw-reload-v32';
     if(sessionStorage.getItem(stamp)==='1')return;
     sessionStorage.setItem(stamp,'1');
     location.reload();
@@ -1340,7 +1340,7 @@ if('serviceWorker' in navigator && location.protocol.startsWith('http')){
 })();
 </script><script type="module">
 try {
- const { setupPairUI } = await import('../finance-sync/pair-ui.mjs');
+ const { setupPairUI } = await import('../finance-sync/pair-ui.mjs?v=copy-saved-code-20261122');
 window.addEventListener('d4-pair-ledger-applied',()=>document.dispatchEvent(new Event('d4-pair-ledger-refresh')));
 window.addEventListener('d4-pair-loan-applied',()=>{window.__d47PairReload?.()});
 setupPairUI({mode:'lona',stores:[
