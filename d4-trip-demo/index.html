@@ -245,7 +245,6 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 .member{gap:10px;align-items:center}.member .btn{margin-left:auto;min-height:44px;color:#fff;border:1px solid #8491ac}.cc-popup,.cc-member-tile,.cc-simple-popup{color:#f7f8ff}.cc-member-tile small,.cc-member-tile span{color:#d8e1fa}.cc-primary,.cc-add,.cc-tiny-edit,.cc-filter{min-height:44px}.cc-tile-money b{color:#fff}.cc-tile-status{font-weight:800}.cc-banner{background-image:linear-gradient(90deg,rgba(11,20,42,.92),rgba(13,30,53,.44)),url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=85');background-size:cover;background-position:center}.hero{background-image:linear-gradient(90deg,rgba(12,17,38,.9),rgba(12,17,38,.42)),url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=85');background-size:cover;background-position:center}.hero p,.hero h2,.cc-banner p,.cc-banner h2{color:#fff;text-shadow:0 1px 3px #0009}.modal-backdrop input,.modal-backdrop select,.modal-backdrop textarea{color:#fff;background:#1b2542;border:1px solid #8695b2}.modal-backdrop label{color:#eef3ff}.cc-popup button{color:inherit}
 </style>
 <link rel="stylesheet" href="./night.css" media="screen">
-<link rel="stylesheet" href="./intro.css" media="screen">
 <link rel="stylesheet" href="./premium-production.css?build=45" media="screen">
 <link rel="stylesheet" href="./obsidian-luxe.css?build=34" media="screen">
 <link rel="stylesheet" href="./reference-premium.css?build=41" media="screen">
@@ -254,36 +253,19 @@ body{background:linear-gradient(180deg,#dcf6f4 0%,#fff9f0 520px,#eef8f5 100%);co
 <link rel="stylesheet" href="./trip-day-controls.css?build=40" media="screen">
 <link rel="stylesheet" href="./home-circular-luxe.css?build=42" media="screen">
 <link rel="stylesheet" href="./journey-completion.css?build=43" media="screen">
-<script defer src="./intro.js"></script>
+<script defer src="./intro.js?build=77"></script>
 <link rel="stylesheet" href="./modern-card-pdf.css?build=46" media="print">
 <link rel="stylesheet" href="./report-readability.css?build=46">
 <link rel="stylesheet" href="./goa-payment-v50.css?build=50"><link rel="stylesheet" href="./goa-train-v51.css?build=51"><link rel="stylesheet" href="./goa-tickets-v52.css?build=52"><link rel="stylesheet" href="./ticket-gallery.css?build=54"><link rel="stylesheet" href="./goa-train-v53.css?build=53">
+  <link rel="stylesheet" href="./model-2.css?build=77">
 </head>
 <body>
-  <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip cinematic welcome" hidden>
-    <div class="d4-cinema__scene d4-cinema__scene--mountain" aria-hidden="true"></div>
-    <div class="d4-cinema__scene d4-cinema__scene--coast" aria-hidden="true"></div>
-    <div class="d4-cinema__scene d4-cinema__scene--fjord" aria-hidden="true"></div>
-    <div class="d4-cinema__veil" aria-hidden="true"></div>
-    <div class="d4-cinema__light" aria-hidden="true"></div>
-    <div class="d4-cinema__orbit" aria-hidden="true"></div>
-    <svg class="d4-cinema__flightline" viewBox="0 0 1000 360" aria-hidden="true" focusable="false">
-      <defs><linearGradient id="d4-flight-gradient"><stop stop-color="#5ee9db"/><stop offset=".55" stop-color="#f6ffec"/><stop offset="1" stop-color="#f7c17f"/></linearGradient></defs>
-      <path d="M -100 300 Q 190 35 515 172 T 1130 42"></path>
-    </svg>
-    <svg class="d4-cinema__aircraft" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-      <path fill="#e9fcf5" d="M8 49 90 14 60 89 45 62 27 73l6-24z"/>
-      <path fill="#3aafb7" d="m33 49 43-26-32 38-9-10z"/>
-    </svg>
-    <span class="d4-cinema__eyebrow">Beyond the map · D4 Originals</span>
-    <div class="d4-cinema__focus">
-      <div class="d4-cinema__brand"><img src="./intro-logo.svg" width="620" height="620" alt="D4 TRIP travel logo" decoding="async" /></div>
-      <p class="d4-cinema__tagline">Every journey. One story.</p>
-    </div>
-    <div class="d4-cinema__routes" aria-hidden="true"><span>GOA</span><i></i><span>KERALA</span><i></i><span>NEW YORK</span></div>
-    <button class="d4-cinema__skip" type="button" data-d4-intro-skip aria-label="Skip D4 Trip intro">Skip Intro →</button>
-    <span class="d4-cinema__counter">Discover · Travel · Remember</span>
-    <div class="d4-cinema__progress" aria-hidden="true"></div>
+  <div id="d4Intro" class="d4-cinema" role="dialog" aria-modal="true" aria-label="D4 Trip logo reveal" tabindex="-1" hidden>
+    <div class="d4-cinema__coast" aria-hidden="true"></div>
+    <figure class="d4-cinema__reveal">
+      <img src="./intro-logo.svg" width="620" height="620" alt="D4 Trip">
+      <figcaption>Plan together. Travel together.</figcaption>
+    </figure>
   </div>
   <div id="app"><div style="min-height:100dvh;padding:34px 20px;background:linear-gradient(170deg,#033d48,#087f7a 63%,#fd9b38);color:white;font-family:system-ui;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:16px"><div style="font-size:70px">✈️🌴</div><h1 style="font-size:48px;margin:0">D4 <span style="color:#ffba56">Trip</span></h1><p style="font-weight:700">Plan · Travel · Track · Split</p><h2 style="font-size:22px">Your Paid / Pending Trip Dashboard</h2><p>Collections • Paid & Pending • Trips • Day plans • Expenses • Memories • PDF • Local alerts</p><p style="font-size:12px;background:#ffffff25;padding:12px;border-radius:16px">If this welcome card stays visible, your file viewer blocked scripts. Open the full app in Safari from a hosted HTTPS link or use the ZIP files on a website.</p></div></div>
   <div id="modalRoot"></div>

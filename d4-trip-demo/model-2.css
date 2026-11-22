@@ -1,0 +1,109 @@
+/* Model 2 applies to the dashboard and trip overview. */
+body.d4-premium:where([data-section="home"], :has(.ref-luxe-home)) {
+  --model-surface: #141417;
+  --model-edge: #38353a;
+  --model-text: #faf7f2;
+  --model-muted: #d0c7c1;
+  --model-accent: #ffca88;
+  background: #09090b !important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home,
+body.d4-premium .ref-home-balances {
+  color: var(--model-text);
+  background: var(--model-surface) !important;
+  border: 1px solid var(--model-edge) !important;
+  box-shadow: 0 16px 42px #0008 !important;
+}
+body.d4-premium .ref-luxe-home :is(h2, h3, b, strong),
+body.d4-premium .ref-home-balances :is(h2, h3, b, strong) {
+  color: var(--model-text);
+}
+body.d4-premium .ref-luxe-home :is(p, small),
+body.d4-premium .ref-home-balances small {
+  color: var(--model-muted);
+}
+body.d4-premium .ref-luxe-home .ref-hero-brand {
+  color: var(--model-accent);
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-tracker {
+  background: #101013 !important;
+  border-color: var(--model-edge) !important;
+}
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action,
+body.d4-premium[data-section="home"] .main :is(.btn, .quick) {
+  color: #fff6ed !important;
+  background: linear-gradient(180deg, #453e42, #252327 48%, #141417 52%, #1a191d) !important;
+  border: 1px solid #63545a !important;
+  box-shadow: inset 0 1px #ffffff26, 0 5px 10px #0007 !important;
+  min-height: 44px;
+}
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action:focus-visible,
+body.d4-premium[data-section="home"] .main :is(.btn, .quick):focus-visible {
+  outline: 2px solid var(--model-accent);
+  outline-offset: 2px;
+}
+body.d4-premium[data-section="home"] .main :is(.hero, .card, .collection-teaser, .metric, .notice) {
+  background: var(--model-surface) !important;
+  border-color: var(--model-edge) !important;
+  color: var(--model-text);
+}
+
+#d4Intro.d4-cinema {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  overflow: hidden;
+  isolation: isolate;
+  background: #09090b;
+  color: #fff4e6;
+}
+#d4Intro[hidden] { display: none; }
+.d4-intro-playing { overflow: hidden; }
+.d4-cinema__coast {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0e101686, #09090be8), url('./dunes.webp') center / cover;
+}
+.d4-cinema__reveal {
+  position: relative;
+  width: min(68vw, 300px);
+  margin: 0;
+  text-align: center;
+}
+.d4-cinema__reveal img {
+  display: block;
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 14px 35px #f5a44e44);
+}
+.d4-cinema__reveal figcaption {
+  margin-top: 14px;
+  font: 650 clamp(12px, 3vw, 15px)/1.5 system-ui, sans-serif;
+  letter-spacing: .12em;
+}
+.d4-cinema.playing .d4-cinema__reveal img {
+  animation: d4-logo-reveal 2.35s cubic-bezier(.18,.72,.24,1) both;
+}
+.d4-cinema.playing .d4-cinema__reveal figcaption {
+  animation: d4-caption-reveal .7s 1.9s both;
+}
+.d4-cinema.d4-cinema--closing {
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+@keyframes d4-logo-reveal {
+  0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: scale(.94); }
+  40% { opacity: 1; }
+  100% { opacity: 1; clip-path: inset(0); transform: scale(1); }
+}
+@keyframes d4-caption-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .d4-cinema.playing .d4-cinema__reveal img,
+  .d4-cinema.playing .d4-cinema__reveal figcaption { animation: none; }
+  .d4-cinema.d4-cinema--closing { transition: none; }
+}
