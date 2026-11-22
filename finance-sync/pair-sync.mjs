@@ -178,6 +178,31 @@ function validData(name,data){
   if(name==='digup')return Array.isArray(data.banks)&&Array.isArray(data.entries);
   return data.version===1&&Array.isArray(data.banks)&&Array.isArray(data.loans)&&Array.isArray(data.ledger);
 }
+
+// Write a scoped edit against the newest encrypted DIG UP revision.
+export async function updatePairedDigupLedger(edit) {
+  const code = getStored();
+  if (!code) throw Error('Pair with DIG UP before saving linked loan changes.');
+  const ident = await identity(code);
+  await ensureAnonymous();
+  const doc = ledgerDoc(ident.id, 'digup');
+  await fire.runTransaction(db, async tx => {
+    const current = await tx.get(doc);
+    if (getStored() !== code) throw Error('Pairing changed. Reopen the loan and try again.');
+    if (!current.exists()) throw Error('Waiting for DIG UP to publish its records.');
+    const { revision, packet } = current.data();
+    if (!Number.isSafeInteger(revision) || revision < 1 || typeof packet !== 'string') {
+      throw Error('DIG UP sync data is invalid.');
+    }
+    const ledger = await decrypt(ident, 'digup', packet);
+    if (!validData('digup', ledger)) throw Error('DIG UP sync data is invalid.');
+    if (!edit(ledger)) return;
+    const packed = await encrypt(ident, 'digup', ledger);
+    if (getStored() !== code) throw Error('Pairing changed. Reopen the loan and try again.');
+    tx.set(doc, {revision: revision + 1, packet: packed});
+  });
+}
+
 function pristine(name,v){
   if(!validData(name,v))return true;
   if(name==='digup')return v.banks.length===0&&v.entries.length===0&&
