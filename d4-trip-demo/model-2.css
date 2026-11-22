@@ -502,3 +502,20 @@ body.d4-premium .neon-memory-head,body.d4-premium .neon-report-page,
 body.d4-premium .neon-popup{
  box-shadow:inset 0 1px #ffffff25,0 8px 25px #03081085!important;
 }
+
+/* Three equal rows, then a compact Trip Payments card. */
+body.d4-premium .ref-trip-hero.ref-luxe-home{min-height:0!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-actions.ref-luxe-actions{
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ grid-template-rows:repeat(3,minmax(62px,auto))!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions :is(.ref-action,[data-action="paid-by-person"]){
+ min-height:62px!important;height:clamp(62px,17vw,74px)!important;align-self:stretch!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payments{
+ flex:none;min-height:0;padding:8px 10px;gap:3px;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter{width:clamp(86px,28vw,115px)}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-meter-number{font-size:14px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-heading{font-size:14px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-values>span{font-size:11px}

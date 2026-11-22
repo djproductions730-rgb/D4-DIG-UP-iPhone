@@ -17,6 +17,7 @@
     Members:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v2"/>',
     Payments:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18m-14 5h4"/>',
     Expenses:'<path d="M5 3h14v17l-2-1-2 1-3-1-3 1-2-1-2 1zM8 8h8m-8 4h8m-8 4h5"/>',
+    'Trip Report PDF':'<path d="M6 3h8l4 4v14H6zM14 3v5h5M9 12h6m-6 4h6"/>',
     'Expense History':'<path d="M3 12a9 9 0 1 1 3 7m-3-7V6m0 6h6m3-5v5l3 2"/>',
     'Paid by Person':'<circle cx="8" cy="8" r="3"/><path d="M2 20v-2a6 6 0 0 1 10-4m2-7h8m-8 3h8m-5-3q6 6-3 6l6 6"/>'
   };
@@ -121,12 +122,13 @@
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
         iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+
-        iconButton(luxeIcon('expenses'),'Expense History','open-tab','data-ctx="expenses"')+'</nav>'+
+        iconButton(luxeIcon('expenses'),'Expense History','open-tab','data-ctx="expenses"')+
+        iconButton(luxeIcon('expenses'),'Trip Report PDF','quick-report')+'</nav>'+
       '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
         paymentGauge(p)+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
-      '</button><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
+      '</button></section>';
 
   }
   function memberAmountPanel(t){

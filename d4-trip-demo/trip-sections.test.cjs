@@ -31,7 +31,7 @@ function makeFixture(saved){
 
 test('only approved tiles appear on the homepage',()=>{
  const {context,t}=makeFixture(null),board=context.tripOverview(t);
- assert.equal((board.match(/class="ref-action"/g)||[]).length,8);
+ assert.equal((board.match(/class="ref-action"/g)||[]).length,9);
  for(const name of ['Day Plan','Tickets','Memories','Members','Payments','Expenses','Paid by Person','Expense History'])assert.ok(board.includes(name),name);
  assert.match(board,/data-action="quick-report"/);
  assert.doesNotMatch(board,/Old section|Existing admin actions|More Trip Tools|ref-sections-grid/);
