@@ -765,7 +765,41 @@ body.d47-model-a .d47-neon-summary>div:nth-child(2)::before{content:'▦';displa
 html[data-theme="crystal"] body.d47-model-a .kpis .kpi,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary{background:linear-gradient(140deg,#f5f0ff,#e8e5fa)!important;border-color:#b8a5dd!important}
 html[data-theme="crystal"] body.d47-model-a .kpis .kpi .tiny-title,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary span{color:#26344d!important;-webkit-text-fill-color:#26344d!important}
 html[data-theme="crystal"] body.d47-model-a .kpis .kpi .stat,html[data-theme="crystal"] body.d47-model-a .d47-neon-summary strong{color:#006d59!important;-webkit-text-fill-color:#006d59!important}
-</style></head>
+</style><style>
+/* Keep the payment controls legible across themes and iPhone widths. */
+html[data-theme] body.d47-model-a .modal.d47-emi-sheet {
+  width:min(100%,440px); max-height:min(90dvh,720px); overflow:auto;
+  padding:clamp(16px,5vw,25px); border-radius:26px;
+}
+.d47-emi-sheet .modal-title {align-items:center; margin-bottom:16px}
+.d47-emi-sheet .modal-title h2 {margin:0; font-size:clamp(20px,5vw,25px)}
+.d47-emi-sheet .d47-emi-summary {
+  display:grid; gap:4px; padding:17px 18px; border-radius:18px;
+  border:1px solid color-mix(in srgb,var(--read-main) 18%,transparent);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--read-accent) 17%,transparent),transparent);
+}
+.d47-emi-summary .d47-emi-name {font-size:15px;font-weight:750;overflow-wrap:anywhere}
+.d47-emi-summary .d47-emi-amount {font-size:clamp(30px,9vw,40px);font-weight:850;font-variant-numeric:tabular-nums;line-height:1.12}
+.d47-emi-summary .d47-emi-due,.d47-emi-sheet .d47-emi-hint {color:var(--read-secondary);font-size:13px}
+.d47-emi-form {display:grid;gap:14px;margin-top:17px}
+.d47-emi-form .field {display:grid;gap:6px;margin:0;min-width:0}
+.d47-emi-form .field label {font-size:13px;font-weight:750}
+.d47-emi-form .field input,.d47-emi-form .field select {
+  box-sizing:border-box;display:block;width:100%;min-width:0;min-height:48px;
+  font-size:16px;border-radius:12px;padding:9px 12px;text-align:start;
+}
+.d47-emi-sheet .d47-emi-toggle {
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;
+  padding:12px 14px;border-radius:14px;
+  border:1px solid color-mix(in srgb,var(--read-main) 18%,transparent);
+  cursor:pointer;
+}
+.d47-emi-toggle strong {display:block;font-size:14px}
+.d47-emi-toggle .d47-emi-hint {display:block;margin-top:3px;line-height:1.4}
+.d47-emi-toggle input[type="checkbox"] {width:22px;height:22px;margin:0;accent-color:var(--accent)}
+.d47-emi-sheet .d47-emi-confirm {min-height:50px;width:100%;border-radius:14px}
+</style>
+</head>
 <body>
   <svg aria-hidden="true" class="svg-sprite" xmlns="http://www.w3.org/2000/svg">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
@@ -1740,7 +1774,42 @@ async function undoLinkedEmi(loan, payment){
  const {undoEmi}=await import('../finance-sync/linked-emi.mjs');
  await saveLinkedChange(null,ledger=>undoEmi(ledger,loan.digupLoanId,payment.paymentId),'EMI marked unpaid');
 }
-function markPayment(lid,n){let l=state.loans.find(x=>x.id===lid);if(!l){notify('Loan not found');return}if(l.digupLinked){const c=cycles(l).find(x=>x.num===n);if(!c)return notify('EMI cycle not found');if(c.paid){modal=payForm(l,c);render();return}const d=d4Store(),source=d?.loans?.find(x=>String(x.id)===String(l.digupLoanId));if(!source||(!digUpStorage.getItem(D4_LOCAL_KEY)&&!localStorage.getItem('d4-pair-link-v1'))){modal=infoModal('Linked EMI','This loan uses a cloud-linked DIG UP ledger. Direct payment changes are not available until the authoritative ledger is safely writable on this device. Please use DIG UP for this payment.');render();return}const banks=d.banks.filter(x=>x&&x.id!=null&&!/pluxee/i.test(x.name||''));modal=infoModal('Pay EMI · '+l.name,'<div class="modal-summary"><strong>'+safe(l.name)+'</strong><div style="font-size:28px;font-weight:850">'+money(c.amount)+'</div><div>Due '+fmtDate(c.date)+'</div></div><form data-form="linked-payment"><input type="hidden" name="loanId" value="'+safe(l.id)+'"><input type="hidden" name="cycle" value="'+c.num+'"><label>Date paid<input type="date" name="paidDate" value="'+today()+'" required></label><label>Paid from bank<select name="bankId" required>'+banks.map(x=>'<option value="'+safe(x.id)+'">'+safe(x.name)+'</option>').join('')+'</select></label><label class="toggle-row"><span>Deduct from DIG UP bank balance</span><input type="checkbox" name="deduct" checked></label><p class="small">Records payment in DIG UP loan history. Bank deduction is optional to avoid double charging if already recorded.</p><button type="submit" class="button full">Confirm EMI Paid</button></form>');render();return}let c=cycles(l).find(x=>x.num===n);if(!c){notify('Set first EMI date to enable payments');return}modal=payForm(l,c);render()}
+function linkedEmiForm(loan, cycle, banks){
+ return `<div class="modal-shade"><div class="modal d47-emi-sheet" role="dialog" aria-modal="true" aria-labelledby="linked-emi-title">
+  <div class="modal-title"><h2 id="linked-emi-title">Pay EMI</h2><button type="button" class="icon-btn" data-action="close-modal" aria-label="Close">${ico('close')}</button></div>
+  <div class="d47-emi-summary">
+   <span class="d47-emi-name">${safe(loan.name)}</span>
+   <strong class="d47-emi-amount">${money(cycle.amount)}</strong>
+   <span class="d47-emi-due">Due ${fmtDate(cycle.date)} · EMI ${cycle.num} of ${loan.tenure}</span>
+  </div>
+  <form class="d47-emi-form" data-form="linked-payment">
+   <input type="hidden" name="loanId" value="${safe(loan.id)}">
+   <input type="hidden" name="cycle" value="${cycle.num}">
+   <div class="field"><label for="linked-emi-date">Date paid</label><input id="linked-emi-date" type="date" name="paidDate" value="${today()}" required></div>
+   <div class="field"><label for="linked-emi-bank">Paid from bank</label><select id="linked-emi-bank" name="bankId" required>
+    ${banks.map(bank=>`<option value="${safe(bank.id)}">${safe(bank.name)}</option>`).join('')}
+   </select></div>
+   <label class="d47-emi-toggle"><span><strong>Deduct from DIG UP balance</strong><span class="d47-emi-hint">Turn off if this deduction is already recorded.</span></span><input type="checkbox" name="deduct" checked></label>
+   <button type="submit" class="button full d47-emi-confirm">Confirm EMI Paid</button>
+  </form>
+ </div></div>`;
+}
+function markPayment(lid,n){
+ const loan=state.loans.find(x=>x.id===lid);
+ if(!loan)return notify('Loan not found');
+ const cycle=cycles(loan).find(x=>x.num===n);
+ if(!cycle)return notify(loan.digupLinked?'EMI cycle not found':'Set first EMI date to enable payments');
+ if(!loan.digupLinked||cycle.paid){modal=payForm(loan,cycle);render();return}
+ const ledger=d4Store();
+ const source=ledger?.loans?.find(x=>String(x.id)===String(loan.digupLoanId));
+ if(!source||(!digUpStorage.getItem(D4_LOCAL_KEY)&&!localStorage.getItem('d4-pair-link-v1'))){
+  modal=infoModal('Linked EMI','Open DIG UP or reconnect pairing to record this payment.');
+ }else{
+  const banks=ledger.banks.filter(x=>x&&x.id!=null&&!/pluxee/i.test(x.name||''));
+  modal=banks.length?linkedEmiForm(loan,cycle,banks):infoModal('Linked EMI','Add a bank account in DIG UP to record this payment.');
+ }
+ render();
+}
 function closeModal(){modal=null;render()}
 function exportJson(name,content,type='application/json'){const a=document.createElement('a'),blob=new Blob([content],{type}),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000)}
 function handleClick(e){let el=e.target.closest('button,[data-nav],[data-pay],[data-open-loan],[data-theme-choose],[data-bank-detail],[data-quick-delete]');if(!el)return;
