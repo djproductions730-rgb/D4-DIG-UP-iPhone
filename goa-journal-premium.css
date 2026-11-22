@@ -1,0 +1,20 @@
+/* Goa Travel Journal — Orchid Gold, accessible mobile layout */
+.fp:has(.trip-link-btn){position:relative;overflow:hidden;background:linear-gradient(155deg,#251631 0%,#151b31 55%,#21112d 100%)!important;border:1px solid #b88b70!important;border-radius:28px!important;box-shadow:0 18px 46px #0a071a66,0 0 0 1px #d8b08c30 inset!important;padding:18px!important}
+.fp:has(.trip-link-btn):before{content:"GOA · TRAVEL JOURNAL";display:block;color:#f5c68e;letter-spacing:.16em;font-size:11px;font-weight:900;margin-bottom:12px}
+.fp:has(.trip-link-btn) .fp-head{grid-template-columns:minmax(0,1fr) 46%;align-items:stretch;gap:10px}
+.fp:has(.trip-link-btn) .fp-head h2{font-size:clamp(25px,7vw,36px);color:#fff7ef;letter-spacing:-.035em}
+.fp:has(.trip-link-btn) .fp-head img{height:165px;mask-image:none;border:1px solid #e9b98760;box-shadow:0 12px 30px #0006;border-radius:18px}
+.fp:has(.trip-link-btn) .fp-head .button{background:#3b2948!important;color:#ffe3bd!important;border:1px solid #b98d9b!important}
+.fp:has(.trip-link-btn) .fp-stats{background:#ffffff0b;border:1px solid #ffffff21;border-radius:20px;padding:15px 12px;gap:10px}
+.fp:has(.trip-link-btn) .fp-stats small{font-size:12px;color:#e9cbdf}
+.fp:has(.trip-link-btn) .fp-stats b{font-size:clamp(20px,5.7vw,28px);color:#fff5e9}
+.fp:has(.trip-link-btn) details{margin-top:14px;background:#ffffff0a;border:1px solid #ffffff24;border-radius:16px;padding:4px 12px 10px}
+.fp:has(.trip-link-btn) summary{color:#ffe0b4;font-size:15px;min-height:44px;display:list-item;align-content:center}
+.fp:has(.trip-link-btn) .fp-line{border-top:1px solid #ffffff14;padding:10px 0;color:#f8ecfa;font-size:13px}
+.fp:has(.trip-link-btn) .fp-line b{color:#ffe5c0}
+.fp:has(.trip-link-btn) .fp-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fp:has(.trip-link-btn) .fp-actions button{min-height:50px;border-radius:14px;font-size:13px}
+.fp:has(.trip-link-btn) .fp-actions .button:not(.ghost){background:linear-gradient(115deg,#f6c58e,#dc9ec8)!important;color:#25172c!important}
+.fp:has(.trip-link-btn) .fp-actions .ghost{border:1px solid #b68db6!important;color:#f6dcf7!important}
+.fp:has(.trip-link-btn) .trip-linked{background:#2c213c!important;border-color:#b38ca5!important}
+.fp:has(.trip-link-btn) .trip-link-btn{min-height:48px}
