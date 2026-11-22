@@ -86,7 +86,7 @@
   tripPlan=function(t){
     const content=oldTripPlan(t);
     if(!t)return content;
-    return dayToolbar(t)+content;
+    return content+'<details class="neon-calendar-settings"><summary>Trip dates &amp; calendar</summary>'+dayToolbar(t)+'</details>';
   };
   document.addEventListener('click',function(event){
     const button=event.target.closest?.('[data-trip-day-action]');

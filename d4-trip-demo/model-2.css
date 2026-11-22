@@ -290,3 +290,29 @@ body.d4-premium .ref-trip-hero.ref-luxe-home .d4-team-sync-guide.d4-sync-minimal
 }
 body.d4-premium .ref-trip-hero.ref-luxe-home:has(.d4-sync-minimal) > h2{padding-right:76px}
 body.d4-premium:has(.ref-luxe-home) .ref-bottom-nav .ref-nav-item.active{color:#c3ff52!important;background:#1b3023!important}
+
+body.d4-premium .neon-payments-section,
+body.d4-premium .ref-plan-cover,
+body.d4-premium .plan-ui,
+body.d4-premium .neon-calendar-settings {
+  background:radial-gradient(ellipse at 90% 0%,#2c25565c,transparent 48%),radial-gradient(ellipse at 6% 0%,#0d63615c,transparent 50%),#0c1722!important;
+  border:1px solid #366472!important;color:#f4fbff!important;border-radius:16px!important;
+}
+body.d4-premium .neon-payments-section {padding:14px!important}
+body.d4-premium .neon-payments-section h2,
+body.d4-premium .ref-plan-cover h2 {color:#f6fbff!important}
+.neon-collection-summary{display:grid;justify-items:center;gap:4px;margin:10px 0}
+body.d4-premium .neon-collection-summary .neon-meter{width:min(44vw,160px)}
+body.d4-premium .neon-collection-summary .neon-meter-number{font-size:18px}
+body.d4-premium .neon-collection-summary .neon-payment-values {padding:8px 0 0}
+body.d4-premium .neon-collection-summary .neon-payment-values >span{font-size:13px}
+body.d4-premium .neon-payments-section .ref-primary {background:#c4ff55!important;color:#10190b!important}
+body.d4-premium .ref-plan-cover{padding:12px 15px!important;margin-bottom:8px!important;min-height:0!important}
+body.d4-premium .ref-plan-cover .ref-overline{display:none!important}
+body.d4-premium .plan-ui{padding:10px!important}
+body.d4-premium .plan-ui .v22-day-tabs{margin:0 0 10px!important;gap:6px!important}
+body.d4-premium .plan-ui .v22-day-tabs .day{color:#f4fbff!important;background:#112431!important;border-color:#3c7180!important}
+body.d4-premium .plan-ui .v22-day-tabs .day.active{color:#101b08!important;background:#c4ff55!important;border-color:#c4ff55!important;text-shadow:none!important}
+body.d4-premium .plan-ui .v22-day-tabs .day.active :is(strong,span){color:inherit!important}
+body.d4-premium .neon-calendar-settings{margin:10px 0;padding:9px}
+.neon-calendar-settings>summary{cursor:pointer;padding:7px;font-weight:800;color:#a5eff5}

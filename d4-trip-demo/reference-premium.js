@@ -93,13 +93,19 @@
       '<filter id="'+shade+'" x="-35%" y="-35%" width="170%" height="180%"><feDropShadow dx="0" dy="5" stdDeviation="3.5" flood-opacity=".6"/></filter>'+
       '</defs>'+symbols[key]+'</svg>';
   }
+  function paymentGauge(progress){
+    const number=Number(progress);
+    const p=Number.isFinite(number)?Math.min(100,Math.max(0,number)):0;
+    const pc=Math.round(p);
+    return '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
+        '<strong class="neon-meter-number">'+pc+'% collected</strong>';
+  }
   function tripHero(t){
     const c=collectionTotals(t);
     const days=datesInTrip(t).length;
     // Dynamic from the current collection ledger, never hard-code the preview money.
     const amount=Number(c.progress);
     const p=Number.isFinite(amount)?Math.max(0,Math.min(100,amount)):0;
-    const pc=Math.round(p);
     return '<section class="ref-trip-hero ref-luxe-home" aria-label="Trip overview">'+travelCover+
       '<div class="ref-hero-brand">✦ D4 Trip <span>YOUR ADVENTURE</span></div>'+
       '<h2>'+html(t.name)+'</h2><p>📍 '+html(t.destination)+' · '+html(shortDate(t.start))+' — '+html(shortDate(t.end))+'</p>'+
@@ -116,8 +122,7 @@
         iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+
       '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
-        '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
-        '<strong class="neon-meter-number">'+pc+'% collected</strong>'+
+        paymentGauge(p)+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
       '</button></nav><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
 
@@ -307,15 +312,13 @@
       '</div>';
     const history=allPayments.slice(0,6).map(receiptRow).join('');
     const fullHistory=allPayments.map(receiptRow).join('');
-    return '<section class="ref-finance-cover"><span class="ref-overline">✦ TRIP COLLECTIONS</span><h2>Payments</h2>'+
+    return '<section class="ref-finance-cover neon-payments-section"><h2>Payments</h2>'+
       '<p>'+html(t.name)+' · '+t.members.length+' members</p>'+
-      '<div class="ref-finance-grid"><div class="ref-ring" style="--pct:'+c.progress+'"><span><strong>'+c.progress+'%</strong><small>Collected</small></span></div>'+
-      '<div class="ref-finance-values"><div><small>Total target</small><b>'+money(c.target)+'</b></div>'+
-      '<div><small>Received</small><b class="ref-good">'+money(c.paid)+'</b></div>'+
-      '<div><small>Remaining</small><b class="ref-due">'+money(c.pending)+'</b></div></div></div>'+
+      '<div class="neon-collection-summary">'+paymentGauge(c.progress)+
+      '<div class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Remaining <strong>'+money(c.pending)+'</strong></span></div></div>'+
       '<div class="ref-status-grid"><span>✅ Paid <b>'+c.full+'</b></span><span>◐ Partial <b>'+c.partial+'</b></span><span>⏳ Pending <b>'+c.unpaid+'</b></span></div>'+
       '<div class="ref-finance-buttons"><button type="button" class="ref-primary" data-roster-jump="1">👥 All Member Payments</button>'+
-      (canEdit?'<button class="ref-secondary" data-action="collection-quick-add" data-id="'+html(t.id)+'">＋ Add Payment</button>':'<span class="ref-readonly">🔒 View only</span>')+'</div></section>'+
+      (canEdit?'<button class="ref-secondary" data-action="member-payment-add">＋ Add Payment</button>':'<span class="ref-readonly">🔒 View only</span>')+'</div></section>'+
       paymentRoster(t)+
       '<section class="ref-card ref-recent"><div class="ref-section-title"><h3>Recent Payments</h3><span class="ref-history-count">Last 6</span></div>'+
       (history||'<p class="ref-empty">No payments recorded yet.</p>')+'</section>'+
