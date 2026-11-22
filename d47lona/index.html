@@ -961,7 +961,6 @@ function applyIphonePdfSchedule(){
  return true;
 }
 
-if(applyIphonePdfSchedule()||applyHdfcHomePdfSchedule())save();
 
 function amountFor(loan,n){return Number(loan.schedule?.[n-1]?.emi ?? loan.emi)}
 
@@ -1005,10 +1004,12 @@ function importHdfc172144641(){
  save();render();notify('HDFC official 60-EMI schedule saved. No payment charged.');
 }
 
+if([applyIphonePdfSchedule(),applyHdfcHomePdfSchedule()].some(Boolean))save();
+
 function cycles(loan){if(!loan.firstDue)return [];return Array.from({length:loan.tenure},(_,i)=>({num:i+1,date:datePlusMonths(loan.firstDue,i),amount:amountFor(loan,i+1),paid:loan.paid.find(x=>x.cycle===i+1),principalLeft:loan.schedule?.[i]?.principalLeft??null,interest:loan.schedule?.[i]?.interest??null}))}
 function closing(loan){return loan.firstDue?fmtDate(datePlusMonths(loan.firstDue,loan.tenure-1)):'Add first EMI date'}
 function activeLoans(){return state.loans.filter(x=>paidCount(x)<x.tenure)}
-function monthly(){return activeLoans().reduce((a,l)=>a+Number(l.emi),0)}
+function monthly(){const ym=today().slice(0,7);return scheduledEmiForMonth(ym)}
 
 /* Month-specific salary journal. An unentered month is unknown, not a zero salary. */
 function validSalaryMonth(month){return typeof month==='string'&&/^(19|20|21)\d{2}-(0[1-9]|1[0-2])$/.test(month)}
@@ -1278,7 +1279,7 @@ function cyclesView(){
  return '<article class="glass d47-cycle-card">'+
  '<div class="d47-cycle-top">'+loanIcon(l)+'<div><strong>'+safe(l.name)+'</strong><span>'+safe(l.lender||'Loan')+'</span></div><div class="d47-cycle-ring" style="--progress:'+pct+'%"><b>'+pct+'%</b></div></div>'+
  '<div class="d47-cycle-stats"><div><small>Next EMI Amount</small><b>'+(upcoming?money(upcoming.amount):'Completed')+'</b></div><div><small>Paid cycles</small><b>'+p+' / '+t+'</b></div><div><small>Next EMI Date</small><b>'+(upcoming?fmtDate(upcoming.date):'Completed')+'</b></div></div>'+
- '<div class="d47-cycle-months">'+cycles(l).filter(c=>c.date>=today()&&!c.paid).slice(0,4).map(c=>'<div class="d47-cycle-month"><span><b>Cycle '+c.num+'</b><small>'+fmtDate(c.date)+'</small></span><strong>'+money(c.amount)+'</strong><small>Pending</small></div>').join('')+'</div>'+'<div class="d47-cycle-track"><span style="width:'+pct+'%"></span></div>'+
+ '<div class="d47-cycle-months">'+cycles(l).filter(c=>c.date>=today()&&!c.paid).slice(0,4).map(c=>'<div class="d47-cycle-month"><span><b>Cycle '+c.num+'</b><small>'+fmtDate(c.date)+'</small></span><strong>'+money(c.amount)+'</strong><small>'+(c.interest!=null?'Interest '+money(c.interest)+' · O/s '+money(c.principalLeft):'Pending')+'</small></div>').join('')+'</div>'+'<div class="d47-cycle-track"><span style="width:'+pct+'%"></span></div>'+
  '<div class="d47-cycle-foot"><span>'+safe(l.firstDue?fmtDate(l.firstDue):'Start date not set')+' → '+safe(closing(l))+'</span><button type="button" class="button secondary" data-open-loan="'+safe(l.id)+'">View cycles ›</button></div>'+
  '</article>'
  }).join(''):'<div class="glass empty"><h2>No loan cycles yet</h2><p class="sub">Add a loan and first EMI date to track its cycles.</p></div>')+
