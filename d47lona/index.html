@@ -996,9 +996,6 @@ function syncDigupLoans(d){
      ?String(src.firstDue).slice(0,10):'',
    source:'DIG UP auto-sync',paid
   };
-  if(loan.pdfScheduleId==='HDFC-172144641-20261122'){
-   freshLoan.principal=260000;freshLoan.emi=5916;freshLoan.tenure=60;freshLoan.firstDue='2026-12-07';
-  }
   for(const [key,value] of Object.entries(freshLoan))
    if(JSON.stringify(loan[key])!==JSON.stringify(value)){loan[key]=value;changed=true}
  }
@@ -1190,7 +1187,7 @@ function paidCount(loan){return loan.paid.length}
    paid, change DIG UP, or debit a bank account. */
 const IPHONE_HDFC_PDF_ROWS=[[1666,849,104142],[1685,1193,102457],[1704,1174,100753],[1724,1154,99029],[1743,1135,97286],[1763,1115,95523],[1784,1094,93739],[1804,1074,91935],[1825,1053,90110],[1846,1032,88264],[1867,1011,86397],[1888,990,84509],[1910,968,82599],[1932,946,80667],[1954,924,78713],[1976,902,76737],[1999,879,74738],[2022,856,72716],[2045,833,70671],[2068,810,68603],[2092,786,66511],[2116,762,64395],[2140,738,62255],[2165,713,60090],[2190,688,57900],[2215,663,55685],[2240,638,53445],[2266,612,51179],[2292,586,48887],[2318,560,46569],[2344,534,44225],[2371,507,41854],[2398,480,39456],[2426,452,37030],[2454,424,34576],[2482,396,32094],[2510,368,29584],[2539,339,27045],[2568,310,24477],[2598,280,21879],[2627,251,19252],[2657,221,16595],[2688,190,13907],[2719,159,11188],[2750,128,8438],[2781,97,5657],[2813,65,2844],[2844,33,0]];
 function applyIphonePdfSchedule(){
- const matching=state.loans.filter(l=>String(l.id||'').toLowerCase()==='iphone'||/\bi[ -]?phone\b/i.test(String(l.name||'')));
+ const matching=state.loans.filter(l=>!l.digupLinked&&(String(l.id||'').toLowerCase()==='iphone'||/\bi[ -]?phone\b/i.test(String(l.name||''))));
  if(matching.length!==1)return false;
  const l=matching[0];
  if(l.pdfScheduleId==='IPHONE-HDFC-20261122'&&l.schedule?.length===48)return false;
@@ -1219,7 +1216,7 @@ function hdfc172144641Schedule(){
  });
 }
 function applyHdfcHomePdfSchedule(){
- const matches=state.loans.filter(l=>/home/i.test(String(l.name||''))&&
+ const matches=state.loans.filter(l=>!l.digupLinked&&/home/i.test(String(l.name||''))&&
    (Math.abs(Number(l.principal||0)-260000)<1||l.pdfScheduleId==='HDFC-172144641-20261122'));
  if(matches.length!==1)return false;
  const l=matches[0];
@@ -1232,7 +1229,7 @@ function applyHdfcHomePdfSchedule(){
 }
 function importHdfc172144641(){
  const loan=selectedLoan();
- if(!loan||!/home/i.test(loan.name||'')||!/hdfc/i.test(loan.lender||loan.name||'')){
+ if(!loan||loan.digupLinked||!/home/i.test(loan.name||'')||!/hdfc/i.test(loan.lender||loan.name||'')){
   notify('Open your existing HDFC Home Loan first.');return;
  }
  if(loan.pdfScheduleId==='HDFC-172144641-20261122'){notify('Official 60-EMI schedule is already loaded.');return}
@@ -1249,6 +1246,7 @@ function importHdfc172144641(){
 if([applyIphonePdfSchedule(),applyHdfcHomePdfSchedule()].some(Boolean))save();
 
 function officialLoanForDisplay(loan){
+ if(loan.digupLinked)return {...loan,schedule:undefined};
  if(/home/i.test(String(loan.name||''))&&Math.abs(Number(loan.principal||0)-260000)<1){
   return {...loan,firstDue:'2026-12-07',tenure:60,emi:5916,schedule:hdfc172144641Schedule()};
  }
