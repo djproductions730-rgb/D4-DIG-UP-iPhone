@@ -340,9 +340,9 @@
     const editors=(t.admins||[]).length;
     return '<section class="ref-members-head"><span class="ref-overline">✦ YOUR PEOPLE</span><h2>Members <em>('+t.members.length+')</em></h2>'+
       '<p>Everyone in your trip, together.</p>'+
-      '<div class="ref-member-counts"><span>👥 All '+t.members.length+'</span><span>🛡️ Admins '+editors+'</span></div>'+
+      '<div class="neon-members-toolbar">'+
       (canEdit?'<button class="neon-add-member" data-action="modal-add-member">+ Add Member</button>':'')+
-      '<label class="ref-member-search">⌕ <input type="search" id="ref-member-search" placeholder="Search member..." aria-label="Search members"></label></section>'+
+      '<label class="ref-member-search">⌕ <input type="search" id="ref-member-search" placeholder="Search member..." aria-label="Search members"></label></div></section>'+
       '<section class="ref-person-list" id="ref-person-list">'+(members||'<div class="ref-empty">No members yet.</div>')+'</section>'+
       '<details class="ref-expand-tools"><summary>👥 Member Management &amp; Cloud Roster <span>⌄</span></summary>'+
       '<div class="ref-tool-body">'+previous.tripMembers(t).replace(/<section class="card d4-member-add-card"[\s\S]*?<\/section>/,'')+'</div></details>';

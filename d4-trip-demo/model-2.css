@@ -395,3 +395,35 @@ body.d4-premium .d4-simple-report .mc-table :is(th,td):last-child{text-align:rig
  .d4-simple-report thead{display:table-header-group}
  .d4-simple-report tr{break-inside:avoid}
 }
+
+/* Match the approved charcoal showcase scale and card proportions. */
+body.d4-premium:has(.ref-luxe-home){background:#0b1119!important}
+body.d4-premium:has(.ref-luxe-home) .topbar{
+  background:linear-gradient(90deg,#0b1119 24%,#0b11192a),url('./goa-aurora.png') right 32%/100% auto no-repeat!important;
+  margin-bottom:0!important;padding:5px 10px!important;min-height:43px!important;
+}
+body.d4-premium:has(.ref-luxe-home) .topbar .mini-brand{margin:0!important}
+body.d4-premium:has(.ref-luxe-home) .topbar .mini-brand :is(b,em){color:white!important}
+body.d4-premium:has(.ref-luxe-home) .topbar .avatar{display:none!important}
+body.d4-premium:has(.ref-luxe-home) .topbar .icon-btn{background:transparent!important;border:0!important;box-shadow:none!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home{
+ border:0!important;border-radius:0!important;padding:9px 10px 7px!important;
+ min-height:clamp(435px,calc(100dvh - 138px - env(safe-area-inset-bottom)),710px)!important;
+ background:linear-gradient(180deg,#0b111930,#0b111950 61px,#0b1119 134px),linear-gradient(90deg,#0b1119c9,transparent),url('./goa-aurora.png') right top/100% auto no-repeat,#0b1119!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home > h2{font-size:clamp(24px,7vw,35px)!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-stats.ref-luxe-stats{border:0!important;background:transparent!important;margin-bottom:8px!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-stats > div{padding:0!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-stats :is(b,small){color:#fff!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-actions.ref-luxe-actions{gap:8px!important;grid-template-rows:repeat(2,minmax(63px,1fr)) minmax(105px,1.55fr)!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action{background:#151f28!important;border-color:#303e49!important;border-radius:10px!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions [data-action="paid-by-person"]{align-self:start!important;min-height:72px!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payments{background:#151f28!important;border-color:#303e49}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payment-heading strong,body.d4-premium .ref-luxe-home .neon-meter-number{color:white!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-report{background:#101922;border-radius:9px;margin:7px 0 0;min-height:36px}
+body.d4-premium .ref-trip-hero.ref-luxe-home .d4-team-sync-guide.d4-sync-minimal .d4-upgrade-btn{font-size:9px!important;height:30px!important;min-height:30px!important}
+body.d4-premium .ref-members-head .neon-members-toolbar{display:flex;flex-direction:row-reverse;gap:7px;align-items:stretch}
+body.d4-premium .neon-members-toolbar .neon-add-member{width:auto;white-space:nowrap;font-size:12px;margin:0;padding:6px 8px}
+body.d4-premium .neon-members-toolbar .ref-member-search{flex:1;min-width:0;margin:0}
+body.d4-premium .neon-members-toolbar input{width:100%;min-width:0}
+body.d4-premium .ref-members-head > p{display:none}
