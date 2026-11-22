@@ -316,3 +316,28 @@ body.d4-premium .plan-ui .v22-day-tabs .day.active{color:#101b08!important;backg
 body.d4-premium .plan-ui .v22-day-tabs .day.active :is(strong,span){color:inherit!important}
 body.d4-premium .neon-calendar-settings{margin:10px 0;padding:9px}
 .neon-calendar-settings>summary{cursor:pointer;padding:7px;font-weight:800;color:#a5eff5}
+
+/* Goa photo header and common section surfaces. */
+body.d4-premium .ref-trip-hero.ref-luxe-home {
+  background:linear-gradient(180deg,#07132130 0,#09121e35 56px,#09121ef2 120px,#09121e 155px),
+    linear-gradient(90deg,#071321cc,transparent 80%),url('./goa-aurora.png') center top / 100% auto no-repeat,#09121e!important;
+}
+body.d4-premium .ref-members-head,
+body.d4-premium .ref-person-list .ref-person,
+body.d4-premium .ref-expense-row,
+body.d4-premium .d4-ticket-v62 .d4-ticket-entry,
+body.d4-premium .memory-tile{
+  background:#101d2a!important;border-color:#375b69!important;box-shadow:none!important;color:#f1faff!important;
+}
+body.d4-premium .ref-members-head .ref-overline{display:none!important}
+body.d4-premium .ref-members-head h2,body.d4-premium .ref-person strong{color:#f5fbff!important}
+body.d4-premium .ref-members-head .ref-member-search{border:1px solid #4db8c5!important;border-radius:11px}
+body.d4-premium .ref-person-finance{color:#91f6d0!important}
+body.d4-premium .ref-person-list .ref-person{padding:8px!important}
+body.d4-premium .d4-ticket-v62 .d4-ticket-stage{min-height:0!important;padding:8px!important}
+body.d4-premium .d4-ticket-v62 .d4-ticket-vehicle{display:none!important}
+body.d4-premium .d4-ticket-v62 .d4-ticket-hero-caption{margin:0}
+.neon-report-cash{display:flex;flex-wrap:wrap;gap:8px;padding:10px;background:#111d2a;color:#fff}
+.neon-report-cash label{display:grid;gap:4px;flex:1 1 120px}
+.neon-report-cash input{min-width:0;background:#182a36;color:#fff;border:1px solid #587782;border-radius:8px;padding:8px}
+#neonPdfPreview{color:#122038;background:#fff;overflow:auto}
