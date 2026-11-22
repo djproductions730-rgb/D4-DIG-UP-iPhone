@@ -94,7 +94,7 @@ vm.runInContext(refSrc,context,{filename:'reference-premium.js'});
 assert.match(context.entryPage(),/id="d4-main-join-link"/,'Main Admin My Trips displays full link field');
 assert.match(context.entryPage(),/data-team="share-join-link"/,'Main Admin My Trips offers Copy Link');
 assert.match(context.entryPage(),/https:\/\/d4-trip\.web\.app\/\?team=real-team-id/,'Main Admin sees exact trip invitation URL');
-assert.match(context.home(),/id="d4-main-join-link"/,'Home displays share URL');
+assert.doesNotMatch(context.home(),/id="d4-main-join-link"/,'Homepage keeps sharing in Settings and My Trips');
 assert.match(context.profilePage(),/id="d4-main-join-link"/,'Settings displays share URL');
 context.teamId='';
 context.view='trip';
