@@ -216,3 +216,4 @@ body.d4-premium .bottom-nav:has(.ref-nav-item) {grid-template-columns:repeat(3,m
 .neon-pdf-preview {margin:12px 0}
 .neon-pdf-preview summary {padding:12px;cursor:pointer}
 @media print {.neon-pdf-preview {display:none!important}}
+ .neon-split-options{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.neon-split-options label{padding:7px;border:1px solid #59848c;border-radius:9px}.neon-split-options label:has(:checked){color:#d4ff80;border-color:#baff49}.neon-split-options input{accent-color:#baff49}

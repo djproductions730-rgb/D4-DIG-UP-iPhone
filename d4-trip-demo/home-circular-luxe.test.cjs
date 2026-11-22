@@ -36,59 +36,31 @@ function setup(){
   return {t,calc,context,show:()=>context.tripOverview(t)};
 }
 
-test('gold circular tracker replaces the straight money line in Home',()=>{
-  const {show}=setup(),markup=show();
-  assert.match(markup,/class="ref-luxe-dial"/);
-  assert.match(markup,/class="ref-luxe-tracker"/);
-  assert.match(markup,/role="progressbar"/);
-  assert.doesNotMatch(markup,/class="ref-progress-track"/);
-  assert.match(markup,/style="--luxe-percent:32\.47%"/);
-  assert.match(markup,/aria-valuenow="32"/);
-  assert.match(markup,/>32%<\/strong>/);
-  assert.match(css,/conic-gradient\(from -90deg/);
-  assert.match(css,/ref-luxe-dial-inner/);
+test('Home renders tappable payment speedometer and current member totals',()=>{
+ const {calc,t,show}=setup();
+ let markup=show();
+ assert.match(markup,/class="neon-payments" data-action="nav" data-view="collections"/);
+ assert.match(markup,/role="progressbar".*aria-valuenow="32"/);
+ assert.match(markup,/>32% collected</);
+ assert.match(markup,/₹54,100/);
+ assert.match(markup,/₹1,12,500/);
+ assert.doesNotMatch(markup,/₹1,66,600/);
+ assert.match(markup,/>17<\/b><small>Members/);
+ calc.paid=88000;calc.pending=78600;calc.progress=120;t.members.pop();
+ markup=show();
+ assert.match(markup,/₹88,000/);
+ assert.match(markup,/>16<\/b><small>Members/);
+ assert.match(markup,/aria-valuenow="100"/);
+ calc.progress=Number.NaN;
+ assert.match(show(),/aria-valuenow="0"/);
 });
 
-test('collection amounts and member count come from live trip data, not previews',()=>{
-  const {calc,t,show}=setup();
-  let markup=show();
-  for(const n of ['₹54,100','₹1,12,500','₹1,66,600'])assert.ok(markup.includes(n),n);
-  assert.match(markup,/>17<\/b><small>Members/);
-  calc.paid=88000;calc.pending=78600;calc.progress=52.821;
-  t.members.pop();
-  markup=show();
-  assert.match(markup,/₹88,000/);
-  assert.match(markup,/₹78,600/);
-  assert.match(markup,/--luxe-percent:52\.821%/);
-  assert.doesNotMatch(markup,/₹54,100/);
-  assert.match(markup,/>16<\/b><small>Members/);
-});
-
-test('six hero action buttons preserve existing trip navigation actions',()=>{
-  const {show}=setup(),markup=show();
-  const actions=markup.match(/<nav class="ref-hero-actions ref-luxe-actions"[\s\S]*?<\/nav>/)?.[0];
-  assert.ok(actions,'Premium six-card navigation must exist');
-  assert.equal((actions.match(/class="ref-action"/g)||[]).length,6);
-  assert.equal((actions.match(/class="ref-luxe-svg"/g)||[]).length >= 5,true);
-  for(const action of ['data-ctx="plan"','data-view="tickets"','data-ctx="memories"','data-ctx="members"','data-view="collections"','data-view="expenses"']){
-    assert.ok(actions.includes(action),'Action missing: '+action);
-  }
-  for(const title of ['Day Plan','Tickets','Memories','Members','Payments','Expenses'])assert.ok(actions.includes(title));
-  assert.match(actions,/<linearGradient/);
-  assert.match(actions,/<feDropShadow/);
-});
-
-test('circular progress clamps invalid values and keeps accessible labels',()=>{
-  const {calc,show}=setup();
-  calc.progress=120;
-  assert.match(show(),/--luxe-percent:100%/);
-  assert.match(show(),/aria-valuenow="100"/);
-  calc.progress=-10;
-  assert.match(show(),/--luxe-percent:0%/);
-  calc.progress=Number.NaN;
-  assert.match(show(),/aria-valuenow="0"/);
-  assert.match(show(),/aria-label="Trip payment collection"/);
-  assert.match(show(),/aria-label="Main trip sections"/);
+test('Home shortcuts open the existing sections and quick editors',()=>{
+ const {show}=setup();
+ const actions=show().match(/<nav class="ref-hero-actions ref-luxe-actions"[\s\S]*?<\/nav>/)?.[0];
+ assert.ok(actions);
+ assert.equal((actions.match(/class="ref-action"/g)||[]).length,7);
+ for(const action of ['data-ctx="plan"','data-view="tickets"','data-ctx="memories"','data-ctx="members"','data-view="collections"','data-action="quick-expense"','data-action="paid-by-person"'])assert.ok(actions.includes(action),action);
 });
 
 test('responsive gold card layout loaded and PWA caches fresh JS and CSS',()=>{

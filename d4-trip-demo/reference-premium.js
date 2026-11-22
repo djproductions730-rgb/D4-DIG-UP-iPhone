@@ -104,7 +104,7 @@
         iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+'</nav>'+
       '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
-        '<span class="neon-meter"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
+        '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
         '<strong class="neon-meter-number">'+pc+'% collected</strong>'+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
       '</button><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
@@ -177,7 +177,7 @@
     if(!t)return previous.tripOverview(t);
     const legacy=previous.tripOverview(t).replace(/<h3 class="d4p-title">Trip Sections<\/h3><nav class="d4p-grid d4p-nav-grid" aria-label="Trip section navigation">[\s\S]*?<\/nav>/,'');
     return tripHero(t)+
-      '<details class="ref-expand-tools"><summary>✨ More Trip Tools &amp; Admin Options <span>⌄</span></summary>'+
+      '<details class="ref-expand-tools"><summary>More Trip Tools <span>⌄</span></summary>'+tripSections()+
       '<div class="ref-tool-body">'+legacy+'</div></details>';
   };
   // Every approved member is shown directly on Payments — no pagination or popup.
@@ -334,7 +334,7 @@
       '<label class="ref-member-search">⌕ <input type="search" id="ref-member-search" placeholder="Search member..." aria-label="Search members"></label></section>'+
       '<section class="ref-person-list" id="ref-person-list">'+(members||'<div class="ref-empty">No members yet.</div>')+'</section>'+
       '<details class="ref-expand-tools"><summary>👥 Member Management &amp; Cloud Roster <span>⌄</span></summary>'+
-      '<div class="ref-tool-body">'+(window.D4Team?.controls(t)||'')+archivedMembersPanel(t)+(isMain()?'<button class="btn small" data-action="modal" data-modal="assign-admin">Manage Trip Admins</button>':'')+'</div></details>';
+      '<div class="ref-tool-body">'+previous.tripMembers(t).replace(/<section class="card d4-member-add-card"[\s\S]*?<\/section>/,'')+'</div></details>';
   };
   expensesPage=function(){
     const t=current();
