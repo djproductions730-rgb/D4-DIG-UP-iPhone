@@ -268,3 +268,25 @@ body.d4-premium .neon-meter-number {font-size:12px}
 body.d4-premium .neon-payment-values {padding-top:3px}
 body.d4-premium .neon-payment-values > span {font-size:10px;line-height:1.1;gap:2px}
 body.d4-premium .neon-report {border-color:#baff49;color:#f5ffea;padding:7px;min-height:41px}
+
+body.d4-premium:has(.ref-luxe-home){
+  background:radial-gradient(ellipse at 92% 2%,#2d21566e,transparent 28%),radial-gradient(ellipse at 12% 6%,#07545366,transparent 30%),#080f19!important;
+}
+body.d4-premium:has(.ref-luxe-home) .mini-brand b i{color:#c3ff52!important}
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action::before,
+body.d4-premium .ref-luxe-home .ref-luxe-actions .ref-action::after{display:none!important}
+body.d4-premium .ref-luxe-home .ref-action-ico{
+  color:#54eef2!important;background:none!important;border:0!important;box-shadow:none!important;
+}
+body.d4-premium .ref-luxe-home :is([data-view="tickets"],[data-ctx="memories"],[data-action="quick-expense"]) .ref-action-ico{color:#c3ff52!important}
+body.d4-premium .ref-luxe-home [data-ctx="members"] .ref-action-ico{color:#ba9aff!important}
+body.d4-premium .ref-luxe-home [data-action="paid-by-person"] .ref-action-ico{color:#7ff3c3!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .d4-team-sync-guide.d4-sync-minimal{
+  top:8px!important;right:8px!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .d4-team-sync-guide.d4-sync-minimal .d4-upgrade-btn{
+  height:34px!important;min-height:34px!important;min-width:0!important;padding:4px 7px!important;
+  font-size:10px!important;background:#183441!important;box-shadow:none!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home:has(.d4-sync-minimal) > h2{padding-right:76px}
+body.d4-premium:has(.ref-luxe-home) .ref-bottom-nav .ref-nav-item.active{color:#c3ff52!important;background:#1b3023!important}

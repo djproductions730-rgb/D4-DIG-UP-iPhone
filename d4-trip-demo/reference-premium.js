@@ -10,7 +10,19 @@
   let quickPanel = '';
   const html = value => esc(value == null ? '' : String(value));
   const travelCover = '<span class="ref-sun" aria-hidden="true"></span><span class="ref-palm" aria-hidden="true">🌴</span>';
+  const homeShortcutPaths={
+    'Day Plan':'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4m8-4v4M4 10h16m-12 4h2m4 0h2"/>',
+    Tickets:'<path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4zM15 8v2m0 2v2m0 2v2"/>',
+    Memories:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="15.5" cy="8.5" r="1.5"/><path d="m4 17 5-5 4 4 2-2 5 5"/>',
+    Members:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m2 3a5 5 0 0 1 3 4v2"/>',
+    Payments:'<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18m-14 5h4"/>',
+    Expenses:'<path d="M5 3h14v17l-2-1-2 1-3-1-3 1-2-1-2 1zM8 8h8m-8 4h8m-8 4h5"/>',
+    'Paid by Person':'<circle cx="8" cy="8" r="3"/><path d="M2 20v-2a6 6 0 0 1 10-4m2-7h8m-8 3h8m-5-3q6 6-3 6l6 6"/>'
+  };
   function iconButton(icon,label,action,attr=''){
+    if(Object.hasOwn(homeShortcutPaths,label)){
+      icon='<svg class="ref-luxe-svg neon-line-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+homeShortcutPaths[label]+'</svg>';
+    }
     return '<button type="button" class="ref-action" data-action="'+action+'" '+attr+'>'+
       '<span class="ref-action-ico" aria-hidden="true">'+icon+'</span><strong>'+html(label)+'</strong></button>';
   }
