@@ -1143,8 +1143,10 @@ function loanIcon(loan) {
  const image = loanArtwork[loanDisplayKind(loan)];
  return `<div class="loan-icon loan-icon-illustrated"><img class="loan-art" src="${image}" alt="" width="128" height="128" loading="lazy" decoding="async"></div>`;
 }
+function nextUnpaidEmi(loan){const cs=cycles(loan);return cs.find(c=>!c.paid&&c.date>=today())||cs.find(c=>!c.paid)||null}
+function totalUpcomingEmi(){return activeLoans().reduce((sum,l)=>sum+Number(nextUnpaidEmi(l)?.amount||0),0)}
 function loanCard(l,compact=false){
- const p=paidCount(l),total=Number(l.tenure)||1,percent=Math.min(100,Math.max(0,Math.round(p/total*100)));
+ const upcoming=nextUnpaidEmi(l),p=paidCount(l),total=Number(officialLoanForDisplay(l).tenure)||1,percent=Math.min(100,Math.max(0,Math.round(p/total*100)));
  const tone=loanDisplayKind(l);
  const finished=p>=total;
  return `<article class="glass loan-compact loan-tone-${tone}">
@@ -1154,7 +1156,7 @@ function loanCard(l,compact=false){
    <span class="loan-compact-status ${finished?'closed':''}">${finished?'Closed':'Active'}</span>
   </div>
   <div class="loan-compact-main">
-   <div><span class="caption">Monthly EMI</span><strong>${money(l.emi)}</strong></div>
+   <div><span class="caption">Upcoming EMI${upcoming?" · "+fmtDate(upcoming.date):""}</span><strong>${upcoming?money(upcoming.amount):"Completed"}</strong></div>
    <div class="mini-paid"><span class="caption">EMIs paid</span><strong>${p}/${total}</strong></div>
   </div>
   <div class="loan-compact-progress" aria-label="${percent}% of EMI cycles paid"><span style="width:${percent}%"></span></div>
@@ -1245,7 +1247,7 @@ function loansView(){
  <div class="stack d47-neon-overview"><button class="button secondary" data-nav="cycles">View all loan cycles ›</button>${quickMoneySection()}
   <section class="glass d47-neon-summary" aria-label="Loan summary">
    <div><span>Active Loans</span><strong>${activeCount}</strong></div>
-   <div><span>Total Monthly EMI</span><strong>${money(monthly())}</strong></div>
+   <div><span>Total Upcoming EMI</span><strong>${money(totalUpcomingEmi())}</strong></div>
   </section>
   <div class="loan-clean-toolbar">
    <div class="loan-clean-tabs">
