@@ -221,3 +221,50 @@ body.d4-premium .bottom-nav:has(.ref-nav-item) {grid-template-columns:repeat(3,m
 .neon-category-picker > summary{padding:10px 12px;background:#152735;color:#f6ffef;border:1px solid #779b75;border-radius:11px;cursor:pointer}
 body.d4-premium .d4-ticket-mode.selected,body.d4-premium .d4-ticket-directions button.active{border-color:#baff49!important;color:#dcffa5!important;background:#243c27!important}
 body.d4-premium .ref-plan-cover,body.d4-premium .ref-expense-cover,body.d4-premium .d4-ticket-page{background:radial-gradient(ellipse at top right,#33357477,transparent 50%),radial-gradient(ellipse at top left,#19747458,transparent 54%),#101b28!important;border-color:#3a737c!important}
+
+/* Compact dashboard: two shortcut rows, followed by the person tile and gauge. */
+body.d4-premium .ref-trip-hero.ref-luxe-home {
+  padding:clamp(10px,3vw,16px)!important;min-height:0!important;
+  background:radial-gradient(ellipse at 85% 0%,#29225375,transparent 32%),radial-gradient(ellipse at 15% 0%,#0b555b66,transparent 33%),#09121e!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-brand,
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-sun {display:none!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home > h2{margin:0 0 4px!important;font-size:clamp(23px,6.3vw,34px)!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home > p{margin:0 0 6px!important;font-size:13px!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-stats.ref-luxe-stats {
+  display:inline-flex!important;width:auto!important;height:auto!important;min-height:0!important;
+  padding:0!important;margin:0 0 8px!important;border:1px solid #286571!important;border-radius:999px!important;
+  background:#102632!important;overflow:hidden!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-stats > div {
+  display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px!important;
+  padding:4px 9px!important;min-height:0!important;height:auto!important;margin:0!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-stats :is(b,small) {
+  font-size:12px!important;line-height:1.25!important;margin:0!important;color:#a9f0e8!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-stat-icon {display:none!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-hero-actions.ref-luxe-actions {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin:0!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-luxe-actions .ref-action {
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  aspect-ratio:auto!important;height:clamp(61px,17vw,80px)!important;min-height:0!important;
+  padding:4px 2px!important;gap:3px!important;border-radius:11px!important;background:#102132!important;
+  border-color:#305460!important;box-shadow:none!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action-ico {
+  width:30px!important;height:30px!important;min-height:0!important;margin:0!important;
+}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action-ico .ref-luxe-svg {width:30px!important;height:30px!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .ref-action strong {margin:0!important;font-size:clamp(10px,3vw,13px)!important;line-height:1.15!important}
+body.d4-premium .ref-trip-hero.ref-luxe-home .neon-payments {
+  grid-column:span 2;margin:0;padding:6px 7px;gap:2px;border-radius:11px;min-width:0;
+}
+body.d4-premium .neon-payment-heading {gap:3px;font-size:12px}
+body.d4-premium .neon-payment-heading > span {font-size:9px}
+body.d4-premium .neon-meter {width:76px}
+body.d4-premium .neon-meter-number {font-size:12px}
+body.d4-premium .neon-payment-values {padding-top:3px}
+body.d4-premium .neon-payment-values > span {font-size:10px;line-height:1.1;gap:2px}
+body.d4-premium .neon-report {border-color:#baff49;color:#f5ffea;padding:7px;min-height:41px}

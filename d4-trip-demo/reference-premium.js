@@ -101,13 +101,13 @@
         iconButton(luxeIcon('memories'),'Memories','open-tab','data-ctx="memories"')+
         iconButton(luxeIcon('members'),'Members','open-tab','data-ctx="members"')+
         iconButton(luxeIcon('wallet'),'Payments','nav','data-view="collections"')+
-        iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+'</nav>'+
+        iconButton(luxeIcon('expenses'),'Expenses',isTripAdmin(t)?'quick-expense':'nav',isTripAdmin(t)?'':'data-view="expenses"')+iconButton(luxeIcon('members'),'Paid by Person','paid-by-person')+
       '<button type="button" class="neon-payments" data-action="nav" data-view="collections">'+
         '<span class="neon-payment-heading"><strong>Trip Payments</strong><span>View payments ›</span></span>'+
         '<span class="neon-meter" role="progressbar" aria-label="Trip payment collection" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+pc+'"><svg viewBox="0 0 200 108" aria-hidden="true"><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-track"/><path d="M12 96 A88 88 0 0 1 188 96" pathLength="100" class="neon-meter-fill" stroke-dasharray="'+p+' 100"/><path d="M100 96 L29 96" class="neon-meter-needle" transform="rotate('+(p*1.8)+' 100 96)"/><circle cx="100" cy="96" r="4"/></svg></span>'+
         '<strong class="neon-meter-number">'+pc+'% collected</strong>'+
         '<span class="neon-payment-values"><span>Received <strong>'+money(c.paid)+'</strong></span><span>Pending <strong>'+money(c.pending)+'</strong></span></span>'+
-      '</button><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
+      '</button></nav><button class="neon-report" data-action="quick-report">Trip Report PDF ›</button></section>';
 
   }
   function memberAmountPanel(t){
