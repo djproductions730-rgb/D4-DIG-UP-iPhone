@@ -8,7 +8,7 @@ const css=fs.readFileSync(path.join(__dirname,'modern-card-pdf.css'),'utf8');
 const js=fs.readFileSync(path.join(__dirname,'modern-card-pdf.js'),'utf8');
 assert.match(html,/modern-card-pdf\.js\?build=46/);
 assert.match(html,/modern-card-pdf\.css\?build=46/);
-assert.match(html,/D4ModernCardPDF\.render\(t,calculations\(t\),collectionTotals\(t\),datesInTrip\(t\)\)/);
+assert.match(html,/D4ModernCardPDF\.render\(t,calculations\(t\),collectionTotals\(t\),datesInTrip\(t\),reportCashAmounts\(\)\)/);
 assert.match(css,/@page\{size:A4/);
 assert.match(css,/display:table-header-group/);
 const env={window:{},Date};

@@ -29,46 +29,10 @@ function makeFixture(saved){
  return {context,events,preferences,t};
 }
 
-test('six beautiful, accessible navigation tiles replace the old emoji grid, keeping admin controls',()=>{
+test('only approved tiles appear on the homepage',()=>{
  const {context,t}=makeFixture(null),board=context.tripOverview(t);
- const grid=board.match(/<nav class="d4p-grid d4p-nav-grid ref-sections-grid"[^>]*>([\s\S]*?)<\/nav>/);
- assert.ok(grid,'Trip Sections remains a normal navigable grid');
- assert.equal((grid[1].match(/<button type="button" class="d4p-tile"/g)||[]).length,6);
- assert.equal((grid[1].match(/<svg /g)||[]).length,6);
- for(const name of ['Overview','Day Plan','Tickets','Alerts','Reports','Settings']){
-   assert.ok(grid[1].includes('aria-label="'+name+'"'),name+' is accessible');
- }
- assert.doesNotMatch(board,/Old section/,'Duplicate previous grid is removed');
- assert.match(board,/Existing admin actions/,'Other original options remain');
- assert.match(board,/<details class="ref-trip-sections" open>/,'All tiles are initially visible');
-});
-
-test('Hide and Show preference is optional, persistent, and never deletes buttons',()=>{
- const {context,events,preferences,t}=makeFixture('closed');
- assert.doesNotMatch(context.tripOverview(t),/<details class="ref-trip-sections" open>/);
- const handler=events.toggle.find(fn=>fn.toString().includes('SECTIONS_KEY'));
- assert.ok(handler,'Native details toggle handler exists');
- const target={open:true,classList:{contains:name=>name==='ref-trip-sections'}};
- handler({target});
- assert.equal(preferences.value,'open');
- assert.match(context.tripOverview(t),/<details class="ref-trip-sections" open>/);
- target.open=false;handler({target});
- assert.equal(preferences.value,'closed');
- assert.match(context.tripOverview(t),/ref-sections-grid/,'Hidden sections are not deleted');
-});
-
-test('all six tiles preserve delegated click targets',()=>{
- const {context,t}=makeFixture(null),board=context.tripOverview(t);
- for(const action of ['data-ctx="overview"','data-ctx="plan"','data-view="tickets"',
-   'data-ctx="reminders"','data-ctx="report"','data-view="profile"']){
-  assert.ok(board.includes(action),'Route missing: '+action);
- }
-});
-
-test('mobile visual styles include 3-column gold tiles, readable labels and focus states',()=>{
- assert.match(css,/ref-trip-sections/);
- assert.match(css,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
- assert.match(css,/ref-section-icon svg/);
- assert.match(css,/ref-sections-head:focus-visible/);
- assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.equal((board.match(/class="ref-action"/g)||[]).length,7);
+ for(const name of ['Day Plan','Tickets','Memories','Members','Payments','Expenses','Paid by Person'])assert.ok(board.includes(name),name);
+ assert.match(board,/data-action="quick-report"/);
+ assert.doesNotMatch(board,/Old section|Existing admin actions|More Trip Tools|ref-sections-grid/);
 });
